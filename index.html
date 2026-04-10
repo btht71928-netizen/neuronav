@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NeuroNav">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>NeuroNav - 脳神経外科営業支援</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --primary: #1565C0; --primary-dark: #0D47A1;
+      --bg: #F0F4F8; --card: #FFFFFF;
+      --text: #111827; --text-sub: #6B7280; --border: #E5E7EB;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ===== HEADER ===== */
+    #header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: calc(env(safe-area-inset-top) + 10px) 16px 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+    .hd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+    .logo-sub { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 1px; }
+    .hd-help { width: 32px; height: 32px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; cursor: pointer; }
+    .search-box { display: flex; align-items: center; background: rgba(255,255,255,0.17); border-radius: 12px; padding: 9px 13px; gap: 8px; }
+    #searchInput { flex: 1; background: none; border: none; outline: none; color: #fff; font-size: 16px; font-family: inherit; }
+    #searchInput::placeholder { color: rgba(255,255,255,0.55); }
+    #clearBtn { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 17px; display: none; }
+
+    /* ===== CONTENT ===== */
+    #content { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(env(safe-area-inset-bottom) + 56px); }
+
+    /* ===== BOTTOM NAV (4 tabs) ===== */
+    #bnav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 300; background: #fff; border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom); }
+    .nb { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 7px 2px 5px; cursor: pointer; color: var(--text-sub); gap: 2px; user-select: none; -webkit-user-select: none; transition: color 0.15s; }
+    .nb.active { color: var(--primary); }
+    .nb svg { width: 22px; height: 22px; }
+    .nb span { font-size: 9px; font-weight: 600; letter-spacing: -0.2px; }
+
+    /* ===== PAGES ===== */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ===== FILTER BAR ===== */
+    .fbar { display: flex; gap: 7px; padding: 8px 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .fbar::-webkit-scrollbar { display: none; }
+    .fc { font-size: 12px; font-weight: 500; padding: 6px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: #fff; color: var(--text-sub); white-space: nowrap; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
+    .fc.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .slabel { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.8px; padding: 14px 14px 4px; }
+
+    /* ===== VESSEL CARD ===== */
+    .vc { background: var(--card); border-radius: 14px; margin: 5px 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .vc-hd { padding: 12px 14px; display: flex; align-items: center; gap: 11px; cursor: pointer; }
+    .vabbr { background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; padding: 6px 8px; border-radius: 8px; min-width: 50px; text-align: center; flex-shrink: 0; }
+    .vnames { flex: 1; min-width: 0; }
+    .vja { font-size: 15px; font-weight: 600; }
+    .ven { font-size: 11px; color: var(--text-sub); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vright { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .tag { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+    .tred { background: #FEE2E2; color: #DC2626; }
+    .tblue { background: #DBEAFE; color: #1D4ED8; }
+    .tpurp { background: #EDE9FE; color: #6D28D9; }
+    .tgreen { background: #D1FAE5; color: #065F46; }
+    .star { font-size: 18px; cursor: pointer; color: #D1D5DB; padding: 2px; }
+    .star.on { color: #F59E0B; }
+    .vc-bd { display: none; padding: 0 14px 13px; border-top: 1px solid var(--border); }
+    .vc-bd.open { display: block; }
+    .ir { display: flex; gap: 8px; margin-top: 9px; }
+    .il { font-size: 11px; font-weight: 600; color: var(--text-sub); min-width: 62px; padding-top: 1px; flex-shrink: 0; }
+    .iv { font-size: 13px; line-height: 1.6; flex: 1; }
+    .segrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+    .segchip { font-size: 11px; padding: 3px 8px; background: var(--bg); border-radius: 20px; border: 1px solid var(--border); }
+
+    /* ===== COMPANY / PRODUCT ===== */
+    .cblock { background: var(--card); border-radius: 14px; margin: 5px 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .cbar { padding: 13px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .cdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .cname { font-size: 15px; font-weight: 700; flex: 1; }
+    .ccountry { font-size: 11px; color: var(--text-sub); }
+    .chevron { color: var(--text-sub); font-size: 14px; transition: transform 0.2s; }
+    .chevron.open { transform: rotate(90deg); }
+    .plist { display: none; border-top: 1px solid var(--border); }
+    .plist.open { display: block; }
+    .prow { padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .prow:last-child { border-bottom: none; }
+    .phd { display: flex; align-items: flex-start; gap: 8px; }
+    .pname { font-size: 14px; font-weight: 600; }
+    .pdesc { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+    .ptag { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+    .cat-thrombectomy { background: #FEE2E2; color: #DC2626; }
+    .cat-coiling { background: #DBEAFE; color: #1D4ED8; }
+    .cat-flowdiverter { background: #EDE9FE; color: #6D28D9; }
+    .cat-stent { background: #D1FAE5; color: #065F46; }
+    .cat-balloon { background: #FEF3C7; color: #92400E; }
+    .pdetail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .pdetail.open { display: block; }
+    .fi { font-size: 13px; line-height: 1.6; padding: 2px 0 2px 15px; position: relative; }
+    .fi::before { content: '▸'; position: absolute; left: 0; color: var(--primary); font-size: 10px; top: 4px; }
+    .fnote { margin-top: 8px; font-size: 12px; color: var(--text-sub); background: var(--bg); padding: 8px 10px; border-radius: 8px; line-height: 1.5; }
+    .apbadge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; margin-top: 8px; }
+    .approved { background: #D1FAE5; color: #065F46; }
+    .pending { background: #FEF3C7; color: #92400E; }
+    .unapproved { background: #FEE2E2; color: #DC2626; }
+
+    /* ===== LINEUP ===== */
+    .lineup-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+    .lineup-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .lineup-item { font-size: 12px; line-height: 1.7; padding: 1px 0 1px 12px; position: relative; color: var(--text); }
+    .lineup-item::before { content: '◦'; position: absolute; left: 0; color: var(--primary); font-weight: 700; }
+
+    /* ===== ABBREVIATION CARD ===== */
+    .ac { background: var(--card); border-radius: 14px; margin: 5px 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .ac-hd { padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .ac-abbr { font-size: 14px; font-weight: 800; color: var(--primary); background: #EFF6FF; padding: 6px 10px; border-radius: 8px; min-width: 64px; text-align: center; flex-shrink: 0; line-height: 1.3; }
+    .ac-names { flex: 1; min-width: 0; }
+    .ac-ja { font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .ac-en { font-size: 11px; color: var(--text-sub); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .actag { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+    .cat-stroke { background: #FEE2E2; color: #DC2626; }
+    .cat-aneurysm { background: #DBEAFE; color: #1D4ED8; }
+    .cat-imaging { background: #D1FAE5; color: #065F46; }
+    .cat-device { background: #FEF3C7; color: #92400E; }
+    .ac-bd { display: none; padding: 0 14px 13px; border-top: 1px solid var(--border); }
+    .ac-bd.open { display: block; }
+    .ac-desc { font-size: 13px; line-height: 1.7; margin-top: 10px; }
+
+    /* ===== SEARCH RESULTS ===== */
+    #searchResults { display: none; }
+    .rgtitle { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.8px; padding: 14px 14px 4px; }
+
+    /* ===== EMPTY ===== */
+    .empty { padding: 60px 20px; text-align: center; color: var(--text-sub); }
+    .empty-icon { font-size: 46px; margin-bottom: 10px; }
+    .empty-msg { font-size: 15px; line-height: 1.6; }
+
+    /* ===== VESSEL DIAGRAM ===== */
+    .vc-diagram { margin-top: 10px; padding: 10px 8px 8px; background: #F0F7FF; border-radius: 10px; border: 1px solid #BBDEFB; }
+    .diag-title { font-size: 10px; font-weight: 700; color: #5C6BC0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; text-align: center; }
+    .diag-legend { display: flex; gap: 14px; justify-content: center; margin-top: 6px; }
+    .diag-legend span { font-size: 10px; color: #78909C; display: inline-flex; align-items: center; gap: 4px; }
+
+    /* ===== HELP MODAL ===== */
+    #helpOverlay { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.5); align-items: flex-end; }
+    #helpOverlay.open { display: flex; }
+    .help-sheet { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 20px calc(env(safe-area-inset-bottom) + 20px); width: 100%; }
+    .help-sheet h2 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+    .help-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+    .help-num { width: 26px; height: 26px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .help-txt { font-size: 14px; line-height: 1.5; padding-top: 3px; }
+    .help-close { width: 100%; margin-top: 16px; padding: 13px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="hd-top">
+    <div>
+      <div class="logo">🧠 NeuroNav</div>
+      <div class="logo-sub">脳神経外科 営業支援アプリ</div>
+    </div>
+    <div class="hd-help" onclick="toggleHelp()">?</div>
+  </div>
+  <div class="search-box">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="search" id="searchInput" placeholder="血管名・製品名・サイズ・略語…" autocomplete="off" autocorrect="off" spellcheck="false">
+    <span id="clearBtn" onclick="clearSearch()">✕</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <div id="contentPad">
+    <div id="searchResults"></div>
+
+    <!-- 血管 -->
+    <div id="pageVessel" class="page active">
+      <div class="fbar" id="vfbar">
+        <div class="fc active" onclick="filterV('all',this)">すべて</div>
+        <div class="fc" onclick="filterV('carotid',this)">内頸動脈系</div>
+        <div class="fc" onclick="filterV('vertebrobasilar',this)">椎骨脳底動脈系</div>
+        <div class="fc" onclick="filterV('willis',this)">Willis輪</div>
+        <div class="fc" onclick="filterV('neck',this)">頸部・大血管</div>
+        <div class="fc" onclick="filterV('perforator',this)">穿通枝</div>
+        <div class="fc" onclick="filterV('venous',this)">静脈洞・静脈</div>
+        <div class="fc" onclick="filterV('eca',this)">外頸動脈分枝</div>
+      </div>
+      <div id="vesselList"></div>
+    </div>
+
+    <!-- 競合他社 -->
+    <div id="pageCompetitor" class="page">
+      <div class="fbar" id="cfbar">
+        <div class="fc active" onclick="filterC('all',this)">すべて</div>
+        <div class="fc" onclick="filterC('thrombectomy',this)">血栓回収</div>
+        <div class="fc" onclick="filterC('coiling',this)">コイリング</div>
+        <div class="fc" onclick="filterC('flowdiverter',this)">フローダイバーター</div>
+        <div class="fc" onclick="filterC('stent',this)">ステント</div>
+        <div class="fc" onclick="filterC('balloon',this)">バルーン</div>
+      </div>
+      <div id="compList"></div>
+    </div>
+
+    <!-- 略語 -->
+    <div id="pageAbbr" class="page">
+      <div class="fbar" id="afbar">
+        <div class="fc active" onclick="filterA('all',this)">すべて</div>
+        <div class="fc" onclick="filterA('stroke',this)">脳卒中・血栓回収</div>
+        <div class="fc" onclick="filterA('aneurysm',this)">動脈瘤・コイリング</div>
+        <div class="fc" onclick="filterA('imaging',this)">画像・評価スケール</div>
+        <div class="fc" onclick="filterA('device',this)">手技・デバイス</div>
+      </div>
+      <div id="abbrList"></div>
+    </div>
+
+    <!-- お気に入り -->
+    <div id="pageFavorites" class="page">
+      <div id="favList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="bnav">
+  <div class="nb active" id="nbVessel" onclick="switchTab('vessel')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/>
+      <circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/>
+    </svg>
+    <span>血管</span>
+  </div>
+  <div class="nb" id="nbCompetitor" onclick="switchTab('competitor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/>
+      <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2"/>
+      <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+    </svg>
+    <span>競合他社</span>
+  </div>
+  <div class="nb" id="nbAbbr" onclick="switchTab('abbr')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/>
+    </svg>
+    <span>略語</span>
+  </div>
+  <div class="nb" id="nbFavorites" onclick="switchTab('favorites')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+    <span>お気に入り</span>
+  </div>
+</div>
+
+<!-- HELP -->
+<div id="helpOverlay" onclick="closeHelp(event)">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <h2>📱 iPhoneホーム画面に追加する方法</h2>
+    <div class="help-step"><div class="help-num">1</div><div class="help-txt"><strong>Safari</strong>でこのページを開く（Chromeでは不可）</div></div>
+    <div class="help-step"><div class="help-num">2</div><div class="help-txt">画面下中央の<strong>共有ボタン（□↑）</strong>をタップ</div></div>
+    <div class="help-step"><div class="help-num">3</div><div class="help-txt"><strong>「ホーム画面に追加」</strong>を選択 → 「追加」</div></div>
+    <div class="help-step"><div class="help-num">4</div><div class="help-txt">ホーム画面のアイコンから起動するとフルスクリーンで使用可能</div></div>
+    <button class="help-close" onclick="toggleHelp()">閉じる</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA - 血管
+// ============================================================
+const vessels = [
+  { id:'ica', ja:'内頸動脈', en:'Internal Carotid Artery', abbr:'ICA', system:'carotid',
+    segs:['C1：頸部','C2：錐体部','C3：破裂孔部','C4：海綿静脈洞部','C5：膝状部','C6：眼動脈部','C7：交通部（終末部）'],
+    branches:'眼動脈、前脈絡叢動脈、後交通動脈 → 前大脳動脈・中大脳動脈',
+    clinical:'脳梗塞・TIAの主要原因血管。タンデム病変（頸部ICA狭窄＋頭蓋内閉塞）では両部位への介入が必要。内頸動脈瘤は全動脈瘤中で最多。ICA終末部（T字分岐）閉塞はLVO中でも広範梗塞になりやすい',
+    devices:'血栓回収：ガイディングカテーテルの留置目標。頸部ICA狭窄合併例ではステント・バルーンが必要なことも。コイリング：C6（眼動脈部）・C7（交通部）に動脈瘤多発。FD：大型ICA瘤に適応', tags:['血栓回収','コイリング'] },
+  { id:'mca', ja:'中大脳動脈', en:'Middle Cerebral Artery', abbr:'MCA', system:'carotid',
+    segs:['M1：水平部（島葉手前まで）','M2：島部（シルビウス裂内）','M3：弁蓋部','M4：皮質部'],
+    branches:'レンズ核線条体動脈（M1・穿通枝）、前側頭動脈、中側頭動脈',
+    clinical:'脳梗塞で最頻度の閉塞部位。M1閉塞はLVOの典型。運動野・感覚野・言語野（左半球）への供血担当。NIHSSが高スコアになりやすい',
+    devices:'血栓回収：M1・M2が主ターゲット。M2以降は細径デバイス必要。コイリング：MCA分岐部瘤はステント補助が必要なことも', tags:['血栓回収','コイリング'] },
+  { id:'aca', ja:'前大脳動脈', en:'Anterior Cerebral Artery', abbr:'ACA', system:'carotid',
+    segs:['A1：水平部（前交通動脈まで）','A2：上行部（脳梁膝部まで）','A3：脳梁周囲部','A4・A5：皮質枝'],
+    branches:'Heubner回帰動脈（A1-A2分岐部）、眼窩前頭動脈、脳梁辺縁動脈',
+    clinical:'下肢優位の片麻痺・感覚障害、無動性無言（両側ACA梗塞）。A1低形成は対側からの代償あり。ACoA動脈瘤破裂時にA2やHeubner動脈への影響に注意',
+    devices:'血栓回収：A1・A2閉塞（アクセス困難で小径デバイス要）。コイリング：ACoA動脈瘤で頻出', tags:['血栓回収','コイリング'] },
+  { id:'acom', ja:'前交通動脈', en:'Anterior Communicating Artery', abbr:'ACoA', system:'willis',
+    segs:[], branches:'サブカロソール動脈、視床下部枝（穿通枝）',
+    clinical:'くも膜下出血の原因として動脈瘤好発部位の最多。形態の個人差大（duplex・triplex等）。破裂時に認知障害・記憶障害を来すことがある',
+    devices:'コイリング：頸部が広い例も多くステント補助・バルーン補助が必要なことも。投影角の調整が鍵', tags:['コイリング'] },
+  { id:'pcom', ja:'後交通動脈', en:'Posterior Communicating Artery', abbr:'PCoA', system:'willis',
+    segs:[], branches:'視床前穿通枝、乳頭体動脈、後部脈絡叢動脈枝',
+    clinical:'IC-PC動脈瘤（ICAとPCoAの分岐部）は動眼神経麻痺を引き起こしやすく急性期対応要。胎児型PCA（Fetal PCA）：PCoAがPCAに発達し後大脳動脈の主供血路となる（約20〜25%）',
+    devices:'コイリング：IC-PC動脈瘤は最も一般的なコイリング対象のひとつ。頸部が広い場合はバルーン・ステント補助', tags:['コイリング'] },
+  { id:'opha', ja:'眼動脈', en:'Ophthalmic Artery', abbr:'OphA', system:'carotid',
+    segs:['硬膜内部','眼窩内部'], branches:'網膜中心動脈、毛様体動脈群',
+    clinical:'網膜への唯一の供血源。閉塞で一過性黒内障（amaurosis fugax）または永続的視力喪失。ICA狭窄の症状として出現することも',
+    devices:'コイリング：C6部の眼動脈瘤はOphA起始部の保護が必須。フローダイバーター：OphAのカバーが問題になる場合あり', tags:['コイリング'] },
+  { id:'acha', ja:'前脈絡叢動脈', en:'Anterior Choroidal Artery', abbr:'AChA', system:'carotid',
+    segs:[], branches:'内包後脚、視床、側脳室脈絡叢への枝',
+    clinical:'AChA症候群：対側の片麻痺＋感覚障害＋半盲（内包後脚・外側膝状体梗塞）。非常に細小で代償血行路が乏しく閉塞で重篤な症状',
+    devices:'コイリング：AChA起始部近傍の動脈瘤は閉塞リスクがあり術前計画が重要', tags:['コイリング'] },
+  { id:'va', ja:'椎骨動脈', en:'Vertebral Artery', abbr:'VA', system:'vertebrobasilar',
+    segs:['V1：横突起前部（起始〜C6）','V2：横突起孔内（C6〜C2）','V3：後頭下三角部','V4：硬膜内部（PICA分岐まで）'],
+    branches:'後下小脳動脈（PICA）、前脊髄動脈、後脊髄動脈、筋枝',
+    clinical:'左右の合流で脳底動脈を形成。優位側（左優位が多い）と劣位側あり。V4部に解離性動脈瘤・紡錘状動脈瘤が発生しやすい',
+    devices:'血栓回収：BA閉塞・PICA閉塞のアクセスルート。大動脈弓形態がアクセスに影響。コイリング：V4解離性動脈瘤・VA-PICA動脈瘤', tags:['血栓回収','コイリング'] },
+  { id:'ba', ja:'脳底動脈', en:'Basilar Artery', abbr:'BA', system:'vertebrobasilar',
+    segs:['下部（BA下1/3・AICA周辺）','中部（BA中1/3・橋穿通枝多数）','上部（BA上1/3・SCA）','先端部（BA tip・PCA分岐）'],
+    branches:'AICA（前下小脳動脈）、SCA（上小脳動脈）、多数の橋穿通枝、後大脳動脈',
+    clinical:'BA閉塞（BAO）は致死率・重症後遺率が極めて高い。意識障害・四肢麻痺・脳幹症状。血栓回収の時間的窓は前循環より長い場合も（最長24時間報告あり）',
+    devices:'血栓回収：BAO治療は緊急性高い。ガイドカテのVA到達が鍵。コイリング：BA tip動脈瘤・BA-SCA動脈瘤・BA-AICA動脈瘤', tags:['血栓回収','コイリング'] },
+  { id:'pca', ja:'後大脳動脈', en:'Posterior Cerebral Artery', abbr:'PCA', system:'vertebrobasilar',
+    segs:['P1：交通前部（BAからPCoAまで）','P2：周槽部','P3：四叠体部','P4：距状溝部'],
+    branches:'後脈絡叢動脈、視床穿通枝、脳幹枝、後頭葉皮質枝',
+    clinical:'PCA閉塞：対側同名半盲（視覚野）、感覚障害、失認（右半球）、記憶障害（海馬）。胎児型PCA（約25%）ではICA閉塞でもPCA梗塞が起こりうる',
+    devices:'血栓回収：P1・P2閉塞（BAOに準じた緊急対応）。コイリング：P1・P2部の動脈瘤', tags:['血栓回収','コイリング'] },
+  { id:'pica', ja:'後下小脳動脈', en:'Posterior Inferior Cerebellar Artery', abbr:'PICA', system:'vertebrobasilar',
+    segs:['前延髄部','外側延髄部（変異最多）','扁桃体部','小脳扁桃周囲部','皮質部'],
+    branches:'延髄外側部穿通枝、小脳半球下面・虫部枝',
+    clinical:'PICA閉塞：Wallenberg症候群（延髄外側梗塞）— 嚥下障害・構音障害・眩暈・眼振・同側ホルネル症候群・交叉性温痛覚障害・失調',
+    devices:'血栓回収：PICA閉塞（到達困難で小径デバイス要）。コイリング：VA-PICA動脈瘤でPICA起始部の保護が最重要課題', tags:['血栓回収','コイリング'] },
+  { id:'aica', ja:'前下小脳動脈', en:'Anterior Inferior Cerebellar Artery', abbr:'AICA', system:'vertebrobasilar',
+    segs:['前部（BA近傍）','橋小脳角部（内耳孔近傍）','小脳半球部'],
+    branches:'内耳動脈（迷路動脈）、橋穿通枝、顔面神経・外転神経への栄養枝',
+    clinical:'AICA閉塞：突発性難聴・眩暈（内耳動脈由来）、顔面神経麻痺、水平注視麻痺、失調',
+    devices:'コイリング：BA-AICA動脈瘤（橋穿通枝・内耳動脈の保護が困難なケースあり）', tags:['コイリング'] },
+  { id:'sca', ja:'上小脳動脈', en:'Superior Cerebellar Artery', abbr:'SCA', system:'vertebrobasilar',
+    segs:['内側部（BA周囲）','外側部（小脳テント縁）','皮質部'],
+    branches:'小脳上面枝、歯状核枝、小脳テント枝',
+    clinical:'SCA閉塞：小脳上部梗塞・失調、三叉神経症状（第1〜第3枝）。BA tip動脈瘤の治療時にSCA保護が重要',
+    devices:'コイリング：BA-SCA動脈瘤、BA tip動脈瘤術中にSCA起始部への影響を評価', tags:['コイリング'] },
+  { id:'cca', ja:'総頸動脈', en:'Common Carotid Artery', abbr:'CCA', system:'neck',
+    segs:['右CCA：腕頭動脈（BCA）より分岐','左CCA：大動脈弓から直接分岐'],
+    branches:'内頸動脈（ICA）、外頸動脈（ECA）',
+    clinical:'頸部CCA・ICA狭窄はCEAまたはCAS（頸動脈ステント）の対象。大動脈弓部の形態（TypeI/II/III・牛型弓）がカテーテルアクセスに大きく影響',
+    devices:'血栓回収：ガイディングカテーテルの留置基点。CCA起始部が急角度（bovine arch）だとシース挿入・操作が困難', tags:['血栓回収'] },
+  { id:'eca', ja:'外頸動脈', en:'External Carotid Artery', abbr:'ECA', system:'neck',
+    segs:[], branches:'上甲状腺動脈、上行咽頭動脈、舌動脈、顔面動脈、後頭動脈、浅側頭動脈、内顎動脈',
+    clinical:'脳への直接供血なし。タンデム病変時の参考血管。眼動脈とのanastomosisあり（側副血行路）。硬膜動静脈瘻ではECA枝が関与することも',
+    devices:'血栓回収：タンデム病変でICA閉塞部越えの際にECA分岐部を目印にする', tags:['血栓回収'] },
+  { id:'subclav', ja:'鎖骨下動脈', en:'Subclavian Artery', abbr:'SubA', system:'neck',
+    segs:['第1部（前斜角筋内側）','第2部（前斜角筋後方）','第3部（前斜角筋外側）'],
+    branches:'椎骨動脈、内胸動脈、甲状頸動脈幹、肋頸動脈幹',
+    clinical:'SubA閉塞：鎖骨下動脈盗血症候群（椎骨動脈逆流→後頭蓋窩症状）。左SubAは大動脈弓から直接分岐（右は腕頭動脈経由）',
+    devices:'血栓回収：椎骨動脈系アクセス時に通過する。左SubAが大動脈弓から鋭角に分岐する場合があり操作困難なことも', tags:['血栓回収'] },
+  // ===== 頸部・大血管（追加）=====
+  { id:'aorticarch', ja:'大動脈弓', en:'Aortic Arch', abbr:'AoArch', system:'neck',
+    segs:['Type I：3分枝が弓の凸側から垂直に分岐（操作が最も容易）','Type II：分枝起始部が弓の中間位','Type III：分枝起始部が弓の凹側（操作が最も困難）','Bovine Arch（牛型弓）：左CCAが腕頭動脈から分岐（人口の約25%）'],
+    branches:'腕頭動脈（BCA）、左総頸動脈（左CCA）、左鎖骨下動脈（左SubA）',
+    clinical:'全ての脳血管内治療のアクセス出発点。弓部の形態（Type I/II/III・牛型弓）がカテーテル操作の難易度に直接影響。高齢者・動脈硬化進行例ではType IIIや蛇行弓が多く難易度が高い',
+    devices:'血栓回収・コイリング全般：カテーテル挿入時の最初の関門。Type III・Elongated Archはガイドシース選択や操作戦略の変更が必要。術前CTAで弓部形態確認が重要', tags:['血栓回収','コイリング'] },
+  { id:'bca', ja:'腕頭動脈', en:'Brachiocephalic Artery', abbr:'BCA', system:'neck',
+    segs:[],
+    branches:'右総頸動脈（右CCA）、右鎖骨下動脈（右SubA）',
+    clinical:'右側の頸動脈・椎骨動脈へのアクセスルート。大動脈弓から分岐する最初の大血管。Bovine arch（牛型弓）では左CCAもBCAから分岐し左半球へのアクセスにも影響する',
+    devices:'血栓回収：右半球LVO治療では大腿動脈→BCA→右CCA→ICAのルートが基本。BCAの屈曲・石灰化がアクセスに影響', tags:['血栓回収'] },
+  // ===== 穿通枝 =====
+  { id:'lsa', ja:'レンズ核線条体動脈', en:'Lenticulostriate Arteries', abbr:'LSA', system:'perforator',
+    segs:['内側群（medial LSA）：MCA M1近位より分岐','外側群（lateral LSA）：MCA M1遠位〜分岐部より分岐'],
+    branches:'内包・被殻・尾状核頭部・淡蒼球（被殻優位）への供血',
+    clinical:'MCA M1から分岐する穿通枝群（6〜12本程度）。閉塞でラクナ梗塞（被殻・内包・尾状核）→純粋運動性片麻痺・構音障害。M1血栓回収時に絡み取り・損傷に注意。高血圧性脳出血（被殻出血）の責任血管',
+    devices:'血栓回収：M1デバイス展開時にLSA領域への影響を最小化する必要あり。コイリング：MCA M1近位〜分岐部動脈瘤でLSA保護が最大の課題', tags:['血栓回収','コイリング'] },
+  { id:'heubner', ja:'Heubner回帰動脈', en:'Recurrent Artery of Heubner', abbr:'RAH', system:'perforator',
+    segs:[],
+    branches:'尾状核頭部・内包前脚・被殻前部・前有孔質への供血',
+    clinical:'ACA A1-A2分岐部（前交通動脈近傍）から分岐する最大の穿通枝。走行変異が多い（ACA A1から分岐することも）。閉塞で対側の顔面・上肢麻痺（純粋運動性）。ACoA動脈瘤のコイリング時に保護が必要',
+    devices:'コイリング：ACoA動脈瘤治療時にRAH起始部の保護が重要。3D-RAで走行を術前確認するのが原則', tags:['コイリング'] },
+  { id:'thalamic_perf', ja:'視床穿通動脈（後穿通枝）', en:'Thalamic Perforating Arteries', abbr:'ThPA', system:'perforator',
+    segs:['後穿通枝（BA tip・P1後壁より分岐）','視床膝状体動脈（PCA P2より分岐）','内側後脈絡叢動脈（P2近位より）','外側後脈絡叢動脈（P2遠位より）'],
+    branches:'視床・視床下部・内包後脚・脳幹背側・膝状体への供血',
+    clinical:'BA tipや後大脳動脈P1から分岐する視床穿通枝群。BA tip動脈瘤コイリング時の最難関課題。閉塞でBenedict症候群・Weber症候群・視床梗塞（記憶障害・感覚障害・意識障害）',
+    devices:'コイリング：BA tip動脈瘤・BA-SCA動脈瘤のコイリングで後穿通枝の保護が技術的難点。フローダイバーター：BA幹部への適応は穿通枝閉塞リスクが高く基本的に禁忌', tags:['コイリング'] },
+  { id:'pontine_perf', ja:'橋穿通枝', en:'Pontine Perforating Arteries', abbr:'PPA', system:'perforator',
+    segs:['パラメディアン枝（BA正中より・橋内側を供血）','短回旋枝（橋前外側）','長回旋枝（橋外側〜小脳テント下面）'],
+    branches:'橋・脳幹腹側部への多数の穿通枝',
+    clinical:'脳底動脈中部から分岐する橋への穿通枝群。閉塞でラクナ梗塞（橋梗塞）→交叉性片麻痺・構音障害・眼球運動障害・閉じ込め症候群（locked-in syndrome）。BA中部での血管内治療は穿通枝閉塞リスクが高い',
+    devices:'コイリング：BA幹部（紡錘状・解離性）動脈瘤のコイリングは橋穿通枝の保護が最大の課題。フローダイバーター適応は慎重に判断が必要', tags:['コイリング'] },
+  { id:'asa', ja:'前脊髄動脈', en:'Anterior Spinal Artery', abbr:'ASA', system:'perforator',
+    segs:['頸髄部（両側VAのV4部から合流）','胸髄・腰髄部（分節動脈と吻合し延続）'],
+    branches:'脊髄前角・錐体路・脊髄前2/3への供血',
+    clinical:'両側VAのV4部から分岐し合流して下行。閉塞で脊髄前動脈症候群：損傷高位以下の運動麻痺・解離性感覚障害（温痛覚消失・触覚・深部感覚保持）。VA-PICA動脈瘤・V4解離性動脈瘤でASA起始部への影響に注意',
+    devices:'コイリング：V4動脈瘤・VA-PICA動脈瘤でASA起始部の保護を確認する必要あり。VA閉塞術前にASA起始部の確認が必須', tags:['コイリング'] },
+  { id:'pericallosal', ja:'脳梁周囲動脈 / 脳梁辺縁動脈', en:'Pericallosal / Callosomarginal Artery', abbr:'PcalA', system:'carotid',
+    segs:['脳梁周囲動脈：ACA A3以降・脳梁背側に沿って走行','脳梁辺縁動脈：ACA A3以降・帯状溝に沿って走行'],
+    branches:'脳梁・帯状回・補足運動野・前頭葉内側面への枝',
+    clinical:'ACA A3以降の遠位部。脳梁周囲動脈瘤（pericallosal aneurysm）：ACA遠位部動脈瘤で鎌内に好発。血管走行が蛇行しカテーテルアクセス困難。外科的クリッピングが選択されることも多い',
+    devices:'血栓回収：ACA A3以降の閉塞は技術的に最も難しい閉塞部位のひとつ（超細径デバイス・熟練を要す）。コイリング：脳梁周囲動脈瘤はアクセス困難で外科治療と選択を議論', tags:['血栓回収','コイリング'] },
+  { id:'pcha', ja:'後脈絡叢動脈', en:'Posterior Choroidal Artery', abbr:'PChA', system:'vertebrobasilar',
+    segs:['内側後脈絡叢動脈（mPChA）：PCA P2近位より分岐','外側後脈絡叢動脈（lPChA）：PCA P2遠位より分岐'],
+    branches:'視床後部・膝状体・脈絡叢・脳梁膨大部・海馬への枝',
+    clinical:'PCA P2から分岐する重要穿通枝。閉塞で視床後部梗塞・視野障害（上象限半盲）・記憶障害（海馬）。PCA周囲動脈瘤のコイリング時に保護を考慮する必要がある重要穿通枝',
+    devices:'コイリング：PCA P2部の動脈瘤でPChA起始部の保護が課題。3D-RAでの術前確認が重要', tags:['コイリング'] },
+  // ===== 静脈洞・静脈 =====
+  { id:'sss', ja:'上矢状静脈洞', en:'Superior Sagittal Sinus', abbr:'SSS', system:'venous',
+    segs:['前部（前頭部・細く静脈流入少ない）','中部（頭頂部・皮質静脈が多数流入）','後部（後頭部・静脈洞交会へ）'],
+    branches:'脳表皮質静脈（多数）からの流入・くも膜顆粒（CSF吸収）',
+    clinical:'硬膜動静脈瘻（dAVF）の好発部位のひとつ。SSS閉塞（CVST）：頭蓋内圧亢進・けいれん・静脈性梗塞。静脈洞血栓症ではヘパリン投与・血管内血栓回収が行われることも',
+    devices:'dAVF治療：SSSに流入するdAVFはECA枝（MMA等）からの動脈塞栓術（TAE）が第一選択。静脈側からのTVEも行われる', tags:['コイリング'] },
+  { id:'ts_sig', ja:'横静脈洞 / S状静脈洞', en:'Transverse Sinus / Sigmoid Sinus', abbr:'TS / SigS', system:'venous',
+    segs:['横静脈洞（TS）：静脈洞交会→乳突部に沿って走行','S状静脈洞（SigS）：乳突部→頸静脈球へ'],
+    branches:'小脳・後頭葉静脈からの流入，岩下静脈洞・海綿静脈洞と吻合',
+    clinical:'dAVFの最好発部位（Cognard分類・Borden分類が重要）。TS/SigS dAVFは拍動性耳鳴りが主訴。逆行性軟膜静脈還流（LVD）があると出血リスク高く緊急治療の適応となる',
+    devices:'dAVF治療：後頭動脈・中硬膜動脈・椎骨動脈硬膜枝からのTAEが基本。静脈洞内コイル塞栓（TVE：IJV経由）も行われる。Onyx・NBCA等の液体塞栓剤を使用', tags:['コイリング'] },
+  { id:'cs', ja:'海綿静脈洞', en:'Cavernous Sinus', abbr:'CS', system:'venous',
+    segs:['前部（眼静脈流入部）','後部（岩下静脈洞流出部）'],
+    branches:'上眼静脈・下眼静脈・中硬膜静脈から流入，岩下静脈洞・岩錐静脈洞へ流出',
+    clinical:'内部をICA（C4海綿静脈洞部）・動眼神経・滑車神経・外転神経・三叉神経（V1/V2）が通過。CCF（頸動脈海綿静脈洞瘻）：眼球突出・眼球運動障害・拍動性血管雑音・球結膜充血。Barrow分類でType A〜D',
+    devices:'CCF治療：経動脈的（ICAコイル・バルーン）または経静脈的（岩下静脈洞→CS経由のコイル塞栓：TVE）アプローチ。現在はTVEが標準治療', tags:['コイリング'] },
+  { id:'ijv', ja:'内頸静脈', en:'Internal Jugular Vein', abbr:'IJV', system:'venous',
+    segs:['上球部（頸静脈孔・S状静脈洞と連続）','頸部（胸鎖乳突筋内側）','下球部（鎖骨下静脈との合流部）'],
+    branches:'S状静脈洞から連続，顔面静脈・舌静脈・甲状腺静脈等が合流',
+    clinical:'経静脈的アプローチ（TVE）の主要アクセスルート。TS/SigS dAVFや海綿静脈洞AVF（CCF）の治療で使用。IJV閉塞・血栓症・狭窄があるとアクセス困難でアプローチ変更が必要',
+    devices:'dAVF・CCF治療：IJV→S状静脈洞→TS/SigS or CS のルートで経静脈的コイル塞栓術（TVE）。アクセスルートの開存確認（静脈造影）が必須', tags:['コイリング'] },
+  // ===== 外頸動脈分枝 =====
+  { id:'mma', ja:'中硬膜動脈', en:'Middle Meningeal Artery', abbr:'MMA', system:'eca',
+    segs:['前枝（前頭部硬膜・頭頂部へ）','後枝（側頭部・後頭部硬膜へ）'],
+    branches:'硬膜・硬膜外腔への豊富な供血',
+    clinical:'ECA（顎動脈）から分岐し棘孔を通じて頭蓋内へ。硬膜動静脈瘻（dAVF）・慢性硬膜下血腫の治療ターゲット。MMA塞栓術（MMAE）は慢性硬膜下血腫の新しい血管内治療として近年急速に普及',
+    devices:'MMA塞栓術（MMAE）：慢性硬膜下血腫に対してOnyx・PVA・Embosphere等で塞栓。dAVF治療：MMAからのTAEが多くのdAVFの治療に有効（TS/SigS型・SSS型）', tags:['コイリング'] },
+  { id:'sta', ja:'浅側頭動脈', en:'Superficial Temporal Artery', abbr:'STA', system:'eca',
+    segs:['前頭枝（前額部頭皮）','頭頂枝（頭頂部頭皮）'],
+    branches:'側頭筋・頭皮への供血',
+    clinical:'ECAの終末枝のひとつ。STA-MCA吻合術（脳血管バイパス術）のドナー血管として重要。もやもや病・ICA慢性閉塞・脳腫瘍切除後の血行再建に活用。触診・超音波で術前評価',
+    devices:'バイパス術：STA（前頭枝または頭頂枝）をMCA皮質枝に吻合して補助血流を確保。血管内治療と並行した治療戦略を議論する場合に評価が必要', tags:['血栓回収'] },
+  { id:'oa', ja:'後頭動脈', en:'Occipital Artery', abbr:'OA', system:'eca',
+    segs:['頭皮部（後頭部）','深部枝（硬膜枝・VA硬膜枝と吻合）'],
+    branches:'後頭部頭皮・後頸部筋・硬膜枝（VA硬膜枝と吻合）',
+    clinical:'ECAからの分枝。PICA低形成例ではOA-PICA吻合（バイパス）のドナー血管として使用。VA閉塞時の側副血行路として機能することも。TS/SigS型dAVFへの供血枝となることも多い',
+    devices:'dAVF治療：OAからのTAEがTS/SigS型dAVFに有効。バイパス術：OA-PICA吻合（小脳・脳幹虚血の血行再建）', tags:['コイリング'] },
+];
+
+// ============================================================
+// DATA - 競合他社（lineup追加）
+// ============================================================
+const competitors = [
+  { id:'stryker', company:'Stryker Neurovascular', cja:'ストライカー', country:'🇺🇸 米国', color:'#FF6B00',
+    products:[
+      { id:'trevo', name:'Trevo XP ProVue', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['ProVue技術：ステント内部を透過するX線不透過マーカーで血栓の視認が可能','NXT吸引システム・Synchroワイヤーとの組み合わせ推奨','DAWN試験・DEFUSE3試験でのエビデンスベース（比較対象として採用）'],
+        lineup:['Trevo 18 ProVue 3mm×20mm（0.021"マイクロカテ対応）','Trevo 18 ProVue 4mm×20mm（0.021"マイクロカテ対応）','Trevo XP ProVue 4mm×20mm（0.027"マイクロカテ対応）','Trevo XP ProVue 6mm×25mm（0.027"マイクロカテ対応）','Trevo XP ProVue 6mm×30mm（0.027"マイクロカテ対応）'],
+        note:'競合：Solitaire X（Medtronic）、EMBOTRAP III（Cerenovus）、ERIC（MicroVention）' },
+      { id:'target', name:'Target コイルシリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用コイル',
+        feats:['Target 360：球状2次コイル（Standard/Soft/Extra Soft/Nano）','Target Helical：らせん形状フレームコイル（Standard/Soft）','Target Tetra：4面体形状（複雑形状動脈瘤向けフレーム）','国内使用実績・シェア共に高い'],
+        lineup:['Target 360 Nano：1.5mm, 2mm, 3mm（小型瘤向け）','Target 360 Standard：2〜20mm（各径×各長）','Target 360 Soft：2〜20mm','Target 360 Extra Soft：2〜16mm','Target Helical Standard：2〜20mm','Target Helical Soft：2〜20mm','Target Tetra：4〜16mm（複雑形状）'],
+        note:'競合：Axium Prime（Medtronic）、HydroCoil（MicroVention）、DeltaPlush（Cerenovus）' },
+      { id:'neuroform', name:'Neuroform EZ / Atlas', cat:'stent', catlabel:'ステント', appr:'approved',
+        desc:'コイル補助用自己拡張型頭蓋内ステント',
+        feats:['Neuroform EZ：開放セル型、側枝保護・分岐部動脈瘤に有利','Neuroform Atlas：遠位アクセス性向上、先端部の柔軟性改善','ワイドネック動脈瘤・分岐部動脈瘤にSAC（ステント補助コイリング）として使用'],
+        lineup:['Neuroform EZ 3.0mm×15mm','Neuroform EZ 4.0mm×20mm','Neuroform EZ 4.5mm×20mm','Neuroform EZ 4.5mm×30mm'],
+        note:'競合：LVIS/LVIS Jr（MicroVention）、Solitaire AB（Medtronic）' },
+    ]
+  },
+  { id:'medtronic', company:'Medtronic Neurovascular', cja:'メドトロニック', country:'🇺🇸 米国', color:'#0066CC',
+    products:[
+      { id:'solitaire', name:'Solitaire X', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['世界最多の臨床エビデンス（MR CLEAN、SWIFT PRIME、ESCAPE等）','Solitaire 2→Solitaire X：柔軟性・推進力・遠位追跡性を大幅改善','ACE吸引カテーテルとの併用（SAVE法・Solumbra法）で再開通率向上'],
+        lineup:['Solitaire X 4mm×20mm','Solitaire X 4mm×40mm','Solitaire X 6mm×30mm','Solitaire X 6mm×40mm'],
+        note:'世界シェアトップクラス。競合：Trevo XP ProVue（Stryker）、EMBOTRAP III（Cerenovus）' },
+      { id:'ace', name:'ACE 吸引カテーテル', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'大口径再灌流吸引カテーテル',
+        feats:['ADAPT法（直接吸引ファーストパス）での単独使用も可','柔軟なシャフトとキンク耐性が遠位部へのアクセスを補助','Solitaire Xとの組み合わせによる二段階法が標準的'],
+        lineup:['ACE 64：内径0.064"（1.63mm）','ACE 68：内径0.068"（1.73mm）','ACE 72：内径0.072"（1.83mm）'],
+        note:'競合：JET 7（Penumbra）、SOFIA（MicroVention）' },
+      { id:'pipeline', name:'Pipeline Flex with Shield', cat:'flowdiverter', catlabel:'フローダイバーター', appr:'approved',
+        desc:'フローダイバーター（国内先行承認製品）',
+        feats:['約25%金属被覆率（48〜64本のワイヤーブレイド）で血流を再方向転換','Shield Technology：リン酸コリン表面処理で血栓形成抑制','大型（≥10mm）・巨大・紡錘状・ブレブ付き動脈瘤に最適','長期のDAPT（最低6ヶ月）が必須'],
+        lineup:['対応血管径：2.50〜5.25mm（0.25mm刻み）','長さ：10, 12, 14, 16, 18, 20, 25, 30, 35mm'],
+        note:'国内フローダイバーターの先行製品。競合：FRED（MicroVention）' },
+      { id:'axium', name:'Axium Prime コイル', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用コイル',
+        feats:['Axium Prime Standard / Soft / Extra Soft：3Dランダムループで均一充填','Axium Extra Soft：超柔軟、急性期破裂・再破裂リスク高い症例に'],
+        lineup:['Axium Prime Standard：2〜20mm（各径×各長）','Axium Prime Soft：2〜18mm','Axium Prime Extra Soft：2〜14mm'],
+        note:'競合：Target（Stryker）、HydroCoil（MicroVention）、DeltaPlush（Cerenovus）' },
+      { id:'hyperglide', name:'HyperGlide / HyperForm', cat:'balloon', catlabel:'バルーン', appr:'approved',
+        desc:'コイル補助用バルーンカテーテル',
+        feats:['HyperGlide：セミコンプライアント、形状維持性高く広いネックに対応','HyperForm：コンプライアント、不整形・大きなネックにも適合','BAC（バルーン補助コイリング）でステント留置なしにネック保護'],
+        lineup:['HyperGlide 4mm×10mm','HyperGlide 4mm×20mm','HyperGlide 5mm×20mm','HyperGlide 5mm×30mm','HyperForm 4mm×7mm','HyperForm 4mm×20mm','HyperForm 7mm×20mm'],
+        note:'競合：Scepter C/XC（MicroVention）' },
+      { id:'solitaire_ab', name:'Solitaire AB', cat:'stent', catlabel:'ステント', appr:'approved',
+        desc:'コイル補助兼血流再建用ステント',
+        feats:['SAC（ステント補助コイリング）と血栓回収の両機能を持つ','展開途中の回収・再位置決めが可能'],
+        lineup:['Solitaire AB 4mm×15mm','Solitaire AB 4mm×20mm','Solitaire AB 6mm×20mm','Solitaire AB 6mm×30mm'],
+        note:'競合：Neuroform EZ（Stryker）、LVIS（MicroVention）' },
+    ]
+  },
+  { id:'microvention', company:'MicroVention（テルモグループ）', cja:'マイクロベンション', country:'🇯🇵/🇺🇸 日米', color:'#00A651',
+    products:[
+      { id:'eric', name:'ERIC（エリック）', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['Embolic Retriever with Interlinked Cages：相互接続リング構造で血栓把持力強化','遠位部への追跡性・柔軟性が高い','テルモグループとしての国内サポート体制・流通ネットワーク'],
+        lineup:['ERIC 5mm×40mm','ERIC 5mm×60mm','ERIC 6mm×40mm','ERIC 6mm×60mm','ERIC 8mm×40mm','ERIC 8mm×60mm'],
+        note:'テルモグループの協力体制が差別化点。競合：Solitaire X（Medtronic）、Trevo（Stryker）' },
+      { id:'sofia', name:'SOFIA 吸引カテーテル', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'大口径吸引カテーテル',
+        feats:['段階的サイズで遠位〜近位部まで対応','高い柔軟性とキンク耐性でM2・A2等の遠位部へも到達','ADAPT法（直接吸引）に最適化されたデザイン'],
+        lineup:['SOFIA 5：内径0.055"（有効長139cm / 156cm）','SOFIA 6：内径0.070"（有効長139cm）','SOFIA Plus：内径0.070"（有効長156cm・長尺型）'],
+        note:'競合：ACE（Medtronic）、JET 7（Penumbra）' },
+      { id:'hydrocoil', name:'HydroCoil シリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'ヒドロゲル膨潤性脳動脈瘤コイル',
+        feats:['外層がヒドロゲルで最大7倍まで膨潤→充填率向上','HydroFrame / HydroSoft / HydroFill の3ラインナップ','HELPS試験：再開通率低下の可能性示唆','膨潤完了まで約20分かかるため術中の時間管理が重要'],
+        lineup:['HydroFrame（フレーム）：1.5mm〜20mm径','HydroSoft（主充填）：2mm〜20mm径','HydroFill（仕上げ充填）：2mm〜10mm径'],
+        note:'膨潤特性が他コイルとの最大の差別化点。競合：Target（Stryker）、Axium（Medtronic）' },
+      { id:'lvis', name:'LVIS / LVIS Jr', cat:'stent', catlabel:'ステント', appr:'approved',
+        desc:'コイル補助用ブレイデッドステント',
+        feats:['LVIS：閉鎖セル型（ブレイデッド）、金属被覆率23〜35%でネック保護に優れる','LVIS Jr：細径血管（1.5〜3.5mm）向け、前大脳動脈・後大脳動脈でも使用可','Y字型・X字型ステント留置（分岐部動脈瘤）にも対応（LVISのみ）'],
+        lineup:['LVIS：対応血管径2.5〜5.5mm × 長さ15〜40mm','LVIS Jr：対応血管径1.5〜3.5mm × 長さ10〜25mm'],
+        note:'分岐部動脈瘤へのY-stentingが可能。競合：Neuroform EZ（Stryker）、Solitaire AB（Medtronic）' },
+      { id:'fred', name:'FRED（フレッド）', cat:'flowdiverter', catlabel:'フローダイバーター', appr:'approved',
+        desc:'二重構造フローダイバーター',
+        feats:['外層疎＋内層密の二重構造：安定留置と高い血流転換効果を両立','Pipeline同様の適応（大型・巨大・紡錘状動脈瘤）','長期DAPTが必要（最低6ヶ月）','テルモグループのサポート体制'],
+        lineup:['FRED：対応血管径3.5, 4.0, 4.5, 5.0mm','長さ：7〜48mm（径・長の組み合わせ多数）'],
+        note:'競合：Pipeline Flex with Shield（Medtronic）' },
+      { id:'scepter', name:'Scepter C / XC', cat:'balloon', catlabel:'バルーン', appr:'approved',
+        desc:'OTW型コイル補助バルーンカテーテル',
+        feats:['Scepter C：コンプライアント（不整形・広頸部の動脈瘤に適合）','Scepter XC：クロスリンクトコンプライアント（形状保持性と適合性のバランス）','Over-the-Wire（OTW）構造でコイリング中の操作性良好'],
+        lineup:['Scepter C 4mm×10mm, 4mm×15mm, 4mm×20mm, 7mm×20mm','Scepter XC 4mm×10mm, 4mm×20mm, 7mm×20mm'],
+        note:'競合：HyperGlide/HyperForm（Medtronic）' },
+    ]
+  },
+  { id:'penumbra', company:'Penumbra', cja:'ペナンブラ', country:'🇺🇸 米国', color:'#8B1A4A',
+    products:[
+      { id:'revascularization', name:'3D Revascularization Device', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'3D形状ステントリトリーバー',
+        feats:['三次元立体（3Dらせん）形状で血栓を効率よく絡め取る','Penumbra独自の吸引システムとの親和性が高い','CAT RX（吸引カテーテル）との組み合わせ推奨'],
+        lineup:['3D Revascularization Device 8mm×40mm','3D Revascularization Device 12mm×40mm','3D Revascularization Device 16mm×40mm'],
+        note:'競合：Solitaire X（Medtronic）、Trevo（Stryker）' },
+      { id:'jet7', name:'JET 7 XTRA FLEX', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'大口径吸引カテーテル',
+        feats:['7F相当の大口径内腔で強力な吸引力を発揮','XTRA FLEX：超柔軟な先端部でM2・A2等の遠位部まで到達','ADAPT（直接吸引ファーストパス）に特化した設計思想'],
+        lineup:['JET 7 XTRA FLEX：内径0.071"、有効長132cm'],
+        note:'競合：ACE（Medtronic）、SOFIA（MicroVention）' },
+    ]
+  },
+  { id:'cerenovus', company:'Cerenovus（J&J）', cja:'セレノバス', country:'🇺🇸 米国', color:'#CC0000',
+    products:[
+      { id:'embotrap', name:'EMBOTRAP III', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['二重管腔構造（Dual Mesh）で血栓を外側に封じ込め遠位塞栓リスクを低減','ARISE II試験（欧州多施設）での有効性・安全性データ'],
+        lineup:['EMBOTRAP III 5mm×37mm（0.021"マイクロカテ対応）','EMBOTRAP III 5mm×37mm（0.027"マイクロカテ対応）','EMBOTRAP III 7mm×37mm','EMBOTRAP III 7mm×55mm'],
+        note:'血栓の漏れ出しを防ぐ二重構造が差別化点。競合：Solitaire X（Medtronic）、Trevo（Stryker）' },
+      { id:'deltacoils', name:'DeltaPlush / DeltaFill', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル（Cerenovus＝旧Codman）',
+        feats:['DeltaPlush：外面にポリエステルフィラメントを撚り込み血栓形成を促進','DeltaFill：充填専用コイル（超柔軟、フィリング効率重視）'],
+        lineup:['DeltaPlush：2〜20mm（各径×各長）','DeltaFill：2〜14mm（各径×各長）'],
+        note:'競合：Target（Stryker）、Axium（Medtronic）、HydroCoil（MicroVention）' },
+    ]
+  },
+  { id:'cmi', company:'CMI（シーエムアイ）', cja:'CMI', country:'🇯🇵 日本', color:'#2E7D32',
+    products:[
+      { id:'envi_sr', name:'eNVi-SR', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス（CMI）',
+        feats:['独自のメッシュ構造で血栓把持力と血流再開通を両立','CMIの国内サポート体制による迅速な対応','国内神経血管内治療施設での導入実績あり'],
+        lineup:['詳細サイズはCMI営業担当に確認'],
+        note:'競合：Solitaire X（Medtronic）、Trevo（Stryker）、ERIC（MicroVention）' },
+      { id:'optima', name:'OPTIMA コイルシリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用コイル（CMI）',
+        feats:['OPTIMA Standard / Soft / Extra Soft：均一で安定したループ形成','フレームコイルからフィリングコイルまでシリーズ化','CMIの国内流通網による安定供給・迅速サポート'],
+        lineup:['OPTIMA Standard：各径×各長','OPTIMA Soft：各径×各長','OPTIMA Extra Soft：各径×各長'],
+        note:'競合：Target（Stryker）、Axium（Medtronic）、HydroCoil（MicroVention）' },
+      { id:'silkvista', name:'Silk Vista Baby', cat:'flowdiverter', catlabel:'フローダイバーター', appr:'approved',
+        desc:'細径血管対応フローダイバーター（Balt製・CMI取扱）',
+        feats:['対応血管径：2.0〜2.5mm（細径血管・末梢動脈瘤にも適応可能）','ブレイデッド（編み込み）構造で高い柔軟性と追跡性','Silk（先代）からの改良型、視認性マーカー強化','フランスBalt社製、欧州での使用実績豊富','CMIが国内取扱い・サポートを担当'],
+        lineup:['Silk Vista Baby：対応血管径2.0〜3.0mm','長さ：20, 25, 30, 40mm（径に応じた組み合わせあり）'],
+        note:'競合：Pipeline Flex（Medtronic）、FRED（MicroVention）' },
+    ]
+  },
+];
+
+// ============================================================
+// DATA - 略語
+// ============================================================
+const abbreviations = [
+  // ===== 脳卒中・血栓回収 =====
+  { id:'ais', abbr:'AIS', full:'Acute Ischemic Stroke', ja:'急性虚血性脳卒中', cat:'stroke',
+    desc:'脳梗塞の急性期。発症4.5時間以内はrt-PA静注療法、6時間以内（後方循環は最大24時間）は血管内治療（EVT）の適応を検討。NIHSS≥6が目安' },
+  { id:'lvo', abbr:'LVO', full:'Large Vessel Occlusion', ja:'大血管閉塞', cat:'stroke',
+    desc:'ICA・MCA M1/M2・BA等の主幹動脈閉塞。ステントリトリーバーや吸引カテーテルによる機械的血栓回収（MT）の主適応。NIHSS高スコアになりやすい' },
+  { id:'evt', abbr:'EVT', full:'Endovascular Treatment', ja:'血管内治療', cat:'stroke',
+    desc:'カテーテルを使った脳血管内治療の総称。血栓回収・コイリング・フローダイバーター・頸動脈ステント等を含む' },
+  { id:'mt', abbr:'MT', full:'Mechanical Thrombectomy', ja:'機械的血栓回収療法', cat:'stroke',
+    desc:'ステントリトリーバーや吸引カテーテルで血栓を物理的に除去する治療。LVOに対するAISの標準治療（エビデンスレベル最高）' },
+  { id:'ivt', abbr:'IVT', full:'Intravenous Thrombolysis', ja:'静脈内血栓溶解療法', cat:'stroke',
+    desc:'rt-PA（アルテプラーゼ）を静脈内投与して血栓を溶解する治療。発症4.5時間以内が適応。LVOにはMTとの併用も行われる' },
+  { id:'rtpa', abbr:'rt-PA', full:'recombinant tissue Plasminogen Activator', ja:'アルテプラーゼ（組換え組織プラスミノゲン活性化因子）', cat:'stroke',
+    desc:'AISに対する標準的な血栓溶解薬。0.6mg/kg（国内用量、最大60mg）静注。出血合併症のリスクあり。禁忌・適応外例に注意' },
+  { id:'bao', abbr:'BAO', full:'Basilar Artery Occlusion', ja:'脳底動脈閉塞', cat:'stroke',
+    desc:'致死率・重症後遺率が極めて高い緊急状態。意識障害・四肢麻痺・眼球運動障害・脳幹症状を呈する。時間的窓は最大24時間との報告もあり' },
+  { id:'nihss', abbr:'NIHSS', full:'National Institutes of Health Stroke Scale', ja:'NIH脳卒中スケール', cat:'stroke',
+    desc:'脳卒中の重症度評価スケール（0〜42点）。6点以上でEVT適応検討。16点以上は予後不良の傾向。意識・眼球・顔面・上肢・下肢・失調・感覚・言語・構音・無視の11項目' },
+  { id:'mrs', abbr:'mRS', full:'modified Rankin Scale', ja:'機能転帰評価スケール', cat:'stroke',
+    desc:'脳卒中後の機能転帰を0〜6で評価。0：症状なし〜6：死亡。mRS 0〜2（自立歩行可能）が「良好転帰」の定義に使われることが多い' },
+  { id:'tici', abbr:'TICI / mTICI', full:'(modified) Thrombolysis in Cerebral Infarction', ja:'脳梗塞再開通評価スケール', cat:'stroke',
+    desc:'血管内治療後の再開通度を評価。0（再開通なし）→1→2a→2b→2c→3（完全再開通）。mTICI 2b以上が再開通成功の一般的な基準。3が最良' },
+  { id:'aspects', abbr:'ASPECTS', full:'Alberta Stroke Program Early CT Score', ja:'CT早期虚血変化スコア', cat:'stroke',
+    desc:'MCA領域を10領域に分け虚血変化のある部位を1点ずつ減点（10点満点）。6点以上でEVT適応。低スコアほど広範梗塞で予後不良。DAWN・DEFUSE3試験で重要基準' },
+  { id:'bgc', abbr:'BGC', full:'Balloon Guide Catheter', ja:'バルーンガイドカテーテル', cat:'stroke',
+    desc:'先端バルーンを膨らませて血流を遮断しながら血栓回収を行うカテーテル。遠位塞栓を減少させ再開通率を向上させるとされる。Walrus、Merci Balloon Guide等' },
+  { id:'adapt', abbr:'ADAPT', full:'A Direct Aspiration first Pass Technique', ja:'直接吸引ファーストパス法', cat:'stroke',
+    desc:'大口径吸引カテーテルを閉塞部に直接当て、吸引で血栓を回収する手技。Penumbraが提唱。手順がシンプルで手技時間の短縮が可能。SOFIA、ACE、JET 7等で使用' },
+  { id:'save', abbr:'SAVE', full:'Stent retriever Assisted Vacuum-locked Extraction', ja:'ステントリトリーバー吸引同時法', cat:'stroke',
+    desc:'ステントリトリーバーを展開しながら同時に吸引カテーテルで陰圧をかける方法。遠位塞栓を減少させ再開通率を向上。Solitaire＋ACEの組み合わせで有効性示唆' },
+  { id:'solumbra', abbr:'Solumbra法', full:'Solitaire + Penumbra combined technique', ja:'ソルンブラ法', cat:'stroke',
+    desc:'Solitaire（ステントリトリーバー）とPenumbraの大口径吸引カテーテルを組み合わせる血栓回収手技。再開通率の向上を目指した複合手技' },
+  { id:'dtb', abbr:'DTP / DTG', full:'Door-to-Puncture / Door-to-Groin', ja:'来院から穿刺・鼠径穿刺までの時間', cat:'stroke',
+    desc:'AIS患者の来院から動脈穿刺開始までの時間。院内フローの効率指標。目標60分以内（施設により異なる）' },
+  // ===== 動脈瘤・コイリング =====
+  { id:'sah', abbr:'SAH', full:'Subarachnoid Hemorrhage', ja:'くも膜下出血', cat:'aneurysm',
+    desc:'主に脳動脈瘤破裂による出血。突然の激しい頭痛（thunderclap headache）が特徴。30日死亡率約40〜50%。再破裂防止が最優先課題（24時間以内の再破裂率が最高）' },
+  { id:'uia', abbr:'UIA', full:'Unruptured Intracranial Aneurysm', ja:'未破裂脳動脈瘤', cat:'aneurysm',
+    desc:'症状のない脳動脈瘤。UCAS Japan研究：年間破裂率は全体で0.95%（7mm以上・後交通動脈瘤・後方循環は高リスク）。治療適応は患者背景・形態・部位を総合的に判断' },
+  { id:'hh', abbr:'HH（Hunt & Hess）', full:'Hunt and Hess Grade', ja:'ハント＆ヘス分類（SAH重症度）', cat:'aneurysm',
+    desc:'SAH重症度分類。Grade I（軽度頭痛・項部硬直のみ）→II（中等度頭痛）→III（傾眠・軽度麻痺）→IV（昏迷・片麻痺）→V（深昏睡）' },
+  { id:'wfns', abbr:'WFNS', full:'World Federation of Neurological Surgeons Grade', ja:'WFNS分類（SAH重症度）', cat:'aneurysm',
+    desc:'GCSとfocal deficitを組み合わせたSAH重症度分類。Grade I（GCS 15、focal deficit無し）→V（GCS 3〜6）。HH分類と並んで使用される' },
+  { id:'bac', abbr:'BAC', full:'Balloon Assisted Coiling', ja:'バルーン補助コイリング', cat:'aneurysm',
+    desc:'ワイドネック動脈瘤でコイル逸脱防止のためにバルーンで頸部を塞ぎながらコイリングする手技。DAPTが不要で急性期破裂瘤にも適応しやすい。HyperGlide/HyperForm、Scepter等を使用' },
+  { id:'sac', abbr:'SAC', full:'Stent Assisted Coiling', ja:'ステント補助コイリング', cat:'aneurysm',
+    desc:'ワイドネック動脈瘤でコイル逸脱防止のためにステントで頸部を補助しながらコイリングする手技。DAPT必須（最低1ヶ月、通常3〜6ヶ月）。LVIS・Neuroform・Solitaire AB等を使用' },
+  { id:'fd', abbr:'FD', full:'Flow Diverter', ja:'フローダイバーター', cat:'aneurysm',
+    desc:'高密度メッシュステントで血流を本血管側に向け、動脈瘤内血流を低下させ血栓化・縮小を促す治療法。大型・巨大・紡錘状動脈瘤に適応。DAPTが長期必要（最低6ヶ月）' },
+  { id:'dapt', abbr:'DAPT', full:'Dual Antiplatelet Therapy', ja:'抗血小板2剤併用療法', cat:'aneurysm',
+    desc:'アスピリン＋クロピドグレル（またはプラスグレル）の2剤投与。ステント・フローダイバーター留置後の血栓予防に必須。FDは最低6ヶ月、SACは通常3〜6ヶ月' },
+  { id:'wnr', abbr:'WNR / Neck Ratio', full:'Wide Neck Ratio / Dome-to-Neck Ratio', ja:'幅広頸部比 / ドーム頸部比', cat:'aneurysm',
+    desc:'頸部径が≥4mm または Dome/Neck比が＜2のものをワイドネックと定義。BAC・SACの適応判断に使用。コイリングのみでの治療が困難な目安' },
+  { id:'verpr', abbr:'VER / PR', full:'Volume Embolization Ratio / Packing Ratio', ja:'体積充填率 / コイル充填率', cat:'aneurysm',
+    desc:'動脈瘤体積に対するコイルの占める割合（%）。充填率が高いほど再開通・再治療リスクが低い。一般に20〜25%以上を目標とすることが多い' },
+  { id:'dsa', abbr:'DSA', full:'Digital Subtraction Angiography', ja:'デジタルサブトラクション血管造影', cat:'aneurysm',
+    desc:'カテーテル血管造影。骨・軟部組織を差し引いた血管像を取得。脳血管治療の標準的なガイド方法。3D-RAで動脈瘤の形態・頸部を立体的に評価' },
+  { id:'okm', abbr:'OKM', full:"O'Kelly Marotta Scale", ja:'OKMスコア（FD治療効果分類）', cat:'aneurysm',
+    desc:'フローダイバーター治療後の動脈瘤造影充填の評価。A（充填あり・停滞なし）→B（充填あり・停滞あり）→C（わずかな充填）→D（完全閉塞）。D判定が治療成功' },
+  { id:'raymond', abbr:'Raymond-Roy分類', full:'Raymond-Roy Occlusion Classification', ja:'レイモンドロイ分類（コイリング評価）', cat:'aneurysm',
+    desc:'コイリング後の造影評価。Class I（完全閉塞）・Class II（頸部残存）・Class III（体残存）。Class Iが最良転帰。再開通はClass III化として評価' },
+  { id:'dci', abbr:'DCI', full:'Delayed Cerebral Ischemia', ja:'遅発性脳虚血', cat:'aneurysm',
+    desc:'SAH後4〜14日頃に起こる脳虚血。血管攣縮（VSP）が主な原因。意識障害・神経症状の悪化として出現。Ca拮抗薬（ニカルジピン等）や経皮的血管形成術（PTA）で治療' },
+  { id:'vsp', abbr:'VSP', full:'Vasospasm', ja:'脳血管攣縮', cat:'aneurysm',
+    desc:'SAH後4〜14日に起こる脳動脈の攣縮。DCI・脳梗塞の原因。TCD（経頭蓋ドプラ）や血管造影で診断。血管拡張薬・PTAで治療。重症例は予後不良' },
+  // ===== 画像・評価スケール =====
+  { id:'cta', abbr:'CTA', full:'CT Angiography', ja:'CT血管造影', cat:'imaging',
+    desc:'造影剤静注後に撮影する血管造影CT。LVO・動脈瘤のスクリーニング・術前評価に必須。非侵襲的で迅速に実施可能。CTPと同時取得することも多い' },
+  { id:'mra', abbr:'MRA', full:'MR Angiography', ja:'MR血管造影', cat:'imaging',
+    desc:'MRIを用いた血管造影。TOF-MRAは造影剤不要。脳動脈瘤の検出・経過観察に使用。3mm以上の動脈瘤の検出感度は良好。DSAより解像度は低いが非侵襲的' },
+  { id:'ra3d', abbr:'3D-RA', full:'3D Rotational Angiography', ja:'3D回転血管造影', cat:'imaging',
+    desc:'カテーテル血管造影中に回転させて撮影した3次元再構成画像。動脈瘤の形態・頸部・コイル充填状況の評価に必須。治療前に動脈瘤体積計算にも使用' },
+  { id:'dwi', abbr:'DWI', full:'Diffusion Weighted Image', ja:'拡散強調画像（MRI）', cat:'imaging',
+    desc:'急性期脳梗塞の検出に最も鋭敏なMRI sequence。発症後数分〜数時間で高信号を呈する。ASPECTS評価に使用。梗塞確定領域（infarct core）の推定に有用' },
+  { id:'flair', abbr:'FLAIR', full:'Fluid Attenuated Inversion Recovery', ja:'液体減衰反転回復法（MRI）', cat:'imaging',
+    desc:'脳脊髄液信号を抑制したMRI画像。DWI-FLAIR mismatch：DWI高信号・FLAIR正常＝発症4.5時間以内の可能性が高く、発症時刻不明例のIVT・EVT適応判断に使用' },
+  { id:'ctp', abbr:'CTP', full:'CT Perfusion', ja:'CTパーフュージョン', cat:'imaging',
+    desc:'脳血流を定量評価するCT検査。Infarct core（梗塞核）とPenumbra（救済可能領域）を可視化。DAWN・DEFUSE3試験での時間窓延長の適応に使用。Tmax>6秒がPenumbraの目安' },
+  { id:'cbf', abbr:'CBF / CBV / MTT', full:'Cerebral Blood Flow / Volume / Mean Transit Time', ja:'脳血流量 / 脳血液量 / 平均通過時間', cat:'imaging',
+    desc:'CTP・MRPで測定する脳循環パラメータ。CBF↓CBV↓：梗塞核（Infarct core）。CBF↓CBV正常：Penumbra（救済可能）。MTT延長はいずれでも出現。Tmax>6秒がPenumbraの一般的閾値' },
+  { id:'gcs', abbr:'GCS', full:'Glasgow Coma Scale', ja:'グラスゴー昏睡スケール', cat:'imaging',
+    desc:'意識障害の評価スケール。開眼（E1〜4）・言語（V1〜5）・運動（M1〜6）の合計15点満点。8点以下は重症（挿管管理の目安）。SAHのWFNS分類にも組み込まれている' },
+  { id:'ucas', abbr:'UCAS Japan', full:'Unruptured Cerebral Aneurysm Study Japan', ja:'未破裂脳動脈瘤の多施設共同研究（日本）', cat:'imaging',
+    desc:'日本の多施設共同研究。年間破裂率：全体0.95%。サイズ・部位・形態（PHASES score等）による破裂リスク評価の根拠となる重要データ' },
+  // ===== 手技・デバイス =====
+  { id:'sr', abbr:'SR', full:'Stent Retriever', ja:'ステントリトリーバー', cat:'device',
+    desc:'自己拡張型のステント様構造で血栓を絡め取り回収する血栓回収デバイス。Trevo、Solitaire X、ERIC、EMBOTRAP III、eNVi-SR等。LVOの主要治療デバイス' },
+  { id:'ac_dev', abbr:'AC（吸引カテ）', full:'Aspiration Catheter / Reperfusion Catheter', ja:'吸引カテーテル（再灌流カテーテル）', cat:'device',
+    desc:'大口径カテーテルを閉塞部に誘導し陰圧吸引で血栓を回収するデバイス。ACE（Medtronic）、JET 7（Penumbra）、SOFIA（MicroVention）等。ADAPT法・SAVE法で使用' },
+  { id:'mc_dev', abbr:'MC', full:'Micro Catheter', ja:'マイクロカテーテル', cat:'device',
+    desc:'0.017"〜0.027"サイズの極細カテーテル。ステントリトリーバーやコイルの送達に使用。SL-10（0.017"）、Headway 17（0.017"）、Marksman（0.027"）等。サイズによって対応デバイスが異なる' },
+  { id:'gw_dev', abbr:'GW', full:'Guide Wire', ja:'ガイドワイヤー', cat:'device',
+    desc:'カテーテルを誘導するワイヤー。神経血管では先端が柔軟な0.014"マイクロワイヤーが標準的。Synchro（Stryker）、Transcend（Stryker）、Agility（Medtronic）等' },
+  { id:'gc_dev', abbr:'GC', full:'Guide Catheter', ja:'ガイディングカテーテル', cat:'device',
+    desc:'6〜8Fのカテーテル。ICAやVAに留置しマイクロカテーテル・デバイスの通路となる。Envoy（Cerenovus/J&J）、Chaperon（MicroVention）等。BGCはバルーン付き' },
+  { id:'pta_dev', abbr:'PTA', full:'Percutaneous Transluminal Angioplasty', ja:'経皮的血管形成術（バルーン拡張）', cat:'device',
+    desc:'バルーンカテーテルで血管内腔を拡張する手技。頸動脈狭窄（CAS前処置）や血管攣縮（VSP治療）に使用。脳血管攣縮へのPTAは重症例の救済に行われる' },
+  { id:'cas_dev', abbr:'CAS', full:'Carotid Artery Stenting', ja:'頸動脈ステント留置術', cat:'device',
+    desc:'頸動脈狭窄に対してステントを留置する血管内治療。CEA（外科的内膜剥離術）と並ぶ標準治療。タンデム病変では血栓回収と組み合わせることも。プロテクション使用が原則' },
+  { id:'cea_dev', abbr:'CEA', full:'Carotid Endarterectomy', ja:'頸動脈内膜剥離術', cat:'device',
+    desc:'頸動脈狭窄の外科的治療。CASと比較してプラーク塞栓リスクが低いとされる。症候性≥50%・無症候性≥60%が一般的な適応基準。全身麻酔または局所麻酔下に行う' },
+  { id:'otw_dev', abbr:'OTW', full:'Over The Wire', ja:'オーバー・ザ・ワイヤー方式', cat:'device',
+    desc:'ガイドワイヤーの全長にわたってカテーテルを交換できる方式。Scepter等のバルーンカテーテルで採用。Rapid Exchange（RX）方式と対比される' },
+  { id:'phases', abbr:'PHASESスコア', full:'Population, Hypertension, Age, Size, Earlier SAH, Site', ja:'PHASESスコア（動脈瘤破裂リスク評価）', cat:'device',
+    desc:'未破裂動脈瘤の5年間破裂リスクを推定するスコア。人種・高血圧・年齢・サイズ・既往SAH・部位の6項目。スコア高いほど破裂リスク高く治療適応の判断に使用' },
+];
+
+// ============================================================
+// APP STATE
+// ============================================================
+let currentTab = 'vessel';
+let vFilter = 'all';
+let cFilter = 'all';
+let aFilter = 'all';
+let favs = JSON.parse(localStorage.getItem('nn_favs') || '[]');
+let sq = '';
+
+const ALL_TABS = ['vessel','competitor','abbr','favorites'];
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  adjustPad();
+  renderVessels();
+  renderCompetitors();
+  renderAbbreviations();
+  document.getElementById('searchInput').addEventListener('input', e => {
+    sq = e.target.value.trim();
+    document.getElementById('clearBtn').style.display = sq ? 'block' : 'none';
+    doSearch();
+  });
+});
+
+window.addEventListener('resize', adjustPad);
+
+function adjustPad() {
+  const h = document.getElementById('header').offsetHeight;
+  document.getElementById('contentPad').style.paddingTop = h + 'px';
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tab) {
+  currentTab = tab;
+  ALL_TABS.forEach(t => {
+    document.getElementById('page' + cap(t)).classList.toggle('active', t === tab);
+    document.getElementById('nb' + cap(t)).classList.toggle('active', t === tab);
+  });
+  if (tab === 'favorites') renderFavs();
+  if (sq) doSearch(); else hideSearch();
+  document.getElementById('content').scrollTop = 0;
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ============================================================
+// SEARCH
+// ============================================================
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  sq = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  hideSearch();
+}
+
+function hideSearch() {
+  document.getElementById('searchResults').style.display = 'none';
+  ALL_TABS.forEach(t => {
+    document.getElementById('page' + cap(t)).classList.toggle('active', t === currentTab);
+  });
+}
+
+function doSearch() {
+  const q = sq.toLowerCase();
+  const rd = document.getElementById('searchResults');
+  if (!q) { hideSearch(); return; }
+
+  ALL_TABS.forEach(t => document.getElementById('page' + cap(t)).classList.remove('active'));
+  rd.style.display = 'block';
+
+  // 血管検索
+  const mv = vessels.filter(v =>
+    v.ja.includes(q) || v.en.toLowerCase().includes(q) ||
+    v.abbr.toLowerCase().includes(q) || v.clinical.includes(q) ||
+    (v.branches && v.branches.includes(q)) || (v.devices && v.devices.includes(q))
+  );
+
+  // 製品検索（lineupも含む）
+  const mp = [];
+  competitors.forEach(c => {
+    c.products.forEach(p => {
+      if (p.name.toLowerCase().includes(q) || p.desc.includes(q) ||
+          c.company.toLowerCase().includes(q) || c.cja.includes(q) ||
+          p.feats.some(f => f.toLowerCase().includes(q)) ||
+          (p.lineup && p.lineup.some(l => l.toLowerCase().includes(q))) ||
+          (p.note && p.note.includes(q))) {
+        mp.push({...p, cja: c.cja, cid: c.id});
+      }
+    });
+  });
+
+  // 略語検索
+  const ma = abbreviations.filter(a =>
+    a.abbr.toLowerCase().includes(q) || a.full.toLowerCase().includes(q) ||
+    a.ja.includes(q) || a.desc.includes(q)
+  );
+
+  let html = '';
+
+  if (mv.length > 0) {
+    html += `<div class="rgtitle">🫀 血管 (${mv.length}件)</div>`;
+    mv.forEach(v => { html += vesselCard(v); });
+  }
+
+  if (mp.length > 0) {
+    html += `<div class="rgtitle">💊 製品 (${mp.length}件)</div>`;
+    mp.forEach(p => {
+      html += `<div class="cblock"><div class="prow" onclick="togglePD('sr_${p.id}')">
+        <div class="phd">
+          <div style="flex:1">
+            <div class="pname">${p.name}</div>
+            <div class="pdesc">${p.cja} ／ ${p.desc}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:6px">
+            <span class="star ${favs.includes('p_'+p.id)?'on':''}" onclick="toggleFav(event,'p_${p.id}')">${favs.includes('p_'+p.id)?'★':'☆'}</span>
+            <div class="ptag cat-${p.cat}">${p.catlabel}</div>
+          </div>
+        </div>
+        <div class="pdetail" id="sr_${p.id}">
+          ${p.feats.map(f=>`<div class="fi">${f}</div>`).join('')}
+          ${lineupHtml(p.lineup)}
+          ${p.note?`<div class="fnote">💡 ${p.note}</div>`:''}
+          <div class="apbadge ${p.appr}">${apprLabel(p.appr)}</div>
+        </div>
+      </div></div>`;
+    });
+  }
+
+  if (ma.length > 0) {
+    html += `<div class="rgtitle">📖 略語 (${ma.length}件)</div>`;
+    ma.forEach(a => { html += abbrCard(a); });
+  }
+
+  if (!html) {
+    html = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-msg">「${sq}」の検索結果がありません</div></div>`;
+  }
+  rd.innerHTML = html;
+}
+
+// ============================================================
+// VESSELS
+// ============================================================
+function filterV(f, el) {
+  vFilter = f;
+  document.querySelectorAll('#vfbar .fc').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderVessels();
+}
+
+function renderVessels() {
+  const list = vFilter === 'all' ? vessels : vessels.filter(v => v.system === vFilter);
+  document.getElementById('vesselList').innerHTML = list.map(v => vesselCard(v)).join('') ||
+    '<div class="empty"><div class="empty-icon">🫀</div><div class="empty-msg">データなし</div></div>';
+}
+
+function vesselCard(v) {
+  const isFav = favs.includes('v_' + v.id);
+  const tagMap = {'血栓回収':'tred','コイリング':'tblue','フローダイバーター':'tpurp'};
+  const tagsHtml = (v.tags||[]).map(t=>`<span class="tag ${tagMap[t]||'tgreen'}">${t}</span>`).join('');
+  const segsHtml = v.segs && v.segs.length
+    ? `<div class="segrow">${v.segs.map(s=>`<span class="segchip">${s}</span>`).join('')}</div>` : '－';
+  return `<div class="vc">
+    <div class="vc-hd" onclick="toggleVC('${v.id}')">
+      <div class="vabbr">${v.abbr}</div>
+      <div class="vnames"><div class="vja">${v.ja}</div><div class="ven">${v.en}</div></div>
+      <div class="vright">
+        <span class="star ${isFav?'on':''}" onclick="toggleFav(event,'v_${v.id}')">${isFav?'★':'☆'}</span>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end">${tagsHtml}</div>
+      </div>
+    </div>
+    <div class="vc-bd" id="vb_${v.id}">
+      ${vesselDiagram(v.id)}
+      ${v.segs&&v.segs.length?`<div class="ir"><div class="il">セグメント</div><div class="iv">${segsHtml}</div></div>`:''}
+      ${v.branches?`<div class="ir"><div class="il">主な分枝</div><div class="iv">${v.branches}</div></div>`:''}
+      <div class="ir"><div class="il">臨床的意義</div><div class="iv">${v.clinical}</div></div>
+      <div class="ir"><div class="il">デバイス観点</div><div class="iv">${v.devices}</div></div>
+    </div>
+  </div>`;
+}
+
+function toggleVC(id) {
+  const el = document.getElementById('vb_' + id);
+  if (el) el.classList.toggle('open');
+}
+
+// ============================================================
+// COMPETITORS
+// ============================================================
+function filterC(f, el) {
+  cFilter = f;
+  document.querySelectorAll('#cfbar .fc').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderCompetitors();
+}
+
+function renderCompetitors() {
+  let html = '';
+  competitors.forEach(c => {
+    const prods = cFilter === 'all' ? c.products : c.products.filter(p => p.cat === cFilter);
+    if (!prods.length) return;
+    html += `<div class="cblock">
+      <div class="cbar" onclick="toggleCo('${c.id}')">
+        <div class="cdot" style="background:${c.color}"></div>
+        <div class="cname">${c.cja}</div>
+        <div class="ccountry">${c.country}</div>
+        <div class="chevron" id="ch_${c.id}">›</div>
+      </div>
+      <div class="plist" id="pl_${c.id}">
+        ${prods.map(p => productRow(c.id, p)).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('compList').innerHTML = html ||
+    '<div class="empty"><div class="empty-icon">🏢</div><div class="empty-msg">データなし</div></div>';
+}
+
+function lineupHtml(lineup) {
+  if (!lineup || !lineup.length) return '';
+  return `<div class="lineup-section">
+    <div class="lineup-label">ラインナップ / サイズ</div>
+    ${lineup.map(l => `<div class="lineup-item">${l}</div>`).join('')}
+  </div>`;
+}
+
+function productRow(cid, p) {
+  const isFav = favs.includes('p_' + p.id);
+  return `<div class="prow" onclick="togglePD('${cid}_${p.id}')">
+    <div class="phd">
+      <div style="flex:1">
+        <div class="pname">${p.name}</div>
+        <div class="pdesc">${p.desc}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:6px">
+        <span class="star ${isFav?'on':''}" onclick="toggleFav(event,'p_${p.id}')">${isFav?'★':'☆'}</span>
+        <div class="ptag cat-${p.cat}">${p.catlabel}</div>
+      </div>
+    </div>
+    <div class="pdetail" id="${cid}_${p.id}">
+      ${p.feats.map(f=>`<div class="fi">${f}</div>`).join('')}
+      ${lineupHtml(p.lineup)}
+      ${p.note?`<div class="fnote">💡 ${p.note}</div>`:''}
+      <div class="apbadge ${p.appr}">${apprLabel(p.appr)}</div>
+    </div>
+  </div>`;
+}
+
+function toggleCo(id) {
+  document.getElementById('pl_' + id).classList.toggle('open');
+  document.getElementById('ch_' + id).classList.toggle('open');
+}
+
+function togglePD(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function apprLabel(a) {
+  return a==='approved' ? '✓ 日本承認済' : a==='pending' ? '⏳ 申請中／要確認' : '✗ 未承認';
+}
+
+// ============================================================
+// ABBREVIATIONS
+// ============================================================
+const catLabel = { stroke:'脳卒中・血栓回収', aneurysm:'動脈瘤・コイリング', imaging:'画像・評価', device:'手技・デバイス' };
+
+function filterA(f, el) {
+  aFilter = f;
+  document.querySelectorAll('#afbar .fc').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAbbreviations();
+}
+
+function renderAbbreviations() {
+  const list = aFilter === 'all' ? abbreviations : abbreviations.filter(a => a.cat === aFilter);
+  document.getElementById('abbrList').innerHTML = list.map(a => abbrCard(a)).join('') ||
+    '<div class="empty"><div class="empty-icon">📖</div><div class="empty-msg">データなし</div></div>';
+}
+
+function abbrCard(a) {
+  const isFav = favs.includes('a_' + a.id);
+  const catColors = { stroke:'cat-stroke', aneurysm:'cat-aneurysm', imaging:'cat-imaging', device:'cat-device' };
+  return `<div class="ac">
+    <div class="ac-hd" onclick="toggleAC('${a.id}')">
+      <div class="ac-abbr">${a.abbr}</div>
+      <div class="ac-names">
+        <div class="ac-ja">${a.ja}</div>
+        <div class="ac-en">${a.full}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:6px">
+        <span class="star ${isFav?'on':''}" onclick="toggleFav(event,'a_${a.id}')">${isFav?'★':'☆'}</span>
+        <span class="actag ${catColors[a.cat]||''}">${catLabel[a.cat]||''}</span>
+      </div>
+    </div>
+    <div class="ac-bd" id="ab_${a.id}">
+      <div class="ac-desc">${a.desc}</div>
+    </div>
+  </div>`;
+}
+
+function toggleAC(id) {
+  const el = document.getElementById('ab_' + id);
+  if (el) el.classList.toggle('open');
+}
+
+// ============================================================
+// FAVORITES
+// ============================================================
+function toggleFav(e, key) {
+  e.stopPropagation();
+  const idx = favs.indexOf(key);
+  if (idx > -1) favs.splice(idx, 1); else favs.push(key);
+  localStorage.setItem('nn_favs', JSON.stringify(favs));
+  document.querySelectorAll('.star').forEach(el => {
+    const oc = el.getAttribute('onclick') || '';
+    if (oc.includes(`'${key}'`)) {
+      el.classList.toggle('on', favs.includes(key));
+      el.textContent = favs.includes(key) ? '★' : '☆';
+    }
+  });
+  if (currentTab === 'favorites') renderFavs();
+}
+
+function renderFavs() {
+  const fv = vessels.filter(v => favs.includes('v_' + v.id));
+  const fp = [];
+  competitors.forEach(c => {
+    c.products.forEach(p => {
+      if (favs.includes('p_' + p.id)) fp.push({...p, cja: c.cja});
+    });
+  });
+  const fa = abbreviations.filter(a => favs.includes('a_' + a.id));
+
+  let html = '';
+  if (fv.length) {
+    html += '<div class="slabel">🫀 血管</div>';
+    fv.forEach(v => { html += vesselCard(v); });
+  }
+  if (fp.length) {
+    html += '<div class="slabel">💊 製品</div>';
+    fp.forEach(p => {
+      html += `<div class="cblock"><div class="prow" onclick="togglePD('fv_${p.id}')">
+        <div class="phd">
+          <div style="flex:1">
+            <div class="pname">${p.name}</div>
+            <div class="pdesc">${p.cja} ／ ${p.desc}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:6px">
+            <span class="star on" onclick="toggleFav(event,'p_${p.id}')">★</span>
+            <div class="ptag cat-${p.cat}">${p.catlabel}</div>
+          </div>
+        </div>
+        <div class="pdetail" id="fv_${p.id}">
+          ${p.feats.map(f=>`<div class="fi">${f}</div>`).join('')}
+          ${lineupHtml(p.lineup)}
+          ${p.note?`<div class="fnote">💡 ${p.note}</div>`:''}
+        </div>
+      </div></div>`;
+    });
+  }
+  if (fa.length) {
+    html += '<div class="slabel">📖 略語</div>';
+    fa.forEach(a => { html += abbrCard(a); });
+  }
+  if (!html) {
+    html = `<div class="empty"><div class="empty-icon">⭐</div><div class="empty-msg">お気に入りはまだありません<br><span style="font-size:13px">☆ をタップして追加しましょう</span></div></div>`;
+  }
+  document.getElementById('favList').innerHTML = html;
+}
+
+// ============================================================
+// HELP MODAL
+// ============================================================
+function toggleHelp() { document.getElementById('helpOverlay').classList.toggle('open'); }
+function closeHelp(e) { if (e.target === document.getElementById('helpOverlay')) toggleHelp(); }
+
+// ============================================================
+// VESSEL DIAGRAMS (SVG模式図)
+// ============================================================
+function vesselDiagram(id) {
+  var cow=['ica','mca','aca','acom','pcom','opha','acha','va','ba','pca','pica','aica','sca','lsa','heubner','thalamic_perf','pontine_perf','asa','pericallosal','pcha'];
+  var neck=['cca','eca','subclav','aorticarch','bca'];
+  var venous=['sss','ts_sig','cs','ijv'];
+  var ecab=['mma','sta','oa'];
+  if(cow.includes(id)) return cowSvg(id);
+  if(neck.includes(id)) return neckSvg(id);
+  if(venous.includes(id)) return venousSvg(id);
+  if(ecab.includes(id)) return ecaBranchSvg(id);
+  return '';
+}
+
+function _diagWrap(title,svgStr) {
+  return '<div class="vc-diagram"><div class="diag-title">'+title+'</div>'+svgStr+
+    '<div class="diag-legend">'+
+    '<span><svg width="18" height="5" style="display:inline-block;vertical-align:middle"><line x1="0" y1="2" x2="18" y2="2" stroke="#E53935" stroke-width="3.5"/></svg> 該当血管</span>'+
+    '<span><svg width="18" height="5" style="display:inline-block;vertical-align:middle"><line x1="0" y1="2" x2="18" y2="2" stroke="#78909C" stroke-width="2"/></svg> 参照血管</span>'+
+    '</div></div>';
+}
+
+function cowSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var dc=function(id){return hl===id?H:D;};
+  var dw=function(id){return hl===id?'3.5':'1.5';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var DL=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="8" fill="'+dc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 320 268" style="width:100%;max-width:320px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 脳輪郭
+  s+='<ellipse cx="160" cy="123" rx="122" ry="101" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  // 小脳
+  s+='<ellipse cx="160" cy="232" rx="55" ry="28" fill="#EDE7F6" stroke="#B39DDB" stroke-width="1"/>';
+  // VA
+  s+='<line x1="100" y1="252" x2="160" y2="224" stroke="'+sc('va')+'" stroke-width="'+sw('va')+'"/>';
+  s+='<line x1="220" y1="252" x2="160" y2="224" stroke="'+sc('va')+'" stroke-width="'+sw('va')+'"/>';
+  s+=L('va','VA',82,260); s+=L('va','VA',215,260);
+  // ASA
+  s+='<line x1="160" y1="224" x2="160" y2="258" stroke="'+dc('asa')+'" stroke-width="'+dw('asa')+'" stroke-dasharray="3,2"/>';
+  s+=DL('asa','ASA↓',163,262);
+  // PICA
+  s+='<line x1="127" y1="240" x2="90" y2="234" stroke="'+sc('pica')+'" stroke-width="'+sw('pica')+'"/>';
+  s+='<line x1="193" y1="240" x2="230" y2="234" stroke="'+sc('pica')+'" stroke-width="'+sw('pica')+'"/>';
+  s+=L('pica','PICA',54,237); s+=L('pica','PICA',231,237);
+  // BA幹
+  s+='<line x1="160" y1="224" x2="160" y2="148" stroke="'+sc('ba')+'" stroke-width="'+sw('ba')+'"/>';
+  s+=L('ba','BA',163,192);
+  // 橋穿通枝
+  s+='<line x1="160" y1="196" x2="144" y2="196" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  s+='<line x1="160" y1="196" x2="176" y2="196" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  s+='<line x1="160" y1="204" x2="144" y2="204" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  s+='<line x1="160" y1="204" x2="176" y2="204" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  if(hl==='pontine_perf') s+='<text x="113" y="202" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">橋穿通枝</text>';
+  // AICA
+  s+='<line x1="160" y1="208" x2="118" y2="205" stroke="'+sc('aica')+'" stroke-width="'+sw('aica')+'"/>';
+  s+='<line x1="160" y1="208" x2="202" y2="205" stroke="'+sc('aica')+'" stroke-width="'+sw('aica')+'"/>';
+  s+=L('aica','AICA',74,208); s+=L('aica','AICA',203,208);
+  // SCA
+  s+='<line x1="160" y1="160" x2="120" y2="157" stroke="'+sc('sca')+'" stroke-width="'+sw('sca')+'"/>';
+  s+='<line x1="160" y1="160" x2="200" y2="157" stroke="'+sc('sca')+'" stroke-width="'+sw('sca')+'"/>';
+  s+=L('sca','SCA',80,160); s+=L('sca','SCA',201,160);
+  // BA tip dot
+  s+='<circle cx="160" cy="148" r="3" fill="'+(hl==='ba'||hl==='thalamic_perf'?H:'#90A4AE')+'"/>';
+  // 視床穿通動脈
+  s+='<line x1="160" y1="148" x2="152" y2="130" stroke="'+dc('thalamic_perf')+'" stroke-width="'+dw('thalamic_perf')+'"/>';
+  s+='<line x1="160" y1="148" x2="168" y2="130" stroke="'+dc('thalamic_perf')+'" stroke-width="'+dw('thalamic_perf')+'"/>';
+  if(hl==='thalamic_perf') s+='<text x="138" y="124" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">ThPA</text>';
+  // PCA
+  s+='<path d="M160,148 Q138,140 100,143" stroke="'+sc('pca')+'" stroke-width="'+sw('pca')+'"/>';
+  s+='<path d="M160,148 Q182,140 220,143" stroke="'+sc('pca')+'" stroke-width="'+sw('pca')+'"/>';
+  s+=L('pca','PCA',63,143); s+=L('pca','PCA',221,143);
+  // PChA
+  s+='<line x1="127" y1="144" x2="130" y2="128" stroke="'+dc('pcha')+'" stroke-width="'+dw('pcha')+'"/>';
+  s+='<line x1="193" y1="144" x2="190" y2="128" stroke="'+dc('pcha')+'" stroke-width="'+dw('pcha')+'"/>';
+  if(hl==='pcha'){s+='<text x="96" y="124" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">PChA</text>';s+='<text x="191" y="124" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">PChA</text>';}
+  // PCoA
+  s+='<line x1="110" y1="113" x2="100" y2="143" stroke="'+sc('pcom')+'" stroke-width="'+sw('pcom')+'"/>';
+  s+='<line x1="210" y1="113" x2="220" y2="143" stroke="'+sc('pcom')+'" stroke-width="'+sw('pcom')+'"/>';
+  s+=L('pcom','PCoA',66,132); s+=L('pcom','PCoA',221,132);
+  // ICA
+  s+='<line x1="103" y1="192" x2="110" y2="108" stroke="'+sc('ica')+'" stroke-width="'+sw('ica')+'"/>';
+  s+='<line x1="217" y1="192" x2="210" y2="108" stroke="'+sc('ica')+'" stroke-width="'+sw('ica')+'"/>';
+  s+=L('ica','ICA',78,168); s+=L('ica','ICA',216,168);
+  // OphA
+  s+='<line x1="108" y1="122" x2="78" y2="110" stroke="'+dc('opha')+'" stroke-width="'+dw('opha')+'"/>';
+  s+='<line x1="212" y1="122" x2="242" y2="110" stroke="'+dc('opha')+'" stroke-width="'+dw('opha')+'"/>';
+  if(hl==='opha'){s+='<text x="40" y="108" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">OphA</text>';s+='<text x="243" y="108" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">OphA</text>';}
+  // AChA
+  s+='<line x1="109" y1="115" x2="87" y2="132" stroke="'+dc('acha')+'" stroke-width="'+dw('acha')+'"/>';
+  s+='<line x1="211" y1="115" x2="233" y2="132" stroke="'+dc('acha')+'" stroke-width="'+dw('acha')+'"/>';
+  if(hl==='acha'){s+='<text x="54" y="140" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">AChA</text>';s+='<text x="234" y="140" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">AChA</text>';}
+  // MCA
+  s+='<line x1="110" y1="108" x2="37" y2="113" stroke="'+sc('mca')+'" stroke-width="'+sw('mca')+'"/>';
+  s+='<line x1="210" y1="108" x2="283" y2="113" stroke="'+sc('mca')+'" stroke-width="'+sw('mca')+'"/>';
+  s+=L('mca','MCA',15,113); s+=L('mca','MCA',284,113);
+  // LSA
+  s+='<line x1="75" y1="111" x2="73" y2="96" stroke="'+dc('lsa')+'" stroke-width="'+dw('lsa')+'"/>';
+  s+='<line x1="83" y1="110" x2="81" y2="93" stroke="'+dc('lsa')+'" stroke-width="'+dw('lsa')+'"/>';
+  s+='<line x1="91" y1="109" x2="89" y2="91" stroke="'+dc('lsa')+'" stroke-width="'+dw('lsa')+'"/>';
+  if(hl==='lsa') s+='<text x="60" y="88" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">LSA↑</text>';
+  // ACA
+  s+='<path d="M110,108 Q133,82 140,60" stroke="'+sc('aca')+'" stroke-width="'+sw('aca')+'"/>';
+  s+='<path d="M210,108 Q187,82 180,60" stroke="'+sc('aca')+'" stroke-width="'+sw('aca')+'"/>';
+  s+=L('aca','ACA',118,78); s+=L('aca','ACA',165,78);
+  // ACoA
+  s+='<line x1="140" y1="60" x2="180" y2="60" stroke="'+sc('acom')+'" stroke-width="'+sw('acom')+'"/>';
+  s+=L('acom','ACoA',141,52);
+  // RAH
+  s+='<line x1="140" y1="60" x2="122" y2="76" stroke="'+dc('heubner')+'" stroke-width="'+dw('heubner')+'"/>';
+  if(hl==='heubner') s+='<text x="100" y="84" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">RAH</text>';
+  // PcalA
+  s+='<path d="M140,60 Q148,42 160,30" stroke="'+dc('pericallosal')+'" stroke-width="'+dw('pericallosal')+'"/>';
+  s+='<path d="M180,60 Q172,42 160,30" stroke="'+dc('pericallosal')+'" stroke-width="'+dw('pericallosal')+'"/>';
+  if(hl==='pericallosal') s+='<text x="163" y="27" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">PcalA</text>';
+  s+='</svg>';
+  return _diagWrap('模式図 — Willis動脈輪（脳底面観）',s);
+}
+
+function neckSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 260 290" style="width:100%;max-width:260px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 頭蓋
+  s+='<ellipse cx="130" cy="48" rx="60" ry="44" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  s+='<text x="112" y="51" font-size="8" fill="#90A4AE" font-family="sans-serif">頭蓋内</text>';
+  // 頸部領域ガイド
+  s+='<rect x="82" y="90" width="96" height="105" rx="8" fill="#FFF8F0" stroke="#FFCCBC" stroke-width="1" stroke-dasharray="4,3"/>';
+  s+='<text x="117" y="143" font-size="8" fill="#FFAB91" font-family="sans-serif">頸部</text>';
+  // ICA (頭蓋内へ上行・破線)
+  s+='<line x1="122" y1="92" x2="118" y2="56" stroke="'+sc('ica')+'" stroke-width="'+sw('ica')+'" stroke-dasharray="4,3"/>';
+  s+=L('ica','ICA→頭蓋内',62,52);
+  // ECA (前外側へ)
+  s+='<path d="M122,92 Q108,80 96,72" stroke="'+sc('eca')+'" stroke-width="'+sw('eca')+'"/>';
+  s+=L('eca','ECA',62,72);
+  // CCA 分岐点
+  s+='<circle cx="122" cy="92" r="3.5" fill="'+sc('cca')+'"/>';
+  // CCA (下行)
+  s+='<line x1="122" y1="92" x2="122" y2="195" stroke="'+sc('cca')+'" stroke-width="'+sw('cca')+'"/>';
+  s+=L('cca','CCA',98,148);
+  // VA (後方頸椎内を上行・破線)
+  s+='<line x1="98" y1="228" x2="96" y2="130" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="72" y="160" font-size="8" fill="#90A4AE" font-family="sans-serif">VA↑</text>';
+  // SubA (水平)
+  s+='<line x1="52" y1="228" x2="208" y2="228" stroke="'+sc('subclav')+'" stroke-width="'+sw('subclav')+'"/>';
+  s+=L('subclav','SubA',55,223);
+  // VA分岐from SubA
+  s+='<line x1="98" y1="228" x2="98" y2="224" stroke="#B0BEC5" stroke-width="1.5"/>';
+  s+='<circle cx="98" cy="228" r="2.5" fill="#B0BEC5"/>';
+  // BCA (右→右CCA+右SubA)
+  s+='<path d="M108,265 L108,245 L136,228" stroke="'+sc('bca')+'" stroke-width="'+sw('bca')+'"/>';
+  s+='<path d="M108,245 L78,228" stroke="'+sc('bca')+'" stroke-width="'+sw('bca')+'"/>';
+  s+=L('bca','BCA',68,248);
+  // CCA右 (BCAから上行)
+  s+='<line x1="136" y1="228" x2="138" y2="190" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="142" y="212" font-size="8" fill="#90A4AE" font-family="sans-serif">右CCA</text>';
+  // 大動脈弓
+  s+='<path d="M52,272 Q130,252 208,272" stroke="'+sc('aorticarch')+'" stroke-width="'+sw('aorticarch')+'" fill="none"/>';
+  s+='<path d="M108,265 L108,272" stroke="'+sc('aorticarch')+'" stroke-width="1.5" stroke-dasharray="2,2"/>';
+  s+='<path d="M152,266 L152,272" stroke="'+sc('aorticarch')+'" stroke-width="1.5" stroke-dasharray="2,2"/>';
+  s+='<path d="M185,270 L185,272" stroke="'+sc('aorticarch')+'" stroke-width="1.5" stroke-dasharray="2,2"/>';
+  s+=L('aorticarch','大動脈弓',86,285);
+  // 左CCA (大動脈弓から直接)
+  s+='<line x1="152" y1="266" x2="122" y2="195" stroke="'+sc('cca')+'" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  // 左SubA
+  s+='<path d="M185,270 Q200,258 208,250" stroke="'+sc('subclav')+'" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='</svg>';
+  return _diagWrap('模式図 — 頸部・大血管（前面観）',s);
+}
+
+function venousSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 260 250" style="width:100%;max-width:260px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 頭蓋側面輪郭
+  s+='<ellipse cx="128" cy="100" rx="108" ry="90" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  // 前頭部
+  s+='<path d="M58,65 Q38,100 42,145" stroke="#CFD8DC" stroke-width="1.5" fill="none"/>';
+  // SSS (上矢状静脈洞)
+  s+='<path d="M55,62 Q128,22 200,62" stroke="'+sc('sss')+'" stroke-width="'+sw('sss')+'" fill="none"/>';
+  s+=L('sss','SSS',96,20);
+  // 静脈洞交会
+  s+='<circle cx="200" cy="62" r="4" fill="'+sc('sss')+'"/>';
+  s+='<text x="204" y="60" font-size="7" fill="#78909C" font-family="sans-serif">交会</text>';
+  // TS (横静脈洞)
+  s+='<path d="M200,62 Q200,88 185,100" stroke="'+sc('ts_sig')+'" stroke-width="'+sw('ts_sig')+'" fill="none"/>';
+  s+=L('ts_sig','TS',202,82);
+  // SigS (S状静脈洞)
+  s+='<path d="M185,100 Q178,120 185,138 Q190,155 175,168" stroke="'+sc('ts_sig')+'" stroke-width="'+sw('ts_sig')+'" fill="none"/>';
+  s+=L('ts_sig','SigS',188,130);
+  // IJV (内頸静脈)
+  s+='<line x1="175" y1="168" x2="175" y2="245" stroke="'+sc('ijv')+'" stroke-width="'+sw('ijv')+'"/>';
+  s+=L('ijv','IJV',178,210);
+  // CS (海綿静脈洞)
+  s+='<ellipse cx="112" cy="145" rx="28" ry="13" fill="none" stroke="'+sc('cs')+'" stroke-width="'+sw('cs')+'"/>';
+  s+=L('cs','CS',90,143);
+  // ICA海綿静脈洞部 (点線)
+  s+='<line x1="112" y1="132" x2="112" y2="95" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="115" y="112" font-size="7" fill="#90A4AE" font-family="sans-serif">ICA</text>';
+  // 岩下静脈洞 (CSからIJVへ)
+  s+='<path d="M140,145 Q158,152 175,168" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2" fill="none"/>';
+  s+='<text x="145" y="160" font-size="7" fill="#90A4AE" font-family="sans-serif">岩下洞</text>';
+  // 上眼静脈 (CSへ流入)
+  s+='<path d="M85,132 Q78,118 70,108" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2" fill="none"/>';
+  s+='<text x="50" y="106" font-size="7" fill="#90A4AE" font-family="sans-serif">上眼静脈</text>';
+  s+='</svg>';
+  return _diagWrap('模式図 — 硬膜静脈洞（側面観）',s);
+}
+
+function ecaBranchSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 240 270" style="width:100%;max-width:240px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 頭蓋側面輪郭
+  s+='<ellipse cx="115" cy="88" rx="95" ry="82" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  // 顔面輪郭(前方)
+  s+='<path d="M40,120 Q28,150 35,185 Q45,210 75,225" stroke="#CFD8DC" stroke-width="1.5" fill="none"/>';
+  // ECA (本幹)
+  s+='<line x1="100" y1="195" x2="100" y2="140" stroke="#90A4AE" stroke-width="2" stroke-dasharray="4,2"/>';
+  s+='<text x="82" y="175" font-size="9" fill="#90A4AE" font-weight="400" font-family="sans-serif">ECA</text>';
+  // CCA (下部)
+  s+='<line x1="100" y1="195" x2="100" y2="240" stroke="#90A4AE" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="83" y="230" font-size="8" fill="#90A4AE" font-family="sans-serif">CCA</text>';
+  // MMA (中硬膜動脈) — 棘孔→頭蓋内へ上行
+  s+='<path d="M100,158 Q125,145 138,125 Q145,110 145,88" stroke="'+sc('mma')+'" stroke-width="'+sw('mma')+'" fill="none"/>';
+  s+='<circle cx="138" cy="125" r="2.5" fill="'+sc('mma')+'" stroke="none"/>';
+  s+='<text x="102" y="120" font-size="7" fill="#78909C" font-family="sans-serif">棘孔</text>';
+  s+=L('mma','MMA',147,85);
+  // STA (浅側頭動脈) — 側頭部へ上行
+  s+='<path d="M100,148 Q82,130 70,110 Q58,90 60,65" stroke="'+sc('sta')+'" stroke-width="'+sw('sta')+'" fill="none"/>';
+  s+=L('sta','STA',35,60);
+  // STA前頭枝・頭頂枝 分岐
+  s+='<path d="M60,65 Q50,50 45,38" stroke="'+sc('sta')+'" stroke-width="1.5" fill="none"/>';
+  s+='<path d="M60,65 Q72,52 80,42" stroke="'+sc('sta')+'" stroke-width="1.5" fill="none"/>';
+  if(hl==='sta'){s+='<text x="24" y="35" font-size="7" fill="'+H+'" font-family="sans-serif">前頭枝</text>';s+='<text x="81" y="38" font-size="7" fill="'+H+'" font-family="sans-serif">頭頂枝</text>';}
+  // OA (後頭動脈) — 後頭部へ
+  s+='<path d="M100,165 Q118,158 138,165 Q158,172 170,185 Q178,195 178,210" stroke="'+sc('oa')+'" stroke-width="'+sw('oa')+'" fill="none"/>';
+  s+=L('oa','OA',178,208);
+  s+='</svg>';
+  return _diagWrap('模式図 — 外頸動脈分枝（側面観）',s);
+}
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
