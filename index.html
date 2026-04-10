@@ -428,6 +428,36 @@ const vessels = [
     branches:'硬膜・硬膜外腔への豊富な供血',
     clinical:'ECA（顎動脈）から分岐し棘孔を通じて頭蓋内へ。硬膜動静脈瘻（dAVF）・慢性硬膜下血腫の治療ターゲット。MMA塞栓術（MMAE）は慢性硬膜下血腫の新しい血管内治療として近年急速に普及',
     devices:'MMA塞栓術（MMAE）：慢性硬膜下血腫に対してOnyx・PVA・Embosphere等で塞栓。dAVF治療：MMAからのTAEが多くのdAVFの治療に有効（TS/SigS型・SSS型）', tags:['コイリング'] },
+  { id:'stha', ja:'上甲状腺動脈', en:'Superior Thyroid Artery', abbr:'SThA', system:'eca',
+    segs:['ECA起始部直下から分岐（第1枝）','前下方へ走行し甲状腺上極へ'],
+    branches:'甲状腺上極・喉頭・胸骨舌骨筋・胸骨甲状筋・輪状甲状筋への枝',
+    clinical:'ECAの最初（第1）の分枝。甲状腺・喉頭への主要供血源。甲状腺腫瘍・副甲状腺腫瘍の術前塞栓でターゲットになることがある。頸動脈内膜剥離術（CEA）・頸動脈ステント（CAS）の際にSThA起始部直上がCCA分岐部の目印になる',
+    devices:'塞栓術：甲状腺・喉頭腫瘍の術前塞栓でSThAからのTAEを行うことがある。CEA・CAS：SThA起始部をランドマークとして頸動脈分岐部レベルを同定', tags:['コイリング'] },
+
+  { id:'apha', ja:'上行咽頭動脈', en:'Ascending Pharyngeal Artery', abbr:'APhA', system:'eca',
+    segs:['ECA内側壁起始部付近から分岐（変異多い）','咽頭後壁・頭蓋底・硬膜へ上行'],
+    branches:'咽頭後壁枝・神経脈管枝（脳神経IX〜XIIへ）・硬膜枝（jugular foramen・hypoglossal canal周囲）',
+    clinical:'ECAの中でも最も内側・後方を走行する細い分枝。頭蓋底・脊髄硬膜への供血枝があり、脊髄硬膜動静脈瘻（spinal dAVF）・頸静脈孔部の腫瘍（傍神経節腫・髄膜腫）への供血枝として重要。傍神経節腫（頸動脈小体腫瘍・jugular foramen型）のTAEで必ず評価する血管',
+    devices:'塞栓術：頸静脈孔部傍神経節腫・頭蓋底髄膜腫の術前塞栓でAPhAからのTAEが必要になることがある。脊髄dAVF：APhA硬膜枝が瘻孔への供血枝になる場合があり、慎重な評価が必要（脊髄前脊髄動脈への吻合に注意）', tags:['コイリング'] },
+
+  { id:'linga', ja:'舌動脈', en:'Lingual Artery', abbr:'LingA', system:'eca',
+    segs:['ECA前壁から分岐（SThAの次または同レベル）','舌骨上方を内走し舌へ'],
+    branches:'舌背動脈・深舌動脈・舌下動脈・舌骨枝',
+    clinical:'舌・口腔底・舌下部への主要供血源。舌癌・口腔底癌への血管内治療（術前塞栓・動注化学療法）でターゲットになる。舌動静脈奇形の塞栓術にも使用。頸部リンパ節郭清術・舌骨上頸部郭清術で損傷注意',
+    devices:'塞栓術：口腔内腫瘍の術前塞栓・動注療法でLingAへのカテーテル操作が必要。PVA粒子・コイルが使用されることが多い', tags:['コイリング'] },
+
+  { id:'faca', ja:'顔面動脈', en:'Facial Artery', abbr:'FacA', system:'eca',
+    segs:['ECA前壁から分岐（LingAの上）','下顎骨下縁を回り込み顔面を上行'],
+    branches:'下唇動脈・上唇動脈・鼻背動脈・角動脈（眼動脈と吻合）',
+    clinical:'顔面の主要供血源。角動脈がICA系眼動脈と吻合するため、ICA狭窄時の側副血行路になることがある（外頸動脈→顔面動脈→角動脈→眼動脈→ICA逆行性充填）。顔面血管腫・AVM・頬部腫瘍への塞栓術でターゲット。頭頸部がん術前塞栓でも評価',
+    devices:'塞栓術：顔面AVM・血管腫・口唇血管病変への直接穿刺塞栓またはFacAからのTAE。ICA狭窄評価：FacA〜眼動脈吻合の確認がCAS・CEA計画に影響することがある', tags:['コイリング'] },
+
+  { id:'ima', ja:'内顎動脈（顎動脈）', en:'Internal Maxillary Artery', abbr:'IMA', system:'eca',
+    segs:['ECA終末枝の一方（STAとともに）','下顎骨内側→翼突筋下窩→翼口蓋窩へ走行','第1部（下顎部）・第2部（翼突筋部）・第3部（翼口蓋部）'],
+    branches:'中硬膜動脈（MMA）・下歯槽動脈・深側頭動脈・翼突筋枝・頬動脈・上歯槽動脈・眼窩下動脈・蝶口蓋動脈・大口蓋動脈',
+    clinical:'ECAの最大終末枝。MMAはIMAの第1部から分岐し棘孔を通じて頭蓋内へ（慢性硬膜下血腫・dAVF治療のターゲット）。蝶口蓋動脈は重篤な鼻出血の責任血管として塞栓術の対象になる。上顎骨腫瘍・翼突筋下窩腫瘍への血流供給も担う',
+    devices:'塞栓術：①鼻出血（難治性）→蝶口蓋動脈へのTAE、②慢性硬膜下血腫MMAE→MMA起始をIMAから選択、③頭蓋底腫瘍術前塞栓。IMAの解剖変異（MMAの起始変異）を術前に3D-CTA・DSAで確認することが重要', tags:['コイリング'] },
+
   { id:'sta', ja:'浅側頭動脈', en:'Superficial Temporal Artery', abbr:'STA', system:'eca',
     segs:['前頭枝（前額部頭皮）','頭頂枝（頭頂部頭皮）'],
     branches:'側頭筋・頭皮への供血',
@@ -438,6 +468,74 @@ const vessels = [
     branches:'後頭部頭皮・後頸部筋・硬膜枝（VA硬膜枝と吻合）',
     clinical:'ECAからの分枝。PICA低形成例ではOA-PICA吻合（バイパス）のドナー血管として使用。VA閉塞時の側副血行路として機能することも。TS/SigS型dAVFへの供血枝となることも多い',
     devices:'dAVF治療：OAからのTAEがTS/SigS型dAVFに有効。バイパス術：OA-PICA吻合（小脳・脳幹虚血の血行再建）', tags:['コイリング'] },
+
+  // ===== 追加動脈 =====
+  { id:'angular', ja:'角回動脈', en:'Angular Artery', abbr:'AngA', system:'carotid',
+    segs:['MCA M2〜M3から分岐','角回・縁上回・頭頂側頭後頭接合部へ'],
+    branches:'角回・縁上回・頭頂葉後部・側頭頭頂後頭接合部への皮質枝',
+    clinical:'MCA遠位部（M2〜M3）の重要な皮質枝。左半球では角回は読み書き・計算（Gerstmann症候群：失書・失算・手指失認・左右失認）に関与。閉塞で失語（特に失名辞失語・伝導失語）・視空間障害をきたすことも。MCA M2遠位部閉塞でANGAが梗塞に含まれることがある',
+    devices:'血栓回収：M2遠位〜M3閉塞は細径デバイス（0.017"マイクロカテ対応SR）が必要。到達困難で技術的ハードルが高い', tags:['血栓回収'] },
+
+  { id:'rolandic', ja:'中心溝動脈（Rolandic動脈）', en:'Rolandic Artery / Central Sulcal Artery', abbr:'RolA', system:'carotid',
+    segs:['MCA M2〜M3の皮質枝','中心溝内を走行し前後中心回を供血'],
+    branches:'一次運動野（前中心回）・一次感覚野（後中心回）への供血',
+    clinical:'MCAの皮質枝の中でも運動野・感覚野への供血を担う最重要枝のひとつ。閉塞で対側上肢優位の片麻痺・感覚障害。MCA M1〜M2血栓回収後のRolandic動脈梗塞が後遺症の主因になることも。術前のMRI・MRAで中心溝を確認することが外科・血管内治療計画に重要',
+    devices:'血栓回収：M2〜M3遠位閉塞で選択的に介入する際にRolandic動脈温存が最優先。脳灌流画像でPenumbra評価を必ず行う', tags:['血栓回収'] },
+
+  { id:'fpa', ja:'前極動脈', en:'Frontopolar Artery', abbr:'FPA', system:'carotid',
+    segs:['ACA A2〜A3から分岐','前頭極・前頭葉眼窩面内側部へ'],
+    branches:'前頭極・前頭葉眼窩面内側・帯状回前部への供血',
+    clinical:'ACAの重要な皮質枝。前頭葉前部（前頭極）への主要供血源。閉塞で前頭葉症状（判断力低下・注意障害・人格変化）。ACA A2〜A3動脈瘤のコイリング時にFPA起始部の保護を確認。Heubner回帰動脈・前交通動脈複合体と同一領域のため、ACoA動脈瘤治療時に一括で評価が必要',
+    devices:'コイリング：ACA遠位部動脈瘤（脳梁周囲動脈瘤）の治療計画時にFPA分岐形態を3D-RAで確認', tags:['コイリング'] },
+
+  { id:'mht', ja:'脳膜下垂体幹', en:'Meningohypophyseal Trunk', abbr:'MHT', system:'carotid',
+    segs:['ICA海綿静脈洞部（C4）後壁から分岐','硬膜後枝・下垂体後葉枝・斜台硬膜枝の3枝に分岐'],
+    branches:'下垂体後葉・海綿静脈洞硬膜・斜台硬膜・第3〜6脳神経への栄養枝',
+    clinical:'ICA海綿静脈洞部（C4）から分岐する最も重要な枝。CCF（頸動脈海綿静脈洞瘻）Type A（直接型）ではMHTが破裂源となることも。海綿静脈洞部ICA瘤のコイリング・FD適用時に保護が問題になる。髄膜腫・下垂体腫瘍への供血枝として塞栓術前に評価',
+    devices:'コイリング・FD：C4部ICA瘤でMHT起始部保護が必要。CCF治療：MHT分岐形態がアプローチ選択に影響。塞栓術：海綿静脈洞内髄膜腫の術前塞栓でMHTから供血される場合に対応', tags:['コイリング'] },
+
+  { id:'psa', ja:'後脊髄動脈', en:'Posterior Spinal Artery', abbr:'PSA', system:'perforator',
+    segs:['頭蓋内：PICA（または直接VA）より分岐','脊髄後側方を下行（後索・後角を供血）'],
+    branches:'脊髄後索・後角・後外側白質への供血（脊髄後1/3）',
+    clinical:'PICAまたはVAから分岐し脊髄後側方を下行。ASAと対をなし脊髄後方を供血。単独閉塞は比較的稀で診断困難。深部感覚（振動覚・位置覚）障害が主症状（後索障害）。VA-PICA動脈瘤の手術・コイリング時に保護を考慮。ASA症候群との鑑別が重要（温痛覚保持・深部感覚障害）',
+    devices:'コイリング：VA-PICA動脈瘤でASA同様にPSA起始部確認が必要。PICA近位部の動脈瘤でPSAが同一起始から分岐する変異に注意', tags:['コイリング'] },
+
+  // ===== 追加静脈 =====
+  { id:'iss', ja:'下矢状静脈洞', en:'Inferior Sagittal Sinus', abbr:'ISS', system:'venous',
+    segs:['大脳鎌の自由縁（下縁）に沿って後方へ走行','後方でRosenthal基底静脈と合流→大脳大静脈（Galen静脈）を形成'],
+    branches:'帯状回下面・大脳鎌からの小静脈が流入',
+    clinical:'大脳鎌の下縁を走行する小静脈洞。単独での閉塞は稀だが深部静脈血栓症（CVST）の一部として閉塞することがある。大脳鎌近傍の髄膜腫・AVM手術時に損傷注意。Galen静脈瘤（VGAM）の上流路として評価対象になる',
+    devices:'dAVF：大脳鎌型dAVFでISSへの流入が問題になることがある。MRAやDSAでの静脈洞解剖の把握が重要', tags:['コイリング'] },
+
+  { id:'vog', ja:'大脳大静脈（Galen静脈）', en:'Great Cerebral Vein of Galen', abbr:'VoG', system:'venous',
+    segs:['両側内大脳静脈（ICV）とRosenthal基底静脈が合流して形成','直静脈洞（Straight Sinus）へ流入'],
+    branches:'両側内大脳静脈・Rosenthal基底静脈からの流入',
+    clinical:'深部脳静脈の主要合流点。Vein of Galen Malformation（VGAM：Galen静脈瘤）：新生児〜乳児期に発症する高流量脳動静脈奇形で、脳室拡大・心不全・水頭症を呈する。小児脳血管内治療の最難関疾患のひとつ。成人では深部AVMのドレナージ静脈として評価',
+    devices:'VGAM治療：経動脈的（大脳動脈から）または経静脈的（VoGへ直接穿刺）Onyx/NBCA塞栓術。段階的な複数回塞栓が基本。心不全管理と並行した集学的治療が必要', tags:['コイリング'] },
+
+  { id:'icv', ja:'内大脳静脈', en:'Internal Cerebral Vein', abbr:'ICV', system:'venous',
+    segs:['モンロー孔近傍（視床静脈・透明中隔静脈が合流）で形成','視床・脳梁上方を後走しGalen静脈へ流入'],
+    branches:'視床静脈・透明中隔静脈・脈絡叢静脈・尾状核静脈からの流入',
+    clinical:'左右一対の深部静脈。視床・基底核・内包・脈絡叢・側脳室のドレナージ担当。CVST（脳静脈血栓症）でICVが閉塞すると両側視床・基底核に静脈性梗塞・出血が生じ重篤な意識障害をきたす。深部AVM（Spetzler-Martin grade高値）の評価では必ずICVのドレナージ方向を確認',
+    devices:'AVM塞栓：深部AVM（ICV/VoGドレナージ）のOnyx塞栓は静脈ドレナージ温存が最重要。CVST：ICV血栓に対する経静脈的血栓回収（EVT）が行われる場合がある', tags:['コイリング'] },
+
+  { id:'bvr', ja:'Rosenthal基底静脈', en:'Basal Vein of Rosenthal', abbr:'BVR', system:'venous',
+    segs:['前交通静脈・深中大脳静脈が合流して前穿質付近で形成','内側側頭部・脳幹外側を後走しGalen静脈へ'],
+    branches:'島皮質深部・前穿質・視床・中脳・内側側頭葉からの流入',
+    clinical:'前循環と後循環の深部静脈を橋渡しする重要静脈。深部AVM・海綿静脈奇形（CM）のドレナージ評価に必須。BVRの逆行性皮質静脈還流（retrograde cortical venous reflux）はdAVFの出血リスク指標のひとつ。テント裏面髄膜腫・松果体部腫瘍の術前血管造影で必ず評価',
+    devices:'AVM塞栓：BVRドレナージAVMへの介入は出血リスクが高く段階的塞栓が原則。dAVF：BVRへの逆流があれば緊急治療の適応', tags:['コイリング'] },
+
+  { id:'trolard_labbe', ja:'Trolard静脈 / Labbé静脈', en:'Vein of Trolard / Vein of Labbé', abbr:'TrV / LaV', system:'venous',
+    segs:['Trolard静脈：SSSと中大脳静脈（シルビウス静脈）を吻合（頭頂部・中心溝付近）','Labbé静脈：TS/SigSと中大脳静脈を吻合（側頭葉後部）'],
+    branches:'SSSと側脳静脈を橋渡しする吻合静脈',
+    clinical:'皮質の吻合静脈（bridging vein）として外科手術の体位・開頭計画に直結する重要静脈。Trolard静脈損傷→上肢〜体幹の静脈性梗塞。Labbé静脈損傷→側頭葉（特に左では言語野）の静脈性梗塞・出血→重篤な失語・視野障害。開頭手術では術前血管造影・MR静脈撮影（MRV）でルーティンに確認',
+    devices:'AVM・髄膜腫手術：TrV・LaVの走行を術前MRVで必ず同定。損傷回避が神経症状予防の要。dAVF評価：TrV・LaVへの逆行性皮質静脈還流は緊急治療の適応', tags:['コイリング'] },
+
+  { id:'stsinus', ja:'直静脈洞', en:'Straight Sinus', abbr:'StS', system:'venous',
+    segs:['大脳鎌とテント付着部（鎌テント接合部）に沿って走行','ISSとGalen静脈が合流して形成→静脈洞交会（Torcula）へ'],
+    branches:'ISS・Galen静脈からの流入。小脳幕からの小静脈も流入',
+    clinical:'深部静脈（ICV・BVR・VoG）のドレナージ終着点のひとつ。CVST（脳静脈血栓症）では深部静脈から直静脈洞にかけての血栓形成で両側視床梗塞・出血・重篤な意識障害。松果体部・胼胝体膨大部・テント上の腫瘍・AVM手術でStSへの操作が生死に関わる。DSA・MRVでの開存確認が術前評価の必須事項',
+    devices:'dAVF：直静脈洞型dAVFは稀だが逆行性皮質静脈還流があれば緊急対応。CVST：直静脈洞血栓に対するカテーテルを用いた血栓溶解・回収が行われることがある', tags:['コイリング'] },
 ];
 
 // ============================================================
@@ -688,7 +786,70 @@ const abbreviations = [
     desc:'ガイドワイヤーの全長にわたってカテーテルを交換できる方式。Scepter等のバルーンカテーテルで採用。Rapid Exchange（RX）方式と対比される' },
   { id:'phases', abbr:'PHASESスコア', full:'Population, Hypertension, Age, Size, Earlier SAH, Site', ja:'PHASESスコア（動脈瘤破裂リスク評価）', cat:'device',
     desc:'未破裂動脈瘤の5年間破裂リスクを推定するスコア。人種・高血圧・年齢・サイズ・既往SAH・部位の6項目。スコア高いほど破裂リスク高く治療適応の判断に使用' },
+
+  // ===== 追加略語 - 血管・解剖 =====
+  { id:'lvo', abbr:'LVO', full:'Large Vessel Occlusion', ja:'大血管閉塞', cat:'stroke',
+    desc:'血栓回収（EVT）の主要対象。ICA終末部・MCA M1〜M2・BA・ACA A1・PCA P1などの主幹動脈閉塞。NIHSS高値・CT/MRI所見（ASPECTS）と組み合わせて治療適応を判断。閉塞部位により症状と手術難易度が異なる' },
+  { id:'bao', abbr:'BAO', full:'Basilar Artery Occlusion', ja:'脳底動脈閉塞', cat:'stroke',
+    desc:'最重症のLVOで致死率・重症後遺率が極めて高い。意識障害・四肢麻痺・眼球運動障害・閉じ込め症候群（locked-in）が主症状。時間窓が前循環より長い場合もある（最長24時間の報告あり）。緊急血栓回収の適応。BASICS試験・ATTENTION試験でEVT有効性が示された' },
+  { id:'willis', abbr:'Willis輪', full:'Circle of Willis', ja:'ウィリス動脈輪', cat:'imaging',
+    desc:'脳底部に形成される動脈の輪状吻合。ICA・ACA（A1）・ACoA・PCoA・PCA（P1）・BAで構成。側副血行路として機能し、片側ICAが閉塞した場合でも対側からの血流補填が可能。個人差が大きく（低形成・欠如など）、術前CTAでの形態確認が重要' },
+  { id:'seg_mca', abbr:'M1/M2/M3/M4', full:'MCA Segment Classification', ja:'中大脳動脈セグメント分類', cat:'imaging',
+    desc:'M1：水平部（ICAからシルビウス裂まで）、M2：島部（シルビウス裂内）、M3：弁蓋部（シルビウス裂出口〜皮質表面）、M4：皮質部（皮質上）。LVOとしてEVTの主ターゲットはM1〜M2。M3以降の遠位閉塞は小径デバイスが必要' },
+  { id:'seg_aca', abbr:'A1/A2/A3', full:'ACA Segment Classification', ja:'前大脳動脈セグメント分類', cat:'imaging',
+    desc:'A1：水平部（ICAからACoAまで）、A2：上行部（ACoAから脳梁膝部まで）、A3：脳梁周囲部（脳梁を回り込む部分）。A1低形成（一側が細い）では対側からACoA経由で代償される。ACoA動脈瘤はA1-A2移行部・ACoAに好発' },
+  { id:'seg_ica', abbr:'C1〜C7', full:'ICA Segment Classification（Bouthillier）', ja:'内頸動脈セグメント分類（Bouthillier分類）', cat:'imaging',
+    desc:'C1：頸部、C2：錐体部、C3：破裂孔部、C4：海綿静脈洞部、C5：膝状部、C6：眼動脈部、C7：交通部（終末部）。動脈瘤はC6（眼動脈部）・C7（後交通動脈部）に最多。FDはC6〜C7の大型瘤が主適応' },
+  { id:'seg_va', abbr:'V1〜V4', full:'VA Segment Classification', ja:'椎骨動脈セグメント分類', cat:'imaging',
+    desc:'V1：前横突起部（起始〜C6）、V2：横突起孔内部（C6〜C2）、V3：後頭下三角部（硬膜外）、V4：硬膜内部（PICAまで）。解離性動脈瘤・紡錘状動脈瘤はV4に好発。コイリングのターゲットはV4が最多' },
+  { id:'seg_ba', abbr:'BA下・中・上部', full:'Basilar Artery Segment Classification', ja:'脳底動脈セグメント分類', cat:'imaging',
+    desc:'BA下1/3（AICA周辺）・BA中1/3（橋穿通枝多数）・BA上1/3（SCA）・BA先端部（BA tip）に分類。BA tip動脈瘤が最も多く、PCA・SCA・後穿通枝の保護が手術の鍵。BAO血栓回収はVA〜BA全体をターゲットにする' },
+  { id:'tandem', abbr:'タンデム病変', full:'Tandem Lesion / Tandem Occlusion', ja:'タンデム病変（頸部+頭蓋内同時閉塞）', cat:'stroke',
+    desc:'頸部ICA狭窄/閉塞と頭蓋内動脈閉塞が同時に存在する病変。心原性+動脈硬化性の複合機序が多い。治療戦略：①頸部ICAを先に再開通（anterograde）→頭蓋内へ進む、②頭蓋内閉塞を先に処置（retrograde）、の2種類があり施設・術者・患者状態によって選択される' },
+  { id:'penumbra_concept', abbr:'Penumbra（半影）', full:'Ischemic Penumbra', ja:'虚血半影（救済可能な周辺組織）', cat:'imaging',
+    desc:'梗塞核（Infarct core：CBF・CBV低下）を取り囲む潜在的救済可能な虚血領域。血流再開通により梗塞への進展を防げる。CTP（Tmax>6秒がPenumbraの目安）・MRIでのDWI-FLAIR mismatch等で評価。PenumbraがCoreより著しく大きい場合（mismatch）がEVT適応の重要基準' },
+
+  // ===== 追加略語 - 脳卒中・血栓回収 =====
+  { id:'nihss', abbr:'NIHSS', full:'NIH Stroke Scale', ja:'NIH脳卒中スケール', cat:'stroke',
+    desc:'急性期脳卒中の重症度評価スケール（0〜42点）。意識・注視・視野・顔面麻痺・上下肢運動・失調・感覚・言語・構音・消去の11項目。6点以上でEVT適応の目安。点数が高いほど重症' },
+  { id:'mrs', abbr:'mRS', full:'modified Rankin Scale', ja:'修正ランキンスケール（転帰評価）', cat:'stroke',
+    desc:'脳卒中後の機能転帰評価（0〜6点）。0：症状なし、1：日常生活ほぼ支障なし、2：軽度障害（自立）、3：中等度障害（介助一部必要）、4：中等重度（歩行・身体管理に介助）、5：重度（寝たきり）、6：死亡。mRS 0〜2を「良好転帰」と定義することが多い' },
+  { id:'ivt', abbr:'IVT / rt-PA', full:'Intravenous Thrombolysis / recombinant tissue Plasminogen Activator', ja:'静脈内血栓溶解療法（アルテプラーゼ）', cat:'stroke',
+    desc:'発症4.5時間以内のAISに適応。アルテプラーゼ0.6mg/kg（最大60mg）を静注。EVTと組み合わせるBridge療法が一般的。出血合併症（SICH）リスクに注意。禁忌：出血既往・高血圧未コントロール・血小板減少等' },
+  { id:'ais', abbr:'AIS', full:'Acute Ischemic Stroke', ja:'急性期脳梗塞', cat:'stroke',
+    desc:'急性期に発症した脳梗塞。LVOを伴うAISがEVT（血栓回収）の対象。TOAST分類で原因を評価（心原性・アテローム性・ラクナ・他原因・不明）。発症時刻の確定がIVT・EVTの適応決定に直結する' },
+  { id:'tia', abbr:'TIA', full:'Transient Ischemic Attack', ja:'一過性脳虚血発作', cat:'stroke',
+    desc:'虚血による神経症状が24時間以内（通常1時間以内）に完全回復するもの。脳梗塞の前駆症状として重要（ABCD2スコアで48時間内脳梗塞リスクを評価）。症状消失後も緊急対応が必要。頸動脈狭窄・心房細動のスクリーニングを実施' },
+  { id:'af', abbr:'AF / Afib', full:'Atrial Fibrillation', ja:'心房細動', cat:'stroke',
+    desc:'心原性脳塞栓の最多原因。心房内血栓（左心耳血栓）が脳へ飛散しLVOを引き起こす。心原性LVOは血栓が大きく閉塞血管径が太いことが多い。抗凝固療法（DOAC）が再発予防の標準治療。脳卒中後にホルター心電図・長時間心電図でAF検索が必須' },
+  { id:'pfo', abbr:'PFO', full:'Patent Foramen Ovale', ja:'卵円孔開存', cat:'stroke',
+    desc:'心房中隔の卵円孔が閉鎖せず残存した状態（成人の約25〜30%）。右左シャントを介した奇異性塞栓が若年脳梗塞の原因になりうる。ROPE（Risk of Paradoxical Embolism）スコアで関与を評価。閉鎖術（経皮的PFO閉鎖）の適応は年齢・再発リスク等を考慮して判断' },
+  { id:'sich', abbr:'SICH', full:'Symptomatic Intracranial Hemorrhage', ja:'症候性頭蓋内出血', cat:'stroke',
+    desc:'IVT（rt-PA）・EVT後の重大合併症。ECASS基準：48時間以内の出血で神経症状が4点以上悪化したもの。rt-PA投与後のSICH発症率は約6%。危険因子：高血圧・高齢・高NIHSS・広範早期虚血変化（ASPECTS低値）' },
+
+  // ===== 追加略語 - 動脈瘤・コイリング =====
+  { id:'ich', abbr:'ICH', full:'Intracerebral Hemorrhage', ja:'脳内出血（高血圧性）', cat:'aneurysm',
+    desc:'脳実質内への出血。高血圧性（被殻・視床・小脳・橋）が最多。LSA（被殻出血）・視床穿通枝（視床出血）・橋穿通枝（橋出血）が責任血管。AVMやCAVMが原因の場合は血管内治療の適応を検討。血腫拡大防止に血圧管理・凝固異常補正が急務' },
+  { id:'icp', abbr:'ICP / EVD', full:'Intracranial Pressure / External Ventricular Drain', ja:'頭蓋内圧 / 脳室ドレナージ', cat:'aneurysm',
+    desc:'ICP：正常5〜15mmHg。SAH・CVST・大量脳梗塞で上昇し脳ヘルニアの危険。EVD：側脳室にカテーテルを留置しCSFを体外排出する緊急処置。SAH後水頭症・脳室内出血に適応。ICP持続モニタリングにも使用' },
+  { id:'avm', abbr:'AVM', full:'Arteriovenous Malformation', ja:'脳動静脈奇形', cat:'aneurysm',
+    desc:'正常毛細血管網を欠き動脈が直接静脈に繋がる先天性血管奇形。年間出血率約2〜4%（既出血例は高い）。Spetzler-Martin gradeで治療難易度を評価。治療：血管内塞栓（Onyx/NBCA）・外科切除・定位放射線（ガンマナイフ）の組み合わせ' },
+  { id:'spetzler', abbr:'Spetzler-Martin', full:'Spetzler-Martin AVM Grading Scale', ja:'スペッツラー・マーティン分類（AVM）', cat:'aneurysm',
+    desc:'脳AVMの外科治療難易度・リスク分類。①病巣サイズ（<3cm=1点、3〜6cm=2点、>6cm=3点）②機能野局在（非機能野=0、機能野=1）③深部静脈ドレナージ（なし=0、あり=1）の合計1〜5点。Grade I〜IIは外科治療推奨、Grade IV〜Vは集学的治療を検討' },
+
+  // ===== 追加略語 - 手技・デバイス =====
+  { id:'web', abbr:'WEB', full:'Woven EndoBridge', ja:'ウーブン・エンドブリッジ（瘤内デバイス）', cat:'device',
+    desc:'動脈瘤内に留置するブレイド構造のIntrasaccularデバイス（MicroVention）。ステントやバルーン不要でDAPT期間が短い（3〜6ヶ月）。分岐部ワイドネック動脈瘤（特にMCA・ACoA・BA tip）に適応。WEB-IT試験・WEBCAST試験でエビデンス確立。サイズ選択が重要（幅・高さ・頸部径）' },
+  { id:'onyx_nbca', abbr:'Onyx / NBCA', full:'Ethylene Vinyl Alcohol Copolymer / N-Butyl Cyanoacrylate', ja:'液体塞栓剤（Onyx・NBCA）', cat:'device',
+    desc:'Onyx（Medtronic）：DMSO溶解エチレン酢酸ビニル共重合体。ゆっくり固化するため注入コントロールが容易。AVM・dAVF・MMA塞栓に使用。NBCA（ヒストアクリル）：シアノアクリレート系瞬間接着剤。速硬化でdAVF・AVM塞栓に使用。いずれも永久塞栓剤' },
+  { id:'tae_tve', abbr:'TAE / TVE', full:'Transarterial Embolization / Transvenous Embolization', ja:'経動脈的塞栓術 / 経静脈的塞栓術', cat:'device',
+    desc:'TAE：動脈側からカテーテルを進め塞栓剤（Onyx・NBCA・コイル・粒子）で閉塞する手技。dAVF・AVM・腫瘍塞栓に使用。TVE：静脈側（IJV→SigS→TS等）からカテーテルを進め静脈洞・瘻孔をコイル塞栓する手技。TS/SigS型dAVF・CCFの標準治療' },
+  { id:'mmae', abbr:'MMAE', full:'Middle Meningeal Artery Embolization', ja:'中硬膜動脈塞栓術', cat:'device',
+    desc:'MMAを経由して行う塞栓術。①慢性硬膜下血腫（CSDH）：外科ドレナージの補助または代替として急速に普及。Onyx・PVA・Embosphere等で塞栓し再発率を低減。②dAVF：TS/SigS型・SSS型へのMMAからのTAE。③髄膜腫術前塞栓。穿刺はMMAの顎動脈（ECA）起始部から' },
+  { id:'tof', abbr:'TOF-MRA', full:'Time of Flight MR Angiography', ja:'時間飛行法MR血管造影', cat:'device',
+    desc:'造影剤不要のMRA手法。流入する血流を高信号で描出。3mm以上の脳動脈瘤の検出・経過観察に有用。非侵襲的で繰り返し施行可能。DSAより解像度は劣るが外来スクリーニングに最適。コイル塞栓後の再開通評価でも使用（コイルアーチファクトに注意）' },
 ];
+
 
 // ============================================================
 // APP STATE
