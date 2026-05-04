@@ -239,6 +239,48 @@
 </head>
 <body>
 
+<!-- パスワードロック画面 -->
+<div id="lockScreen" style="
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:linear-gradient(135deg,#1565C0,#0D47A1);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:99999;color:white;font-family:-apple-system,sans-serif;
+">
+  <div style="font-size:48px;margin-bottom:16px;">🧠</div>
+  <div style="font-size:24px;font-weight:700;margin-bottom:8px;">NeuroNav</div>
+  <div style="font-size:14px;opacity:0.8;margin-bottom:40px;">脳神経外科 営業支援アプリ</div>
+  <input id="lockInput" type="password" placeholder="パスワードを入力" style="
+    width:240px;padding:14px 20px;border-radius:12px;border:none;
+    font-size:16px;text-align:center;outline:none;margin-bottom:12px;
+  " onkeydown="if(event.key==='Enter')checkLock()">
+  <button onclick="checkLock()" style="
+    width:240px;padding:14px;border-radius:12px;border:none;
+    background:white;color:#1565C0;font-size:16px;font-weight:700;cursor:pointer;
+  ">ログイン</button>
+  <div id="lockError" style="margin-top:16px;color:#FF8A80;font-size:14px;display:none;">
+    パスワードが違います
+  </div>
+</div>
+<script>
+(function(){
+  const PW = 'Yuki6211';
+  if(sessionStorage.getItem('nn_auth')==='ok'){
+    document.getElementById('lockScreen').style.display='none';
+  }
+  window.checkLock=function(){
+    const v=document.getElementById('lockInput').value;
+    if(v===PW){
+      sessionStorage.setItem('nn_auth','ok');
+      document.getElementById('lockScreen').style.display='none';
+    } else {
+      document.getElementById('lockError').style.display='block';
+      document.getElementById('lockInput').value='';
+      document.getElementById('lockInput').focus();
+    }
+  };
+})();
+</script>
+
 <!-- HEADER -->
 <div id="header">
   <div class="hd-top">
