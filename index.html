@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NeuroNav">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>NeuroNav - 脳神経外科営業支援</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --primary: #1565C0; --primary-dark: #0D47A1;
+      --bg: #F0F4F8; --card: #FFFFFF;
+      --text: #111827; --text-sub: #6B7280; --border: #E5E7EB;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ===== HEADER ===== */
+    #header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: calc(env(safe-area-inset-top) + 10px) 16px 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+    .hd-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+    .logo-sub { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 1px; }
+    .hd-help { width: 32px; height: 32px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; cursor: pointer; }
+    .search-box { display: flex; align-items: center; background: rgba(255,255,255,0.17); border-radius: 12px; padding: 9px 13px; gap: 8px; }
+    #searchInput { flex: 1; background: none; border: none; outline: none; color: #fff; font-size: 16px; font-family: inherit; }
+    #searchInput::placeholder { color: rgba(255,255,255,0.55); }
+    #clearBtn { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 17px; display: none; }
+
+    /* ===== CONTENT ===== */
+    #content { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(env(safe-area-inset-bottom) + 56px); }
+
+    /* ===== BOTTOM NAV (4 tabs) ===== */
+    #bnav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 300; background: #fff; border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom); }
+    .nb { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 7px 2px 5px; cursor: pointer; color: var(--text-sub); gap: 2px; user-select: none; -webkit-user-select: none; transition: color 0.15s; }
+    .nb.active { color: var(--primary); }
+    .nb svg { width: 22px; height: 22px; }
+    .nb span { font-size: 9px; font-weight: 600; letter-spacing: -0.2px; }
+
+    /* ===== PAGES ===== */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ===== FILTER BAR ===== */
+    .fbar { display: flex; gap: 7px; padding: 8px 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .fbar::-webkit-scrollbar { display: none; }
+    .fc { font-size: 12px; font-weight: 500; padding: 6px 13px; border-radius: 20px; border: 1.5px solid var(--border); background: #fff; color: var(--text-sub); white-space: nowrap; cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
+    .fc.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .slabel { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.8px; padding: 14px 14px 4px; }
+
+    /* ===== VESSEL CARD ===== */
+    .vc { background: var(--card); border-radius: 14px; margin: 5px 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .vc-hd { padding: 12px 14px; display: flex; align-items: center; gap: 11px; cursor: pointer; }
+    .vabbr { background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; padding: 6px 8px; border-radius: 8px; min-width: 50px; text-align: center; flex-shrink: 0; }
+    .vnames { flex: 1; min-width: 0; }
+    .vja { font-size: 15px; font-weight: 600; }
+    .ven { font-size: 11px; color: var(--text-sub); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .vright { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .tag { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+    .tred { background: #FEE2E2; color: #DC2626; }
+    .tblue { background: #DBEAFE; color: #1D4ED8; }
+    .tpurp { background: #EDE9FE; color: #6D28D9; }
+    .tgreen { background: #D1FAE5; color: #065F46; }
+    .star { font-size: 18px; cursor: pointer; color: #D1D5DB; padding: 2px; }
+    .star.on { color: #F59E0B; }
+    .vc-bd { display: none; padding: 0 14px 13px; border-top: 1px solid var(--border); }
+    .vc-bd.open { display: block; }
+    .ir { display: flex; gap: 8px; margin-top: 9px; }
+    .il { font-size: 11px; font-weight: 600; color: var(--text-sub); min-width: 62px; padding-top: 1px; flex-shrink: 0; }
+    .iv { font-size: 13px; line-height: 1.6; flex: 1; }
+    .segrow { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+    .segchip { font-size: 11px; padding: 3px 8px; background: var(--bg); border-radius: 20px; border: 1px solid var(--border); }
+
+    /* ===== COMPANY / PRODUCT ===== */
+    .cblock { background: var(--card); border-radius: 14px; margin: 5px 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .cbar { padding: 13px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .cdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .cname { font-size: 15px; font-weight: 700; flex: 1; }
+    .ccountry { font-size: 11px; color: var(--text-sub); }
+    .chevron { color: var(--text-sub); font-size: 14px; transition: transform 0.2s; }
+    .chevron.open { transform: rotate(90deg); }
+    .plist { display: none; border-top: 1px solid var(--border); }
+    .plist.open { display: block; }
+    .prow { padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
+    .prow:last-child { border-bottom: none; }
+    .phd { display: flex; align-items: flex-start; gap: 8px; }
+    .pname { font-size: 14px; font-weight: 600; }
+    .pdesc { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+    .ptag { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+    .cat-thrombectomy { background: #FEE2E2; color: #DC2626; }
+    .cat-coiling { background: #DBEAFE; color: #1D4ED8; }
+    .cat-flowdiverter { background: #EDE9FE; color: #6D28D9; }
+    .cat-stent { background: #D1FAE5; color: #065F46; }
+    .cat-balloon { background: #FEF3C7; color: #92400E; }
+    .pdetail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .pdetail.open { display: block; }
+    .fi { font-size: 13px; line-height: 1.6; padding: 2px 0 2px 15px; position: relative; }
+    .fi::before { content: '▸'; position: absolute; left: 0; color: var(--primary); font-size: 10px; top: 4px; }
+    .fnote { margin-top: 8px; font-size: 12px; color: var(--text-sub); background: var(--bg); padding: 8px 10px; border-radius: 8px; line-height: 1.5; }
+    .apbadge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; margin-top: 8px; }
+    .approved { background: #D1FAE5; color: #065F46; }
+    .pending { background: #FEF3C7; color: #92400E; }
+    .unapproved { background: #FEE2E2; color: #DC2626; }
+
+    /* ===== LINEUP ===== */
+    .lineup-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+    .lineup-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .lineup-item { font-size: 12px; line-height: 1.7; padding: 1px 0 1px 12px; position: relative; color: var(--text); }
+    .lineup-item::before { content: '◦'; position: absolute; left: 0; color: var(--primary); font-weight: 700; }
+
+    /* ===== ABBREVIATION CARD ===== */
+    .ac { background: var(--card); border-radius: 14px; margin: 5px 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .ac-hd { padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .ac-abbr { font-size: 14px; font-weight: 800; color: var(--primary); background: #EFF6FF; padding: 6px 10px; border-radius: 8px; min-width: 64px; text-align: center; flex-shrink: 0; line-height: 1.3; }
+    .ac-names { flex: 1; min-width: 0; }
+    .ac-ja { font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .ac-en { font-size: 11px; color: var(--text-sub); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .actag { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+    .cat-stroke { background: #FEE2E2; color: #DC2626; }
+    .cat-aneurysm { background: #DBEAFE; color: #1D4ED8; }
+    .cat-imaging { background: #D1FAE5; color: #065F46; }
+    .cat-device { background: #FEF3C7; color: #92400E; }
+    .ac-bd { display: none; padding: 0 14px 13px; border-top: 1px solid var(--border); }
+    .ac-bd.open { display: block; }
+    .ac-desc { font-size: 13px; line-height: 1.7; margin-top: 10px; }
+
+    /* ===== SEARCH RESULTS ===== */
+    #searchResults { display: none; }
+    .rgtitle { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.8px; padding: 14px 14px 4px; }
+
+    /* ===== EMPTY ===== */
+    .empty { padding: 60px 20px; text-align: center; color: var(--text-sub); }
+    .empty-icon { font-size: 46px; margin-bottom: 10px; }
+    .empty-msg { font-size: 15px; line-height: 1.6; }
+
+    /* ===== VESSEL DIAGRAM ===== */
+    .vc-diagram { margin-top: 10px; padding: 10px 8px 8px; background: #F0F7FF; border-radius: 10px; border: 1px solid #BBDEFB; }
+    .diag-title { font-size: 10px; font-weight: 700; color: #5C6BC0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; text-align: center; }
+    .diag-legend { display: flex; gap: 14px; justify-content: center; margin-top: 6px; }
+    .diag-legend span { font-size: 10px; color: #78909C; display: inline-flex; align-items: center; gap: 4px; }
+
+    /* ===== HELP MODAL ===== */
+    #helpOverlay { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.5); align-items: flex-end; }
+    #helpOverlay.open { display: flex; }
+    .help-sheet { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 20px calc(env(safe-area-inset-bottom) + 20px); width: 100%; }
+    .help-sheet h2 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+    .help-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+    .help-num { width: 26px; height: 26px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .help-txt { font-size: 14px; line-height: 1.5; padding-top: 3px; }
+    .help-close { width: 100%; margin-top: 16px; padding: 13px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+    /* ===== DOCTORS ===== */
+    .dsearch-toggle { display:flex; gap:8px; padding:10px 14px 4px; }
+    .dst-btn { flex:1; padding:10px 8px; border-radius:10px; border:2px solid var(--border); background:#fff; color:var(--text-sub); font-size:13px; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; }
+    .dst-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .dcard { background:var(--card); border-radius:14px; margin:5px 13px; box-shadow:0 1px 4px rgba(0,0,0,0.07); overflow:hidden; }
+    .dcard-hd { padding:12px 14px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+    .davatar { width:50px; height:50px; border-radius:50%; overflow:hidden; flex-shrink:0; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:17px; font-weight:700; letter-spacing:-1px; }
+    .davatar img { width:100%; height:100%; object-fit:cover; }
+    .dinfo { flex:1; min-width:0; }
+    .dname { font-size:16px; font-weight:700; }
+    .dkana { font-size:11px; color:var(--text-sub); margin-top:1px; }
+    .dhosp { font-size:12px; color:var(--text-sub); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .dpos-row { display:flex; align-items:center; gap:6px; margin-top:3px; }
+    .dpos { font-size:11px; font-weight:600; color:var(--primary); }
+    .ddept { font-size:10px; color:var(--text-sub); }
+    .dcard-bd { display:none; padding:0 14px 14px; border-top:1px solid var(--border); }
+    .dcard-bd.open { display:block; }
+    .drow { display:flex; gap:8px; margin-top:8px; }
+    .dlabel { font-size:11px; font-weight:700; color:var(--text-sub); min-width:54px; padding-top:1px; flex-shrink:0; }
+    .dval { font-size:13px; line-height:1.6; flex:1; }
+    .spec-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:2px; }
+    .schip { font-size:11px; padding:3px 9px; border-radius:20px; font-weight:600; }
+    .schip-ns { background:#DBEAFE; color:#1E40AF; }
+    .schip-ni { background:#D1FAE5; color:#065F46; }
+    .schip-st { background:#FEE2E2; color:#B91C1C; }
+    .schip-ev { background:#EDE9FE; color:#6D28D9; }
+    .schip-ot { background:#F3F4F6; color:#374151; }
+    .focus-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:2px; }
+    .fchip { font-size:10px; padding:2px 8px; border-radius:20px; background:#FEF3C7; color:#92400E; }
+    .career-txt { font-size:13px; line-height:1.8; white-space:pre-wrap; }
+    .note-txt { font-size:12px; color:var(--text-sub); background:var(--bg); padding:8px 10px; border-radius:8px; line-height:1.5; margin-top:2px; }
+    .dcard-actions { display:flex; gap:8px; margin-top:12px; }
+    .dact-btn { flex:1; padding:9px; border-radius:9px; border:1.5px solid var(--border); background:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
+    .dact-edit { color:var(--primary); border-color:var(--primary); }
+    .dact-del { color:#DC2626; border-color:#DC2626; }
+    .pmap-wrap { padding:6px 10px 2px; }
+    .pmap-wrap svg { width:100%; max-width:320px; display:block; margin:0 auto; }
+    .pref-cell { cursor:pointer; }
+    .pmap-legend { display:flex; gap:16px; justify-content:center; padding:4px 0 6px; }
+    .pmleg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-sub); }
+    .pmleg-box { width:14px; height:10px; border-radius:3px; flex-shrink:0; }
+    .psel-title { font-size:13px; font-weight:700; padding:6px 14px 4px; color:var(--text); }
+    #docModal { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.5); align-items:flex-end; }
+    #docModal.open { display:flex; }
+    .doc-sheet { background:#fff; border-radius:20px 20px 0 0; width:100%; max-height:90vh; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:20px 16px calc(env(safe-area-inset-bottom)+20px); }
+    .doc-sheet h3 { font-size:17px; font-weight:700; margin-bottom:16px; }
+    .dfield { margin-bottom:14px; }
+    .dfield label { font-size:12px; font-weight:700; color:var(--text-sub); display:block; margin-bottom:5px; }
+    .dfield input,.dfield textarea,.dfield select { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:15px; font-family:inherit; background:#fff; outline:none; -webkit-appearance:none; }
+    .dfield input:focus,.dfield textarea:focus,.dfield select:focus { border-color:var(--primary); }
+    .dfield textarea { height:80px; resize:none; line-height:1.6; }
+    .dfield-row { display:flex; gap:10px; }
+    .dfield-row .dfield { flex:1; }
+    .doc-btns { display:flex; gap:10px; margin-top:16px; }
+    .doc-save { flex:2; padding:13px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; }
+    .doc-cancel { flex:1; padding:13px; background:var(--bg); color:var(--text); border:none; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer; }
+    .add-doc-fab { position:fixed; bottom:calc(env(safe-area-inset-bottom)+64px); right:16px; width:52px; height:52px; background:var(--primary); color:#fff; border-radius:50%; display:none; align-items:center; justify-content:center; font-size:26px; z-index:200; box-shadow:0 4px 16px rgba(21,101,192,0.4); cursor:pointer; line-height:1; }
+    .add-doc-fab.visible { display:flex; }
+    .doc-toolbar { display:flex; gap:7px; padding:0 14px 8px; flex-wrap:wrap; }
+    .dtb-btn { font-size:12px; font-weight:600; padding:7px 12px; border-radius:8px; border:1.5px solid var(--border); background:#fff; color:var(--text-sub); cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    .dtb-btn.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .gsync-panel { padding:0 14px 14px; }
+    .gsync-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; margin-bottom:10px; }
+    .gsync-badge.connected { background:#D1FAE5; color:#065F46; }
+    .gsync-badge.none { background:#F3F4F6; color:#6B7280; }
+    .gsync-steps { background:var(--bg); border-radius:10px; padding:10px 12px; margin-bottom:10px; }
+    .gsync-step { display:flex; gap:8px; align-items:flex-start; margin-bottom:6px; }
+    .gsync-step:last-child { margin-bottom:0; }
+    .gsync-sn { width:18px; height:18px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; margin-top:1px; }
+    .gsync-st { font-size:12px; line-height:1.6; color:var(--text); }
+    .gsync-st code { background:#E8F4FD; color:#1565C0; padding:1px 5px; border-radius:4px; font-size:11px; }
+    .gsync-url { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:10px; font-size:13px; font-family:inherit; outline:none; box-sizing:border-box; margin-bottom:8px; }
+    .gsync-url:focus { border-color:var(--primary); }
+    .gsync-actions { display:flex; gap:8px; }
+    .gsync-status { font-size:12px; margin-top:8px; min-height:18px; color:var(--text-sub); }
+    .auto-sync-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:12px; color:var(--text-sub); cursor:pointer; }
+    .auto-sync-row input { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div class="hd-top">
+    <div>
+      <div class="logo">🧠 NeuroNav</div>
+      <div class="logo-sub">脳神経外科 営業支援アプリ</div>
+    </div>
+    <div class="hd-help" onclick="toggleHelp()">?</div>
+  </div>
+  <div class="search-box">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="search" id="searchInput" placeholder="血管名・製品名・略語・医師名…" autocomplete="off" autocorrect="off" spellcheck="false">
+    <span id="clearBtn" onclick="clearSearch()">✕</span>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <div id="contentPad">
+    <div id="searchResults"></div>
+
+    <!-- 血管 -->
+    <div id="pageVessel" class="page active">
+      <div class="fbar" id="vfbar">
+        <div class="fc active" onclick="filterV('all',this)">すべて</div>
+        <div class="fc" onclick="filterV('carotid',this)">内頸動脈系</div>
+        <div class="fc" onclick="filterV('vertebrobasilar',this)">椎骨脳底動脈系</div>
+        <div class="fc" onclick="filterV('willis',this)">Willis輪</div>
+        <div class="fc" onclick="filterV('neck',this)">頸部・大血管</div>
+        <div class="fc" onclick="filterV('perforator',this)">穿通枝</div>
+        <div class="fc" onclick="filterV('venous',this)">静脈洞・静脈</div>
+        <div class="fc" onclick="filterV('eca',this)">外頸動脈分枝</div>
+      </div>
+      <div id="vesselList"></div>
+    </div>
+
+    <!-- 競合他社 -->
+    <div id="pageCompetitor" class="page">
+      <div class="fbar" id="cfbar">
+        <div class="fc active" onclick="filterC('all',this)">すべて</div>
+        <div class="fc" onclick="filterC('thrombectomy',this)">血栓回収</div>
+        <div class="fc" onclick="filterC('coiling',this)">コイリング</div>
+        <div class="fc" onclick="filterC('flowdiverter',this)">フローダイバーター</div>
+        <div class="fc" onclick="filterC('stent',this)">ステント</div>
+        <div class="fc" onclick="filterC('balloon',this)">バルーン</div>
+      </div>
+      <div id="compList"></div>
+    </div>
+
+    <!-- 略語 -->
+    <div id="pageAbbr" class="page">
+      <div class="fbar" id="afbar">
+        <div class="fc active" onclick="filterA('all',this)">すべて</div>
+        <div class="fc" onclick="filterA('stroke',this)">脳卒中・血栓回収</div>
+        <div class="fc" onclick="filterA('aneurysm',this)">動脈瘤・コイリング</div>
+        <div class="fc" onclick="filterA('imaging',this)">画像・評価スケール</div>
+        <div class="fc" onclick="filterA('device',this)">手技・デバイス</div>
+      </div>
+      <div id="abbrList"></div>
+    </div>
+
+    <!-- お気に入り -->
+    <div id="pageFavorites" class="page">
+      <div id="favList"></div>
+    </div>
+
+    <!-- 医師 -->
+    <div id="pageDoctor" class="page">
+      <div class="dsearch-toggle">
+        <button class="dst-btn active" id="dstName" onclick="setDocSearchMode('name')">👤 名前で検索</button>
+        <button class="dst-btn" id="dstMap" onclick="setDocSearchMode('map')">🗾 地図で検索</button>
+      </div>
+      <div class="doc-toolbar">
+        <button class="dtb-btn primary" onclick="toggleGSyncPanel()">🔗 Googleシート連携</button>
+        <button class="dtb-btn" onclick="exportDocCSV()">📤 バックアップ</button>
+        <button class="dtb-btn" onclick="document.getElementById('csvImportFile').click()">📥 CSV取込</button>
+        <input type="file" id="csvImportFile" accept=".csv" style="display:none" onchange="importDocCSV(this)">
+      </div>
+      <div class="gsync-panel" id="gSyncPanel" style="display:none">
+        <div id="gSyncBadge" class="gsync-badge none">⚪ 未連携</div>
+        <div class="gsync-steps">
+          <div class="gsync-step"><div class="gsync-sn">1</div><div class="gsync-st"><a href="https://sheets.new" target="_blank" style="color:var(--primary);font-weight:600">sheets.new</a> で新しいシートを開く</div></div>
+          <div class="gsync-step"><div class="gsync-sn">2</div><div class="gsync-st">1行目に列名を入力：<code>氏名</code> <code>フリガナ</code> <code>所属病院</code> <code>診療科</code> <code>役職</code> <code>都道府県</code> <code>専門医</code> <code>専門分野</code> <code>経歴</code> <code>写真URL</code> <code>備考</code></div></div>
+          <div class="gsync-step"><div class="gsync-sn">3</div><div class="gsync-st">2行目以降に医師データを入力（専門医・専門分野は <code>;</code> 区切りで複数入力可）</div></div>
+          <div class="gsync-step"><div class="gsync-sn">4</div><div class="gsync-st">メニュー <strong>「ファイル」→「共有」→「ウェブに公開」</strong> → シートを選択 → <strong>「カンマ区切りの値（.csv）」</strong> → <strong>「公開」</strong></div></div>
+          <div class="gsync-step"><div class="gsync-sn">5</div><div class="gsync-st">表示されたURLをコピーして下に貼り付け</div></div>
+        </div>
+        <label class="auto-sync-row">
+          <input type="checkbox" id="gAutoSync"> 起動時に自動で同期する
+        </label>
+        <input class="gsync-url" type="url" id="gSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
+        <div class="gsync-actions">
+          <button class="dtb-btn primary" onclick="syncGoogleSheet()" style="flex:1;justify-content:center">🔄 今すぐ同期</button>
+          <button class="dtb-btn" onclick="clearGSync()" style="color:#DC2626;border-color:#DC2626">連携解除</button>
+        </div>
+        <div class="gsync-status" id="gSyncStatus"></div>
+      </div>
+      <div id="docNameSearch">
+        <div class="fbar" id="docSpecFilter">
+          <div class="fc active" onclick="filterDoc('all',this)">すべて</div>
+          <div class="fc" onclick="filterDoc('ns',this)">脳神経外科</div>
+          <div class="fc" onclick="filterDoc('ni',this)">脳神経内科</div>
+          <div class="fc" onclick="filterDoc('ais',this)">AIS</div>
+          <div class="fc" onclick="filterDoc('sah',this)">SAH</div>
+        </div>
+        <div id="docList"></div>
+      </div>
+      <div id="docMapSearch" style="display:none">
+        <div class="pmap-wrap" id="prefMapWrap"></div>
+        <div class="pmap-legend">
+          <div class="pmleg"><div class="pmleg-box" style="background:#DBEAFE;border:1.5px solid #3B82F6"></div>医師登録あり</div>
+          <div class="pmleg"><div class="pmleg-box" style="background:#EFF6FF;border:1px solid #93C5FD"></div>未登録</div>
+        </div>
+        <div id="prefDocTitle" class="psel-title" style="display:none"></div>
+        <div id="prefDocList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="bnav">
+  <div class="nb active" id="nbVessel" onclick="switchTab('vessel')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/>
+      <circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/>
+    </svg>
+    <span>血管</span>
+  </div>
+  <div class="nb" id="nbCompetitor" onclick="switchTab('competitor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/>
+      <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2"/>
+      <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+    </svg>
+    <span>競合他社</span>
+  </div>
+  <div class="nb" id="nbAbbr" onclick="switchTab('abbr')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/>
+    </svg>
+    <span>略語</span>
+  </div>
+  <div class="nb" id="nbDoctor" onclick="switchTab('doctor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    <span>医師</span>
+  </div>
+  <div class="nb" id="nbFavorites" onclick="switchTab('favorites')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+    <span>★</span>
+  </div>
+</div>
+
+<!-- ADD/EDIT DOCTOR MODAL -->
+<div id="docModal" onclick="closeDocModal(event)">
+  <div class="doc-sheet" onclick="event.stopPropagation()">
+    <h3 id="docModalTitle">医師を追加</h3>
+    <div class="dfield">
+      <label>氏名 *</label>
+      <input type="text" id="dfName" placeholder="例: 山田 太郎">
+    </div>
+    <div class="dfield">
+      <label>フリガナ</label>
+      <input type="text" id="dfKana" placeholder="例: やまだ たろう">
+    </div>
+    <div class="dfield">
+      <label>所属病院 *</label>
+      <input type="text" id="dfHospital" placeholder="例: 東京大学医学部附属病院">
+    </div>
+    <div class="dfield-row">
+      <div class="dfield">
+        <label>診療科</label>
+        <input type="text" id="dfDept" placeholder="脳神経外科">
+      </div>
+      <div class="dfield">
+        <label>役職</label>
+        <input type="text" id="dfPosition" placeholder="教授">
+      </div>
+    </div>
+    <div class="dfield">
+      <label>都道府県</label>
+      <select id="dfPref"><option value="">選択してください</option></select>
+    </div>
+    <div class="dfield">
+      <label>専門医・資格（カンマ区切り）</label>
+      <input type="text" id="dfSpecialty" placeholder="脳神経外科専門医, 脳卒中専門医">
+    </div>
+    <div class="dfield">
+      <label>専門分野・治療（カンマ区切り）</label>
+      <input type="text" id="dfFocus" placeholder="AIS, SAH, 血栓回収術">
+    </div>
+    <div class="dfield">
+      <label>経歴</label>
+      <textarea id="dfCareer" placeholder="1990年 ○○大学医学部卒業&#10;2000年 現職"></textarea>
+    </div>
+    <div class="dfield">
+      <label>写真URL（任意）</label>
+      <input type="text" id="dfPhoto" placeholder="https://...">
+    </div>
+    <div class="dfield">
+      <label>備考・メモ</label>
+      <textarea id="dfNote" placeholder="訪問メモ、アポイント情報など"></textarea>
+    </div>
+    <div class="doc-btns">
+      <button class="doc-cancel" onclick="closeDocModal()">キャンセル</button>
+      <button class="doc-save" onclick="saveDoctor()">保存</button>
+    </div>
+  </div>
+</div>
+<!-- FAB -->
+<div class="add-doc-fab" id="addDocFab" onclick="openDocModal()">＋</div>
+
+<!-- HELP -->
+<div id="helpOverlay" onclick="closeHelp(event)">
+  <div class="help-sheet" onclick="event.stopPropagation()">
+    <h2>📱 iPhoneホーム画面に追加する方法</h2>
+    <div class="help-step"><div class="help-num">1</div><div class="help-txt"><strong>Safari</strong>でこのページを開く（Chromeでは不可）</div></div>
+    <div class="help-step"><div class="help-num">2</div><div class="help-txt">画面下中央の<strong>共有ボタン（□↑）</strong>をタップ</div></div>
+    <div class="help-step"><div class="help-num">3</div><div class="help-txt"><strong>「ホーム画面に追加」</strong>を選択 → 「追加」</div></div>
+    <div class="help-step"><div class="help-num">4</div><div class="help-txt">ホーム画面のアイコンから起動するとフルスクリーンで使用可能</div></div>
+    <button class="help-close" onclick="toggleHelp()">閉じる</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA - 血管
+// ============================================================
+const vessels = [
+  { id:'ica', ja:'内頸動脈', en:'Internal Carotid Artery', abbr:'ICA', system:'carotid',
+    segs:['C1：頸部','C2：錐体部','C3：破裂孔部','C4：海綿静脈洞部','C5：膝状部','C6：眼動脈部','C7：交通部（終末部）'],
+    branches:'眼動脈、前脈絡叢動脈、後交通動脈 → 前大脳動脈・中大脳動脈',
+    clinical:'脳梗塞・TIAの主要原因血管。タンデム病変（頸部ICA狭窄＋頭蓋内閉塞）では両部位への介入が必要。内頸動脈瘤は全動脈瘤中で最多。ICA終末部（T字分岐）閉塞はLVO中でも広範梗塞になりやすい',
+    devices:'血栓回収：ガイディングカテーテルの留置目標。頸部ICA狭窄合併例ではステント・バルーンが必要なことも。コイリング：C6（眼動脈部）・C7（交通部）に動脈瘤多発。FD：大型ICA瘤に適応', tags:['血栓回収','コイリング'] },
+  { id:'mca', ja:'中大脳動脈', en:'Middle Cerebral Artery', abbr:'MCA', system:'carotid',
+    segs:['M1：水平部（島葉手前まで）','M2：島部（シルビウス裂内）','M3：弁蓋部','M4：皮質部'],
+    branches:'レンズ核線条体動脈（M1・穿通枝）、前側頭動脈、中側頭動脈',
+    clinical:'脳梗塞で最頻度の閉塞部位。M1閉塞はLVOの典型。運動野・感覚野・言語野（左半球）への供血担当。NIHSSが高スコアになりやすい',
+    devices:'血栓回収：M1・M2が主ターゲット。M2以降は細径デバイス必要。コイリング：MCA分岐部瘤はステント補助が必要なことも', tags:['血栓回収','コイリング'] },
+  { id:'aca', ja:'前大脳動脈', en:'Anterior Cerebral Artery', abbr:'ACA', system:'carotid',
+    segs:['A1：水平部（前交通動脈まで）','A2：上行部（脳梁膝部まで）','A3：脳梁周囲部','A4・A5：皮質枝'],
+    branches:'Heubner回帰動脈（A1-A2分岐部）、眼窩前頭動脈、脳梁辺縁動脈',
+    clinical:'下肢優位の片麻痺・感覚障害、無動性無言（両側ACA梗塞）。A1低形成は対側からの代償あり。ACoA動脈瘤破裂時にA2やHeubner動脈への影響に注意',
+    devices:'血栓回収：A1・A2閉塞（アクセス困難で小径デバイス要）。コイリング：ACoA動脈瘤で頻出', tags:['血栓回収','コイリング'] },
+  { id:'acom', ja:'前交通動脈', en:'Anterior Communicating Artery', abbr:'ACoA', system:'willis',
+    segs:[], branches:'サブカロソール動脈、視床下部枝（穿通枝）',
+    clinical:'くも膜下出血の原因として動脈瘤好発部位の最多。形態の個人差大（duplex・triplex等）。破裂時に認知障害・記憶障害を来すことがある',
+    devices:'コイリング：頸部が広い例も多くステント補助・バルーン補助が必要なことも。投影角の調整が鍵', tags:['コイリング'] },
+  { id:'pcom', ja:'後交通動脈', en:'Posterior Communicating Artery', abbr:'PCoA', system:'willis',
+    segs:[], branches:'視床前穿通枝、乳頭体動脈、後部脈絡叢動脈枝',
+    clinical:'IC-PC動脈瘤（ICAとPCoAの分岐部）は動眼神経麻痺を引き起こしやすく急性期対応要。胎児型PCA（Fetal PCA）：PCoAがPCAに発達し後大脳動脈の主供血路となる（約20〜25%）',
+    devices:'コイリング：IC-PC動脈瘤は最も一般的なコイリング対象のひとつ。頸部が広い場合はバルーン・ステント補助', tags:['コイリング'] },
+  { id:'opha', ja:'眼動脈', en:'Ophthalmic Artery', abbr:'OphA', system:'carotid',
+    segs:['硬膜内部','眼窩内部'], branches:'網膜中心動脈、毛様体動脈群',
+    clinical:'網膜への唯一の供血源。閉塞で一過性黒内障（amaurosis fugax）または永続的視力喪失。ICA狭窄の症状として出現することも',
+    devices:'コイリング：C6部の眼動脈瘤はOphA起始部の保護が必須。フローダイバーター：OphAのカバーが問題になる場合あり', tags:['コイリング'] },
+  { id:'acha', ja:'前脈絡叢動脈', en:'Anterior Choroidal Artery', abbr:'AChA', system:'carotid',
+    segs:[], branches:'内包後脚、視床、側脳室脈絡叢への枝',
+    clinical:'AChA症候群：対側の片麻痺＋感覚障害＋半盲（内包後脚・外側膝状体梗塞）。非常に細小で代償血行路が乏しく閉塞で重篤な症状',
+    devices:'コイリング：AChA起始部近傍の動脈瘤は閉塞リスクがあり術前計画が重要', tags:['コイリング'] },
+  { id:'va', ja:'椎骨動脈', en:'Vertebral Artery', abbr:'VA', system:'vertebrobasilar',
+    segs:['V1：横突起前部（起始〜C6）','V2：横突起孔内（C6〜C2）','V3：後頭下三角部','V4：硬膜内部（PICA分岐まで）'],
+    branches:'後下小脳動脈（PICA）、前脊髄動脈、後脊髄動脈、筋枝',
+    clinical:'左右の合流で脳底動脈を形成。優位側（左優位が多い）と劣位側あり。V4部に解離性動脈瘤・紡錘状動脈瘤が発生しやすい',
+    devices:'血栓回収：BA閉塞・PICA閉塞のアクセスルート。大動脈弓形態がアクセスに影響。コイリング：V4解離性動脈瘤・VA-PICA動脈瘤', tags:['血栓回収','コイリング'] },
+  { id:'ba', ja:'脳底動脈', en:'Basilar Artery', abbr:'BA', system:'vertebrobasilar',
+    segs:['下部（BA下1/3・AICA周辺）','中部（BA中1/3・橋穿通枝多数）','上部（BA上1/3・SCA）','先端部（BA tip・PCA分岐）'],
+    branches:'AICA（前下小脳動脈）、SCA（上小脳動脈）、多数の橋穿通枝、後大脳動脈',
+    clinical:'BA閉塞（BAO）は致死率・重症後遺率が極めて高い。意識障害・四肢麻痺・脳幹症状。血栓回収の時間的窓は前循環より長い場合も（最長24時間報告あり）',
+    devices:'血栓回収：BAO治療は緊急性高い。ガイドカテのVA到達が鍵。コイリング：BA tip動脈瘤・BA-SCA動脈瘤・BA-AICA動脈瘤', tags:['血栓回収','コイリング'] },
+  { id:'pca', ja:'後大脳動脈', en:'Posterior Cerebral Artery', abbr:'PCA', system:'vertebrobasilar',
+    segs:['P1：交通前部（BAからPCoAまで）','P2：周槽部','P3：四叠体部','P4：距状溝部'],
+    branches:'後脈絡叢動脈、視床穿通枝、脳幹枝、後頭葉皮質枝',
+    clinical:'PCA閉塞：対側同名半盲（視覚野）、感覚障害、失認（右半球）、記憶障害（海馬）。胎児型PCA（約25%）ではICA閉塞でもPCA梗塞が起こりうる',
+    devices:'血栓回収：P1・P2閉塞（BAOに準じた緊急対応）。コイリング：P1・P2部の動脈瘤', tags:['血栓回収','コイリング'] },
+  { id:'pica', ja:'後下小脳動脈', en:'Posterior Inferior Cerebellar Artery', abbr:'PICA', system:'vertebrobasilar',
+    segs:['前延髄部','外側延髄部（変異最多）','扁桃体部','小脳扁桃周囲部','皮質部'],
+    branches:'延髄外側部穿通枝、小脳半球下面・虫部枝',
+    clinical:'PICA閉塞：Wallenberg症候群（延髄外側梗塞）— 嚥下障害・構音障害・眩暈・眼振・同側ホルネル症候群・交叉性温痛覚障害・失調',
+    devices:'血栓回収：PICA閉塞（到達困難で小径デバイス要）。コイリング：VA-PICA動脈瘤でPICA起始部の保護が最重要課題', tags:['血栓回収','コイリング'] },
+  { id:'aica', ja:'前下小脳動脈', en:'Anterior Inferior Cerebellar Artery', abbr:'AICA', system:'vertebrobasilar',
+    segs:['前部（BA近傍）','橋小脳角部（内耳孔近傍）','小脳半球部'],
+    branches:'内耳動脈（迷路動脈）、橋穿通枝、顔面神経・外転神経への栄養枝',
+    clinical:'AICA閉塞：突発性難聴・眩暈（内耳動脈由来）、顔面神経麻痺、水平注視麻痺、失調',
+    devices:'コイリング：BA-AICA動脈瘤（橋穿通枝・内耳動脈の保護が困難なケースあり）', tags:['コイリング'] },
+  { id:'sca', ja:'上小脳動脈', en:'Superior Cerebellar Artery', abbr:'SCA', system:'vertebrobasilar',
+    segs:['内側部（BA周囲）','外側部（小脳テント縁）','皮質部'],
+    branches:'小脳上面枝、歯状核枝、小脳テント枝',
+    clinical:'SCA閉塞：小脳上部梗塞・失調、三叉神経症状（第1〜第3枝）。BA tip動脈瘤の治療時にSCA保護が重要',
+    devices:'コイリング：BA-SCA動脈瘤、BA tip動脈瘤術中にSCA起始部への影響を評価', tags:['コイリング'] },
+  { id:'cca', ja:'総頸動脈', en:'Common Carotid Artery', abbr:'CCA', system:'neck',
+    segs:['右CCA：腕頭動脈（BCA）より分岐','左CCA：大動脈弓から直接分岐'],
+    branches:'内頸動脈（ICA）、外頸動脈（ECA）',
+    clinical:'頸部CCA・ICA狭窄はCEAまたはCAS（頸動脈ステント）の対象。大動脈弓部の形態（TypeI/II/III・牛型弓）がカテーテルアクセスに大きく影響',
+    devices:'血栓回収：ガイディングカテーテルの留置基点。CCA起始部が急角度（bovine arch）だとシース挿入・操作が困難', tags:['血栓回収'] },
+  { id:'eca', ja:'外頸動脈', en:'External Carotid Artery', abbr:'ECA', system:'neck',
+    segs:[], branches:'上甲状腺動脈、上行咽頭動脈、舌動脈、顔面動脈、後頭動脈、浅側頭動脈、内顎動脈',
+    clinical:'脳への直接供血なし。タンデム病変時の参考血管。眼動脈とのanastomosisあり（側副血行路）。硬膜動静脈瘻ではECA枝が関与することも',
+    devices:'血栓回収：タンデム病変でICA閉塞部越えの際にECA分岐部を目印にする', tags:['血栓回収'] },
+  { id:'subclav', ja:'鎖骨下動脈', en:'Subclavian Artery', abbr:'SubA', system:'neck',
+    segs:['第1部（前斜角筋内側）','第2部（前斜角筋後方）','第3部（前斜角筋外側）'],
+    branches:'椎骨動脈、内胸動脈、甲状頸動脈幹、肋頸動脈幹',
+    clinical:'SubA閉塞：鎖骨下動脈盗血症候群（椎骨動脈逆流→後頭蓋窩症状）。左SubAは大動脈弓から直接分岐（右は腕頭動脈経由）',
+    devices:'血栓回収：椎骨動脈系アクセス時に通過する。左SubAが大動脈弓から鋭角に分岐する場合があり操作困難なことも', tags:['血栓回収'] },
+  // ===== 頸部・大血管（追加）=====
+  { id:'aorticarch', ja:'大動脈弓', en:'Aortic Arch', abbr:'AoArch', system:'neck',
+    segs:['Type I：3分枝が弓の凸側から垂直に分岐（操作が最も容易）','Type II：分枝起始部が弓の中間位','Type III：分枝起始部が弓の凹側（操作が最も困難）','Bovine Arch（牛型弓）：左CCAが腕頭動脈から分岐（人口の約25%）'],
+    branches:'腕頭動脈（BCA）、左総頸動脈（左CCA）、左鎖骨下動脈（左SubA）',
+    clinical:'全ての脳血管内治療のアクセス出発点。弓部の形態（Type I/II/III・牛型弓）がカテーテル操作の難易度に直接影響。高齢者・動脈硬化進行例ではType IIIや蛇行弓が多く難易度が高い',
+    devices:'血栓回収・コイリング全般：カテーテル挿入時の最初の関門。Type III・Elongated Archはガイドシース選択や操作戦略の変更が必要。術前CTAで弓部形態確認が重要', tags:['血栓回収','コイリング'] },
+  { id:'bca', ja:'腕頭動脈', en:'Brachiocephalic Artery', abbr:'BCA', system:'neck',
+    segs:[],
+    branches:'右総頸動脈（右CCA）、右鎖骨下動脈（右SubA）',
+    clinical:'右側の頸動脈・椎骨動脈へのアクセスルート。大動脈弓から分岐する最初の大血管。Bovine arch（牛型弓）では左CCAもBCAから分岐し左半球へのアクセスにも影響する',
+    devices:'血栓回収：右半球LVO治療では大腿動脈→BCA→右CCA→ICAのルートが基本。BCAの屈曲・石灰化がアクセスに影響', tags:['血栓回収'] },
+  // ===== 穿通枝 =====
+  { id:'lsa', ja:'レンズ核線条体動脈', en:'Lenticulostriate Arteries', abbr:'LSA', system:'perforator',
+    segs:['内側群（medial LSA）：MCA M1近位より分岐','外側群（lateral LSA）：MCA M1遠位〜分岐部より分岐'],
+    branches:'内包・被殻・尾状核頭部・淡蒼球（被殻優位）への供血',
+    clinical:'MCA M1から分岐する穿通枝群（6〜12本程度）。閉塞でラクナ梗塞（被殻・内包・尾状核）→純粋運動性片麻痺・構音障害。M1血栓回収時に絡み取り・損傷に注意。高血圧性脳出血（被殻出血）の責任血管',
+    devices:'血栓回収：M1デバイス展開時にLSA領域への影響を最小化する必要あり。コイリング：MCA M1近位〜分岐部動脈瘤でLSA保護が最大の課題', tags:['血栓回収','コイリング'] },
+  { id:'heubner', ja:'Heubner回帰動脈', en:'Recurrent Artery of Heubner', abbr:'RAH', system:'perforator',
+    segs:[],
+    branches:'尾状核頭部・内包前脚・被殻前部・前有孔質への供血',
+    clinical:'ACA A1-A2分岐部（前交通動脈近傍）から分岐する最大の穿通枝。走行変異が多い（ACA A1から分岐することも）。閉塞で対側の顔面・上肢麻痺（純粋運動性）。ACoA動脈瘤のコイリング時に保護が必要',
+    devices:'コイリング：ACoA動脈瘤治療時にRAH起始部の保護が重要。3D-RAで走行を術前確認するのが原則', tags:['コイリング'] },
+  { id:'thalamic_perf', ja:'視床穿通動脈（後穿通枝）', en:'Thalamic Perforating Arteries', abbr:'ThPA', system:'perforator',
+    segs:['後穿通枝（BA tip・P1後壁より分岐）','視床膝状体動脈（PCA P2より分岐）','内側後脈絡叢動脈（P2近位より）','外側後脈絡叢動脈（P2遠位より）'],
+    branches:'視床・視床下部・内包後脚・脳幹背側・膝状体への供血',
+    clinical:'BA tipや後大脳動脈P1から分岐する視床穿通枝群。BA tip動脈瘤コイリング時の最難関課題。閉塞でBenedict症候群・Weber症候群・視床梗塞（記憶障害・感覚障害・意識障害）',
+    devices:'コイリング：BA tip動脈瘤・BA-SCA動脈瘤のコイリングで後穿通枝の保護が技術的難点。フローダイバーター：BA幹部への適応は穿通枝閉塞リスクが高く基本的に禁忌', tags:['コイリング'] },
+  { id:'pontine_perf', ja:'橋穿通枝', en:'Pontine Perforating Arteries', abbr:'PPA', system:'perforator',
+    segs:['パラメディアン枝（BA正中より・橋内側を供血）','短回旋枝（橋前外側）','長回旋枝（橋外側〜小脳テント下面）'],
+    branches:'橋・脳幹腹側部への多数の穿通枝',
+    clinical:'脳底動脈中部から分岐する橋への穿通枝群。閉塞でラクナ梗塞（橋梗塞）→交叉性片麻痺・構音障害・眼球運動障害・閉じ込め症候群（locked-in syndrome）。BA中部での血管内治療は穿通枝閉塞リスクが高い',
+    devices:'コイリング：BA幹部（紡錘状・解離性）動脈瘤のコイリングは橋穿通枝の保護が最大の課題。フローダイバーター適応は慎重に判断が必要', tags:['コイリング'] },
+  { id:'asa', ja:'前脊髄動脈', en:'Anterior Spinal Artery', abbr:'ASA', system:'perforator',
+    segs:['頸髄部（両側VAのV4部から合流）','胸髄・腰髄部（分節動脈と吻合し延続）'],
+    branches:'脊髄前角・錐体路・脊髄前2/3への供血',
+    clinical:'両側VAのV4部から分岐し合流して下行。閉塞で脊髄前動脈症候群：損傷高位以下の運動麻痺・解離性感覚障害（温痛覚消失・触覚・深部感覚保持）。VA-PICA動脈瘤・V4解離性動脈瘤でASA起始部への影響に注意',
+    devices:'コイリング：V4動脈瘤・VA-PICA動脈瘤でASA起始部の保護を確認する必要あり。VA閉塞術前にASA起始部の確認が必須', tags:['コイリング'] },
+  { id:'pericallosal', ja:'脳梁周囲動脈 / 脳梁辺縁動脈', en:'Pericallosal / Callosomarginal Artery', abbr:'PcalA', system:'carotid',
+    segs:['脳梁周囲動脈：ACA A3以降・脳梁背側に沿って走行','脳梁辺縁動脈：ACA A3以降・帯状溝に沿って走行'],
+    branches:'脳梁・帯状回・補足運動野・前頭葉内側面への枝',
+    clinical:'ACA A3以降の遠位部。脳梁周囲動脈瘤（pericallosal aneurysm）：ACA遠位部動脈瘤で鎌内に好発。血管走行が蛇行しカテーテルアクセス困難。外科的クリッピングが選択されることも多い',
+    devices:'血栓回収：ACA A3以降の閉塞は技術的に最も難しい閉塞部位のひとつ（超細径デバイス・熟練を要す）。コイリング：脳梁周囲動脈瘤はアクセス困難で外科治療と選択を議論', tags:['血栓回収','コイリング'] },
+  { id:'pcha', ja:'後脈絡叢動脈', en:'Posterior Choroidal Artery', abbr:'PChA', system:'vertebrobasilar',
+    segs:['内側後脈絡叢動脈（mPChA）：PCA P2近位より分岐','外側後脈絡叢動脈（lPChA）：PCA P2遠位より分岐'],
+    branches:'視床後部・膝状体・脈絡叢・脳梁膨大部・海馬への枝',
+    clinical:'PCA P2から分岐する重要穿通枝。閉塞で視床後部梗塞・視野障害（上象限半盲）・記憶障害（海馬）。PCA周囲動脈瘤のコイリング時に保護を考慮する必要がある重要穿通枝',
+    devices:'コイリング：PCA P2部の動脈瘤でPChA起始部の保護が課題。3D-RAでの術前確認が重要', tags:['コイリング'] },
+  // ===== 静脈洞・静脈 =====
+  { id:'sss', ja:'上矢状静脈洞', en:'Superior Sagittal Sinus', abbr:'SSS', system:'venous',
+    segs:['前部（前頭部・細く静脈流入少ない）','中部（頭頂部・皮質静脈が多数流入）','後部（後頭部・静脈洞交会へ）'],
+    branches:'脳表皮質静脈（多数）からの流入・くも膜顆粒（CSF吸収）',
+    clinical:'硬膜動静脈瘻（dAVF）の好発部位のひとつ。SSS閉塞（CVST）：頭蓋内圧亢進・けいれん・静脈性梗塞。静脈洞血栓症ではヘパリン投与・血管内血栓回収が行われることも',
+    devices:'dAVF治療：SSSに流入するdAVFはECA枝（MMA等）からの動脈塞栓術（TAE）が第一選択。静脈側からのTVEも行われる', tags:['コイリング'] },
+  { id:'ts_sig', ja:'横静脈洞 / S状静脈洞', en:'Transverse Sinus / Sigmoid Sinus', abbr:'TS / SigS', system:'venous',
+    segs:['横静脈洞（TS）：静脈洞交会→乳突部に沿って走行','S状静脈洞（SigS）：乳突部→頸静脈球へ'],
+    branches:'小脳・後頭葉静脈からの流入，岩下静脈洞・海綿静脈洞と吻合',
+    clinical:'dAVFの最好発部位（Cognard分類・Borden分類が重要）。TS/SigS dAVFは拍動性耳鳴りが主訴。逆行性軟膜静脈還流（LVD）があると出血リスク高く緊急治療の適応となる',
+    devices:'dAVF治療：後頭動脈・中硬膜動脈・椎骨動脈硬膜枝からのTAEが基本。静脈洞内コイル塞栓（TVE：IJV経由）も行われる。Onyx・NBCA等の液体塞栓剤を使用', tags:['コイリング'] },
+  { id:'cs', ja:'海綿静脈洞', en:'Cavernous Sinus', abbr:'CS', system:'venous',
+    segs:['前部（眼静脈流入部）','後部（岩下静脈洞流出部）'],
+    branches:'上眼静脈・下眼静脈・中硬膜静脈から流入，岩下静脈洞・岩錐静脈洞へ流出',
+    clinical:'内部をICA（C4海綿静脈洞部）・動眼神経・滑車神経・外転神経・三叉神経（V1/V2）が通過。CCF（頸動脈海綿静脈洞瘻）：眼球突出・眼球運動障害・拍動性血管雑音・球結膜充血。Barrow分類でType A〜D',
+    devices:'CCF治療：経動脈的（ICAコイル・バルーン）または経静脈的（岩下静脈洞→CS経由のコイル塞栓：TVE）アプローチ。現在はTVEが標準治療', tags:['コイリング'] },
+  { id:'ijv', ja:'内頸静脈', en:'Internal Jugular Vein', abbr:'IJV', system:'venous',
+    segs:['上球部（頸静脈孔・S状静脈洞と連続）','頸部（胸鎖乳突筋内側）','下球部（鎖骨下静脈との合流部）'],
+    branches:'S状静脈洞から連続，顔面静脈・舌静脈・甲状腺静脈等が合流',
+    clinical:'経静脈的アプローチ（TVE）の主要アクセスルート。TS/SigS dAVFや海綿静脈洞AVF（CCF）の治療で使用。IJV閉塞・血栓症・狭窄があるとアクセス困難でアプローチ変更が必要',
+    devices:'dAVF・CCF治療：IJV→S状静脈洞→TS/SigS or CS のルートで経静脈的コイル塞栓術（TVE）。アクセスルートの開存確認（静脈造影）が必須', tags:['コイリング'] },
+  // ===== 外頸動脈分枝 =====
+  { id:'mma', ja:'中硬膜動脈', en:'Middle Meningeal Artery', abbr:'MMA', system:'eca',
+    segs:['前枝（前頭部硬膜・頭頂部へ）','後枝（側頭部・後頭部硬膜へ）'],
+    branches:'硬膜・硬膜外腔への豊富な供血',
+    clinical:'ECA（顎動脈）から分岐し棘孔を通じて頭蓋内へ。硬膜動静脈瘻（dAVF）・慢性硬膜下血腫の治療ターゲット。MMA塞栓術（MMAE）は慢性硬膜下血腫の新しい血管内治療として近年急速に普及',
+    devices:'MMA塞栓術（MMAE）：慢性硬膜下血腫に対してOnyx・PVA・Embosphere等で塞栓。dAVF治療：MMAからのTAEが多くのdAVFの治療に有効（TS/SigS型・SSS型）', tags:['コイリング'] },
+  { id:'stha', ja:'上甲状腺動脈', en:'Superior Thyroid Artery', abbr:'SThA', system:'eca',
+    segs:['ECA起始部直下から分岐（第1枝）','前下方へ走行し甲状腺上極へ'],
+    branches:'甲状腺上極・喉頭・胸骨舌骨筋・胸骨甲状筋・輪状甲状筋への枝',
+    clinical:'ECAの最初（第1）の分枝。甲状腺・喉頭への主要供血源。甲状腺腫瘍・副甲状腺腫瘍の術前塞栓でターゲットになることがある。頸動脈内膜剥離術（CEA）・頸動脈ステント（CAS）の際にSThA起始部直上がCCA分岐部の目印になる',
+    devices:'塞栓術：甲状腺・喉頭腫瘍の術前塞栓でSThAからのTAEを行うことがある。CEA・CAS：SThA起始部をランドマークとして頸動脈分岐部レベルを同定', tags:['コイリング'] },
+
+  { id:'apha', ja:'上行咽頭動脈', en:'Ascending Pharyngeal Artery', abbr:'APhA', system:'eca',
+    segs:['ECA内側壁起始部付近から分岐（変異多い）','咽頭後壁・頭蓋底・硬膜へ上行'],
+    branches:'咽頭後壁枝・神経脈管枝（脳神経IX〜XIIへ）・硬膜枝（jugular foramen・hypoglossal canal周囲）',
+    clinical:'ECAの中でも最も内側・後方を走行する細い分枝。頭蓋底・脊髄硬膜への供血枝があり、脊髄硬膜動静脈瘻（spinal dAVF）・頸静脈孔部の腫瘍（傍神経節腫・髄膜腫）への供血枝として重要。傍神経節腫（頸動脈小体腫瘍・jugular foramen型）のTAEで必ず評価する血管',
+    devices:'塞栓術：頸静脈孔部傍神経節腫・頭蓋底髄膜腫の術前塞栓でAPhAからのTAEが必要になることがある。脊髄dAVF：APhA硬膜枝が瘻孔への供血枝になる場合があり、慎重な評価が必要（脊髄前脊髄動脈への吻合に注意）', tags:['コイリング'] },
+
+  { id:'linga', ja:'舌動脈', en:'Lingual Artery', abbr:'LingA', system:'eca',
+    segs:['ECA前壁から分岐（SThAの次または同レベル）','舌骨上方を内走し舌へ'],
+    branches:'舌背動脈・深舌動脈・舌下動脈・舌骨枝',
+    clinical:'舌・口腔底・舌下部への主要供血源。舌癌・口腔底癌への血管内治療（術前塞栓・動注化学療法）でターゲットになる。舌動静脈奇形の塞栓術にも使用。頸部リンパ節郭清術・舌骨上頸部郭清術で損傷注意',
+    devices:'塞栓術：口腔内腫瘍の術前塞栓・動注療法でLingAへのカテーテル操作が必要。PVA粒子・コイルが使用されることが多い', tags:['コイリング'] },
+
+  { id:'faca', ja:'顔面動脈', en:'Facial Artery', abbr:'FacA', system:'eca',
+    segs:['ECA前壁から分岐（LingAの上）','下顎骨下縁を回り込み顔面を上行'],
+    branches:'下唇動脈・上唇動脈・鼻背動脈・角動脈（眼動脈と吻合）',
+    clinical:'顔面の主要供血源。角動脈がICA系眼動脈と吻合するため、ICA狭窄時の側副血行路になることがある（外頸動脈→顔面動脈→角動脈→眼動脈→ICA逆行性充填）。顔面血管腫・AVM・頬部腫瘍への塞栓術でターゲット。頭頸部がん術前塞栓でも評価',
+    devices:'塞栓術：顔面AVM・血管腫・口唇血管病変への直接穿刺塞栓またはFacAからのTAE。ICA狭窄評価：FacA〜眼動脈吻合の確認がCAS・CEA計画に影響することがある', tags:['コイリング'] },
+
+  { id:'ima', ja:'内顎動脈（顎動脈）', en:'Internal Maxillary Artery', abbr:'IMA', system:'eca',
+    segs:['ECA終末枝の一方（STAとともに）','下顎骨内側→翼突筋下窩→翼口蓋窩へ走行','第1部（下顎部）・第2部（翼突筋部）・第3部（翼口蓋部）'],
+    branches:'中硬膜動脈（MMA）・下歯槽動脈・深側頭動脈・翼突筋枝・頬動脈・上歯槽動脈・眼窩下動脈・蝶口蓋動脈・大口蓋動脈',
+    clinical:'ECAの最大終末枝。MMAはIMAの第1部から分岐し棘孔を通じて頭蓋内へ（慢性硬膜下血腫・dAVF治療のターゲット）。蝶口蓋動脈は重篤な鼻出血の責任血管として塞栓術の対象になる。上顎骨腫瘍・翼突筋下窩腫瘍への血流供給も担う',
+    devices:'塞栓術：①鼻出血（難治性）→蝶口蓋動脈へのTAE、②慢性硬膜下血腫MMAE→MMA起始をIMAから選択、③頭蓋底腫瘍術前塞栓。IMAの解剖変異（MMAの起始変異）を術前に3D-CTA・DSAで確認することが重要', tags:['コイリング'] },
+
+  { id:'sta', ja:'浅側頭動脈', en:'Superficial Temporal Artery', abbr:'STA', system:'eca',
+    segs:['前頭枝（前額部頭皮）','頭頂枝（頭頂部頭皮）'],
+    branches:'側頭筋・頭皮への供血',
+    clinical:'ECAの終末枝のひとつ。STA-MCA吻合術（脳血管バイパス術）のドナー血管として重要。もやもや病・ICA慢性閉塞・脳腫瘍切除後の血行再建に活用。触診・超音波で術前評価',
+    devices:'バイパス術：STA（前頭枝または頭頂枝）をMCA皮質枝に吻合して補助血流を確保。血管内治療と並行した治療戦略を議論する場合に評価が必要', tags:['血栓回収'] },
+  { id:'oa', ja:'後頭動脈', en:'Occipital Artery', abbr:'OA', system:'eca',
+    segs:['頭皮部（後頭部）','深部枝（硬膜枝・VA硬膜枝と吻合）'],
+    branches:'後頭部頭皮・後頸部筋・硬膜枝（VA硬膜枝と吻合）',
+    clinical:'ECAからの分枝。PICA低形成例ではOA-PICA吻合（バイパス）のドナー血管として使用。VA閉塞時の側副血行路として機能することも。TS/SigS型dAVFへの供血枝となることも多い',
+    devices:'dAVF治療：OAからのTAEがTS/SigS型dAVFに有効。バイパス術：OA-PICA吻合（小脳・脳幹虚血の血行再建）', tags:['コイリング'] },
+
+  // ===== 追加動脈 =====
+  { id:'angular', ja:'角回動脈', en:'Angular Artery', abbr:'AngA', system:'carotid',
+    segs:['MCA M2〜M3から分岐','角回・縁上回・頭頂側頭後頭接合部へ'],
+    branches:'角回・縁上回・頭頂葉後部・側頭頭頂後頭接合部への皮質枝',
+    clinical:'MCA遠位部（M2〜M3）の重要な皮質枝。左半球では角回は読み書き・計算（Gerstmann症候群：失書・失算・手指失認・左右失認）に関与。閉塞で失語（特に失名辞失語・伝導失語）・視空間障害をきたすことも。MCA M2遠位部閉塞でANGAが梗塞に含まれることがある',
+    devices:'血栓回収：M2遠位〜M3閉塞は細径デバイス（0.017"マイクロカテ対応SR）が必要。到達困難で技術的ハードルが高い', tags:['血栓回収'] },
+
+  { id:'rolandic', ja:'中心溝動脈（Rolandic動脈）', en:'Rolandic Artery / Central Sulcal Artery', abbr:'RolA', system:'carotid',
+    segs:['MCA M2〜M3の皮質枝','中心溝内を走行し前後中心回を供血'],
+    branches:'一次運動野（前中心回）・一次感覚野（後中心回）への供血',
+    clinical:'MCAの皮質枝の中でも運動野・感覚野への供血を担う最重要枝のひとつ。閉塞で対側上肢優位の片麻痺・感覚障害。MCA M1〜M2血栓回収後のRolandic動脈梗塞が後遺症の主因になることも。術前のMRI・MRAで中心溝を確認することが外科・血管内治療計画に重要',
+    devices:'血栓回収：M2〜M3遠位閉塞で選択的に介入する際にRolandic動脈温存が最優先。脳灌流画像でPenumbra評価を必ず行う', tags:['血栓回収'] },
+
+  { id:'fpa', ja:'前極動脈', en:'Frontopolar Artery', abbr:'FPA', system:'carotid',
+    segs:['ACA A2〜A3から分岐','前頭極・前頭葉眼窩面内側部へ'],
+    branches:'前頭極・前頭葉眼窩面内側・帯状回前部への供血',
+    clinical:'ACAの重要な皮質枝。前頭葉前部（前頭極）への主要供血源。閉塞で前頭葉症状（判断力低下・注意障害・人格変化）。ACA A2〜A3動脈瘤のコイリング時にFPA起始部の保護を確認。Heubner回帰動脈・前交通動脈複合体と同一領域のため、ACoA動脈瘤治療時に一括で評価が必要',
+    devices:'コイリング：ACA遠位部動脈瘤（脳梁周囲動脈瘤）の治療計画時にFPA分岐形態を3D-RAで確認', tags:['コイリング'] },
+
+  { id:'mht', ja:'脳膜下垂体幹', en:'Meningohypophyseal Trunk', abbr:'MHT', system:'carotid',
+    segs:['ICA海綿静脈洞部（C4）後壁から分岐','硬膜後枝・下垂体後葉枝・斜台硬膜枝の3枝に分岐'],
+    branches:'下垂体後葉・海綿静脈洞硬膜・斜台硬膜・第3〜6脳神経への栄養枝',
+    clinical:'ICA海綿静脈洞部（C4）から分岐する最も重要な枝。CCF（頸動脈海綿静脈洞瘻）Type A（直接型）ではMHTが破裂源となることも。海綿静脈洞部ICA瘤のコイリング・FD適用時に保護が問題になる。髄膜腫・下垂体腫瘍への供血枝として塞栓術前に評価',
+    devices:'コイリング・FD：C4部ICA瘤でMHT起始部保護が必要。CCF治療：MHT分岐形態がアプローチ選択に影響。塞栓術：海綿静脈洞内髄膜腫の術前塞栓でMHTから供血される場合に対応', tags:['コイリング'] },
+
+  { id:'psa', ja:'後脊髄動脈', en:'Posterior Spinal Artery', abbr:'PSA', system:'perforator',
+    segs:['頭蓋内：PICA（または直接VA）より分岐','脊髄後側方を下行（後索・後角を供血）'],
+    branches:'脊髄後索・後角・後外側白質への供血（脊髄後1/3）',
+    clinical:'PICAまたはVAから分岐し脊髄後側方を下行。ASAと対をなし脊髄後方を供血。単独閉塞は比較的稀で診断困難。深部感覚（振動覚・位置覚）障害が主症状（後索障害）。VA-PICA動脈瘤の手術・コイリング時に保護を考慮。ASA症候群との鑑別が重要（温痛覚保持・深部感覚障害）',
+    devices:'コイリング：VA-PICA動脈瘤でASA同様にPSA起始部確認が必要。PICA近位部の動脈瘤でPSAが同一起始から分岐する変異に注意', tags:['コイリング'] },
+
+  // ===== 追加静脈 =====
+  { id:'iss', ja:'下矢状静脈洞', en:'Inferior Sagittal Sinus', abbr:'ISS', system:'venous',
+    segs:['大脳鎌の自由縁（下縁）に沿って後方へ走行','後方でRosenthal基底静脈と合流→大脳大静脈（Galen静脈）を形成'],
+    branches:'帯状回下面・大脳鎌からの小静脈が流入',
+    clinical:'大脳鎌の下縁を走行する小静脈洞。単独での閉塞は稀だが深部静脈血栓症（CVST）の一部として閉塞することがある。大脳鎌近傍の髄膜腫・AVM手術時に損傷注意。Galen静脈瘤（VGAM）の上流路として評価対象になる',
+    devices:'dAVF：大脳鎌型dAVFでISSへの流入が問題になることがある。MRAやDSAでの静脈洞解剖の把握が重要', tags:['コイリング'] },
+
+  { id:'vog', ja:'大脳大静脈（Galen静脈）', en:'Great Cerebral Vein of Galen', abbr:'VoG', system:'venous',
+    segs:['両側内大脳静脈（ICV）とRosenthal基底静脈が合流して形成','直静脈洞（Straight Sinus）へ流入'],
+    branches:'両側内大脳静脈・Rosenthal基底静脈からの流入',
+    clinical:'深部脳静脈の主要合流点。Vein of Galen Malformation（VGAM：Galen静脈瘤）：新生児〜乳児期に発症する高流量脳動静脈奇形で、脳室拡大・心不全・水頭症を呈する。小児脳血管内治療の最難関疾患のひとつ。成人では深部AVMのドレナージ静脈として評価',
+    devices:'VGAM治療：経動脈的（大脳動脈から）または経静脈的（VoGへ直接穿刺）Onyx/NBCA塞栓術。段階的な複数回塞栓が基本。心不全管理と並行した集学的治療が必要', tags:['コイリング'] },
+
+  { id:'icv', ja:'内大脳静脈', en:'Internal Cerebral Vein', abbr:'ICV', system:'venous',
+    segs:['モンロー孔近傍（視床静脈・透明中隔静脈が合流）で形成','視床・脳梁上方を後走しGalen静脈へ流入'],
+    branches:'視床静脈・透明中隔静脈・脈絡叢静脈・尾状核静脈からの流入',
+    clinical:'左右一対の深部静脈。視床・基底核・内包・脈絡叢・側脳室のドレナージ担当。CVST（脳静脈血栓症）でICVが閉塞すると両側視床・基底核に静脈性梗塞・出血が生じ重篤な意識障害をきたす。深部AVM（Spetzler-Martin grade高値）の評価では必ずICVのドレナージ方向を確認',
+    devices:'AVM塞栓：深部AVM（ICV/VoGドレナージ）のOnyx塞栓は静脈ドレナージ温存が最重要。CVST：ICV血栓に対する経静脈的血栓回収（EVT）が行われる場合がある', tags:['コイリング'] },
+
+  { id:'bvr', ja:'Rosenthal基底静脈', en:'Basal Vein of Rosenthal', abbr:'BVR', system:'venous',
+    segs:['前交通静脈・深中大脳静脈が合流して前穿質付近で形成','内側側頭部・脳幹外側を後走しGalen静脈へ'],
+    branches:'島皮質深部・前穿質・視床・中脳・内側側頭葉からの流入',
+    clinical:'前循環と後循環の深部静脈を橋渡しする重要静脈。深部AVM・海綿静脈奇形（CM）のドレナージ評価に必須。BVRの逆行性皮質静脈還流（retrograde cortical venous reflux）はdAVFの出血リスク指標のひとつ。テント裏面髄膜腫・松果体部腫瘍の術前血管造影で必ず評価',
+    devices:'AVM塞栓：BVRドレナージAVMへの介入は出血リスクが高く段階的塞栓が原則。dAVF：BVRへの逆流があれば緊急治療の適応', tags:['コイリング'] },
+
+  { id:'trolard_labbe', ja:'Trolard静脈 / Labbé静脈', en:'Vein of Trolard / Vein of Labbé', abbr:'TrV / LaV', system:'venous',
+    segs:['Trolard静脈：SSSと中大脳静脈（シルビウス静脈）を吻合（頭頂部・中心溝付近）','Labbé静脈：TS/SigSと中大脳静脈を吻合（側頭葉後部）'],
+    branches:'SSSと側脳静脈を橋渡しする吻合静脈',
+    clinical:'皮質の吻合静脈（bridging vein）として外科手術の体位・開頭計画に直結する重要静脈。Trolard静脈損傷→上肢〜体幹の静脈性梗塞。Labbé静脈損傷→側頭葉（特に左では言語野）の静脈性梗塞・出血→重篤な失語・視野障害。開頭手術では術前血管造影・MR静脈撮影（MRV）でルーティンに確認',
+    devices:'AVM・髄膜腫手術：TrV・LaVの走行を術前MRVで必ず同定。損傷回避が神経症状予防の要。dAVF評価：TrV・LaVへの逆行性皮質静脈還流は緊急治療の適応', tags:['コイリング'] },
+
+  { id:'stsinus', ja:'直静脈洞', en:'Straight Sinus', abbr:'StS', system:'venous',
+    segs:['大脳鎌とテント付着部（鎌テント接合部）に沿って走行','ISSとGalen静脈が合流して形成→静脈洞交会（Torcula）へ'],
+    branches:'ISS・Galen静脈からの流入。小脳幕からの小静脈も流入',
+    clinical:'深部静脈（ICV・BVR・VoG）のドレナージ終着点のひとつ。CVST（脳静脈血栓症）では深部静脈から直静脈洞にかけての血栓形成で両側視床梗塞・出血・重篤な意識障害。松果体部・胼胝体膨大部・テント上の腫瘍・AVM手術でStSへの操作が生死に関わる。DSA・MRVでの開存確認が術前評価の必須事項',
+    devices:'dAVF：直静脈洞型dAVFは稀だが逆行性皮質静脈還流があれば緊急対応。CVST：直静脈洞血栓に対するカテーテルを用いた血栓溶解・回収が行われることがある', tags:['コイリング'] },
+];
+
+// ============================================================
+// DATA - 競合他社（lineup追加）
+// ============================================================
+const competitors = [
+  { id:'stryker', company:'Stryker Neurovascular', cja:'ストライカー', country:'🇺🇸 米国', color:'#FF6B00',
+    products:[
+      { id:'trevo', name:'Trevo XP ProVue', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['ProVue技術：ステント内部を透過するX線不透過マーカーで血栓の視認が可能','NXT吸引システム・Synchroワイヤーとの組み合わせ推奨','DAWN試験・DEFUSE3試験でのエビデンスベース（比較対象として採用）'],
+        lineup:['Trevo 18 ProVue 3mm×20mm（0.021"マイクロカテ対応）','Trevo 18 ProVue 4mm×20mm（0.021"マイクロカテ対応）','Trevo XP ProVue 4mm×20mm（0.027"マイクロカテ対応）','Trevo XP ProVue 6mm×25mm（0.027"マイクロカテ対応）','Trevo XP ProVue 6mm×30mm（0.027"マイクロカテ対応）'],
+        note:'競合：Solitaire X（Medtronic）、EMBOTRAP III（Cerenovus）、ERIC（MicroVention）' },
+      { id:'target', name:'Target コイルシリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用コイル',
+        feats:['Target 360：球状2次コイル（Standard/Soft/Extra Soft/Nano）','Target Helical：らせん形状フレームコイル（Standard/Soft）','Target Tetra：4面体形状（複雑形状動脈瘤向けフレーム）','国内使用実績・シェア共に高い'],
+        lineup:['Target 360 Nano：1.5mm, 2mm, 3mm（小型瘤向け）','Target 360 Standard：2〜20mm（各径×各長）','Target 360 Soft：2〜20mm','Target 360 Extra Soft：2〜16mm','Target Helical Standard：2〜20mm','Target Helical Soft：2〜20mm','Target Tetra：4〜16mm（複雑形状）'],
+        note:'競合：Axium Prime（Medtronic）、HydroCoil（MicroVention）、DeltaPlush（Cerenovus）' },
+      { id:'neuroform', name:'Neuroform EZ / Atlas', cat:'stent', catlabel:'ステント', appr:'approved',
+        desc:'コイル補助用自己拡張型頭蓋内ステント',
+        feats:['Neuroform EZ：開放セル型、側枝保護・分岐部動脈瘤に有利','Neuroform Atlas：遠位アクセス性向上、先端部の柔軟性改善','ワイドネック動脈瘤・分岐部動脈瘤にSAC（ステント補助コイリング）として使用'],
+        lineup:['Neuroform EZ 3.0mm×15mm','Neuroform EZ 4.0mm×20mm','Neuroform EZ 4.5mm×20mm','Neuroform EZ 4.5mm×30mm'],
+        note:'競合：LVIS/LVIS Jr（MicroVention）、Solitaire AB（Medtronic）' },
+    ]
+  },
+  { id:'medtronic', company:'Medtronic Neurovascular', cja:'メドトロニック', country:'🇺🇸 米国', color:'#0066CC',
+    products:[
+      { id:'solitaire', name:'Solitaire X', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['世界最多の臨床エビデンス（MR CLEAN、SWIFT PRIME、ESCAPE等）','Solitaire 2→Solitaire X：柔軟性・推進力・遠位追跡性を大幅改善','ACE吸引カテーテルとの併用（SAVE法・Solumbra法）で再開通率向上'],
+        lineup:['Solitaire X 4mm×20mm','Solitaire X 4mm×40mm','Solitaire X 6mm×30mm','Solitaire X 6mm×40mm'],
+        note:'世界シェアトップクラス。競合：Trevo XP ProVue（Stryker）、EMBOTRAP III（Cerenovus）' },
+      { id:'ace', name:'ACE 吸引カテーテル', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'大口径再灌流吸引カテーテル',
+        feats:['ADAPT法（直接吸引ファーストパス）での単独使用も可','柔軟なシャフトとキンク耐性が遠位部へのアクセスを補助','Solitaire Xとの組み合わせによる二段階法が標準的'],
+        lineup:['ACE 64：内径0.064"（1.63mm）','ACE 68：内径0.068"（1.73mm）','ACE 72：内径0.072"（1.83mm）'],
+        note:'競合：JET 7（Penumbra）、SOFIA（MicroVention）' },
+      { id:'pipeline', name:'Pipeline Flex with Shield', cat:'flowdiverter', catlabel:'フローダイバーター', appr:'approved',
+        desc:'フローダイバーター（国内先行承認製品）',
+        feats:['約25%金属被覆率（48〜64本のワイヤーブレイド）で血流を再方向転換','Shield Technology：リン酸コリン表面処理で血栓形成抑制','大型（≥10mm）・巨大・紡錘状・ブレブ付き動脈瘤に最適','長期のDAPT（最低6ヶ月）が必須'],
+        lineup:['対応血管径：2.50〜5.25mm（0.25mm刻み）','長さ：10, 12, 14, 16, 18, 20, 25, 30, 35mm'],
+        note:'国内フローダイバーターの先行製品。競合：FRED（MicroVention）' },
+      { id:'axium', name:'Axium Prime コイル', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用コイル',
+        feats:['Axium Prime Standard / Soft / Extra Soft：3Dランダムループで均一充填','Axium Extra Soft：超柔軟、急性期破裂・再破裂リスク高い症例に'],
+        lineup:['Axium Prime Standard：2〜20mm（各径×各長）','Axium Prime Soft：2〜18mm','Axium Prime Extra Soft：2〜14mm'],
+        note:'競合：Target（Stryker）、HydroCoil（MicroVention）、DeltaPlush（Cerenovus）' },
+      { id:'hyperglide', name:'HyperGlide / HyperForm', cat:'balloon', catlabel:'バルーン', appr:'approved',
+        desc:'コイル補助用バルーンカテーテル',
+        feats:['HyperGlide：セミコンプライアント、形状維持性高く広いネックに対応','HyperForm：コンプライアント、不整形・大きなネックにも適合','BAC（バルーン補助コイリング）でステント留置なしにネック保護'],
+        lineup:['HyperGlide 4mm×10mm','HyperGlide 4mm×20mm','HyperGlide 5mm×20mm','HyperGlide 5mm×30mm','HyperForm 4mm×7mm','HyperForm 4mm×20mm','HyperForm 7mm×20mm'],
+        note:'競合：Scepter C/XC（MicroVention）' },
+      { id:'solitaire_ab', name:'Solitaire AB', cat:'stent', catlabel:'ステント', appr:'approved',
+        desc:'コイル補助兼血流再建用ステント',
+        feats:['SAC（ステント補助コイリング）と血栓回収の両機能を持つ','展開途中の回収・再位置決めが可能'],
+        lineup:['Solitaire AB 4mm×15mm','Solitaire AB 4mm×20mm','Solitaire AB 6mm×20mm','Solitaire AB 6mm×30mm'],
+        note:'競合：Neuroform EZ（Stryker）、LVIS（MicroVention）' },
+    ]
+  },
+  { id:'microvention', company:'MicroVention（テルモグループ）', cja:'マイクロベンション', country:'🇯🇵/🇺🇸 日米', color:'#00A651',
+    products:[
+      { id:'eric', name:'ERIC（エリック）', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['Embolic Retriever with Interlinked Cages：相互接続リング構造で血栓把持力強化','遠位部への追跡性・柔軟性が高い','テルモグループとしての国内サポート体制・流通ネットワーク'],
+        lineup:['ERIC 5mm×40mm','ERIC 5mm×60mm','ERIC 6mm×40mm','ERIC 6mm×60mm','ERIC 8mm×40mm','ERIC 8mm×60mm'],
+        note:'テルモグループの協力体制が差別化点。競合：Solitaire X（Medtronic）、Trevo（Stryker）' },
+      { id:'sofia', name:'SOFIA 吸引カテーテル', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'大口径吸引カテーテル',
+        feats:['段階的サイズで遠位〜近位部まで対応','高い柔軟性とキンク耐性でM2・A2等の遠位部へも到達','ADAPT法（直接吸引）に最適化されたデザイン'],
+        lineup:['SOFIA 5：内径0.055"（有効長139cm / 156cm）','SOFIA 6：内径0.070"（有効長139cm）','SOFIA Plus：内径0.070"（有効長156cm・長尺型）'],
+        note:'競合：ACE（Medtronic）、JET 7（Penumbra）' },
+      { id:'hydrocoil', name:'HydroCoil シリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'ヒドロゲル膨潤性脳動脈瘤コイル',
+        feats:['外層がヒドロゲルで最大7倍まで膨潤→充填率向上','HydroFrame / HydroSoft / HydroFill の3ラインナップ','HELPS試験：再開通率低下の可能性示唆','膨潤完了まで約20分かかるため術中の時間管理が重要'],
+        lineup:['HydroFrame（フレーム）：1.5mm〜20mm径','HydroSoft（主充填）：2mm〜20mm径','HydroFill（仕上げ充填）：2mm〜10mm径'],
+        note:'膨潤特性が他コイルとの最大の差別化点。競合：Target（Stryker）、Axium（Medtronic）' },
+      { id:'lvis', name:'LVIS / LVIS Jr', cat:'stent', catlabel:'ステント', appr:'approved',
+        desc:'コイル補助用ブレイデッドステント',
+        feats:['LVIS：閉鎖セル型（ブレイデッド）、金属被覆率23〜35%でネック保護に優れる','LVIS Jr：細径血管（1.5〜3.5mm）向け、前大脳動脈・後大脳動脈でも使用可','Y字型・X字型ステント留置（分岐部動脈瘤）にも対応（LVISのみ）'],
+        lineup:['LVIS：対応血管径2.5〜5.5mm × 長さ15〜40mm','LVIS Jr：対応血管径1.5〜3.5mm × 長さ10〜25mm'],
+        note:'分岐部動脈瘤へのY-stentingが可能。競合：Neuroform EZ（Stryker）、Solitaire AB（Medtronic）' },
+      { id:'fred', name:'FRED（フレッド）', cat:'flowdiverter', catlabel:'フローダイバーター', appr:'approved',
+        desc:'二重構造フローダイバーター',
+        feats:['外層疎＋内層密の二重構造：安定留置と高い血流転換効果を両立','Pipeline同様の適応（大型・巨大・紡錘状動脈瘤）','長期DAPTが必要（最低6ヶ月）','テルモグループのサポート体制'],
+        lineup:['FRED：対応血管径3.5, 4.0, 4.5, 5.0mm','長さ：7〜48mm（径・長の組み合わせ多数）'],
+        note:'競合：Pipeline Flex with Shield（Medtronic）' },
+      { id:'scepter', name:'Scepter C / XC', cat:'balloon', catlabel:'バルーン', appr:'approved',
+        desc:'OTW型コイル補助バルーンカテーテル',
+        feats:['Scepter C：コンプライアント（不整形・広頸部の動脈瘤に適合）','Scepter XC：クロスリンクトコンプライアント（形状保持性と適合性のバランス）','Over-the-Wire（OTW）構造でコイリング中の操作性良好'],
+        lineup:['Scepter C 4mm×10mm, 4mm×15mm, 4mm×20mm, 7mm×20mm','Scepter XC 4mm×10mm, 4mm×20mm, 7mm×20mm'],
+        note:'競合：HyperGlide/HyperForm（Medtronic）' },
+    ]
+  },
+  { id:'penumbra', company:'Penumbra', cja:'ペナンブラ', country:'🇺🇸 米国', color:'#8B1A4A',
+    products:[
+      { id:'revascularization', name:'3D Revascularization Device', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'3D形状ステントリトリーバー',
+        feats:['三次元立体（3Dらせん）形状で血栓を効率よく絡め取る','Penumbra独自の吸引システムとの親和性が高い','CAT RX（吸引カテーテル）との組み合わせ推奨'],
+        lineup:['3D Revascularization Device 8mm×40mm','3D Revascularization Device 12mm×40mm','3D Revascularization Device 16mm×40mm'],
+        note:'競合：Solitaire X（Medtronic）、Trevo（Stryker）' },
+      { id:'jet7', name:'JET 7 XTRA FLEX', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'大口径吸引カテーテル',
+        feats:['7F相当の大口径内腔で強力な吸引力を発揮','XTRA FLEX：超柔軟な先端部でM2・A2等の遠位部まで到達','ADAPT（直接吸引ファーストパス）に特化した設計思想'],
+        lineup:['JET 7 XTRA FLEX：内径0.071"、有効長132cm'],
+        note:'競合：ACE（Medtronic）、SOFIA（MicroVention）' },
+    ]
+  },
+  { id:'cerenovus', company:'Cerenovus（J&J）', cja:'セレノバス', country:'🇺🇸 米国', color:'#CC0000',
+    products:[
+      { id:'embotrap', name:'EMBOTRAP III', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス',
+        feats:['二重管腔構造（Dual Mesh）で血栓を外側に封じ込め遠位塞栓リスクを低減','ARISE II試験（欧州多施設）での有効性・安全性データ'],
+        lineup:['EMBOTRAP III 5mm×37mm（0.021"マイクロカテ対応）','EMBOTRAP III 5mm×37mm（0.027"マイクロカテ対応）','EMBOTRAP III 7mm×37mm','EMBOTRAP III 7mm×55mm'],
+        note:'血栓の漏れ出しを防ぐ二重構造が差別化点。競合：Solitaire X（Medtronic）、Trevo（Stryker）' },
+      { id:'deltacoils', name:'DeltaPlush / DeltaFill', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル（Cerenovus＝旧Codman）',
+        feats:['DeltaPlush：外面にポリエステルフィラメントを撚り込み血栓形成を促進','DeltaFill：充填専用コイル（超柔軟、フィリング効率重視）'],
+        lineup:['DeltaPlush：2〜20mm（各径×各長）','DeltaFill：2〜14mm（各径×各長）'],
+        note:'競合：Target（Stryker）、Axium（Medtronic）、HydroCoil（MicroVention）' },
+    ]
+  },
+  { id:'cmi', company:'CMI（シーエムアイ）', cja:'CMI', country:'🇯🇵 日本', color:'#2E7D32',
+    products:[
+      { id:'envi_sr', name:'eNVi-SR', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス（CMI）',
+        feats:['独自のメッシュ構造で血栓把持力と血流再開通を両立','CMIの国内サポート体制による迅速な対応','国内神経血管内治療施設での導入実績あり'],
+        lineup:['詳細サイズはCMI営業担当に確認'],
+        note:'競合：Solitaire X（Medtronic）、Trevo（Stryker）、ERIC（MicroVention）' },
+      { id:'optima', name:'OPTIMA コイルシリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用コイル（CMI）',
+        feats:['OPTIMA Standard / Soft / Extra Soft：均一で安定したループ形成','フレームコイルからフィリングコイルまでシリーズ化','CMIの国内流通網による安定供給・迅速サポート'],
+        lineup:['OPTIMA Standard：各径×各長','OPTIMA Soft：各径×各長','OPTIMA Extra Soft：各径×各長'],
+        note:'競合：Target（Stryker）、Axium（Medtronic）、HydroCoil（MicroVention）' },
+      { id:'silkvista', name:'Silk Vista Baby', cat:'flowdiverter', catlabel:'フローダイバーター', appr:'approved',
+        desc:'細径血管対応フローダイバーター（Balt製・CMI取扱）',
+        feats:['対応血管径：2.0〜2.5mm（細径血管・末梢動脈瘤にも適応可能）','ブレイデッド（編み込み）構造で高い柔軟性と追跡性','Silk（先代）からの改良型、視認性マーカー強化','フランスBalt社製、欧州での使用実績豊富','CMIが国内取扱い・サポートを担当'],
+        lineup:['Silk Vista Baby：対応血管径2.0〜3.0mm','長さ：20, 25, 30, 40mm（径に応じた組み合わせあり）'],
+        note:'競合：Pipeline Flex（Medtronic）、FRED（MicroVention）' },
+    ]
+  },
+];
+
+// ============================================================
+// DATA - 略語
+// ============================================================
+const abbreviations = [
+  // ===== 脳卒中・血栓回収 =====
+  { id:'ais', abbr:'AIS', full:'Acute Ischemic Stroke', ja:'急性虚血性脳卒中', cat:'stroke',
+    desc:'脳梗塞の急性期。発症4.5時間以内はrt-PA静注療法、6時間以内（後方循環は最大24時間）は血管内治療（EVT）の適応を検討。NIHSS≥6が目安' },
+  { id:'lvo', abbr:'LVO', full:'Large Vessel Occlusion', ja:'大血管閉塞', cat:'stroke',
+    desc:'ICA・MCA M1/M2・BA等の主幹動脈閉塞。ステントリトリーバーや吸引カテーテルによる機械的血栓回収（MT）の主適応。NIHSS高スコアになりやすい' },
+  { id:'evt', abbr:'EVT', full:'Endovascular Treatment', ja:'血管内治療', cat:'stroke',
+    desc:'カテーテルを使った脳血管内治療の総称。血栓回収・コイリング・フローダイバーター・頸動脈ステント等を含む' },
+  { id:'mt', abbr:'MT', full:'Mechanical Thrombectomy', ja:'機械的血栓回収療法', cat:'stroke',
+    desc:'ステントリトリーバーや吸引カテーテルで血栓を物理的に除去する治療。LVOに対するAISの標準治療（エビデンスレベル最高）' },
+  { id:'ivt', abbr:'IVT', full:'Intravenous Thrombolysis', ja:'静脈内血栓溶解療法', cat:'stroke',
+    desc:'rt-PA（アルテプラーゼ）を静脈内投与して血栓を溶解する治療。発症4.5時間以内が適応。LVOにはMTとの併用も行われる' },
+  { id:'rtpa', abbr:'rt-PA', full:'recombinant tissue Plasminogen Activator', ja:'アルテプラーゼ（組換え組織プラスミノゲン活性化因子）', cat:'stroke',
+    desc:'AISに対する標準的な血栓溶解薬。0.6mg/kg（国内用量、最大60mg）静注。出血合併症のリスクあり。禁忌・適応外例に注意' },
+  { id:'bao', abbr:'BAO', full:'Basilar Artery Occlusion', ja:'脳底動脈閉塞', cat:'stroke',
+    desc:'致死率・重症後遺率が極めて高い緊急状態。意識障害・四肢麻痺・眼球運動障害・脳幹症状を呈する。時間的窓は最大24時間との報告もあり' },
+  { id:'nihss', abbr:'NIHSS', full:'National Institutes of Health Stroke Scale', ja:'NIH脳卒中スケール', cat:'stroke',
+    desc:'脳卒中の重症度評価スケール（0〜42点）。6点以上でEVT適応検討。16点以上は予後不良の傾向。意識・眼球・顔面・上肢・下肢・失調・感覚・言語・構音・無視の11項目' },
+  { id:'mrs', abbr:'mRS', full:'modified Rankin Scale', ja:'機能転帰評価スケール', cat:'stroke',
+    desc:'脳卒中後の機能転帰を0〜6で評価。0：症状なし〜6：死亡。mRS 0〜2（自立歩行可能）が「良好転帰」の定義に使われることが多い' },
+  { id:'tici', abbr:'TICI / mTICI', full:'(modified) Thrombolysis in Cerebral Infarction', ja:'脳梗塞再開通評価スケール', cat:'stroke',
+    desc:'血管内治療後の再開通度を評価。0（再開通なし）→1→2a→2b→2c→3（完全再開通）。mTICI 2b以上が再開通成功の一般的な基準。3が最良' },
+  { id:'aspects', abbr:'ASPECTS', full:'Alberta Stroke Program Early CT Score', ja:'CT早期虚血変化スコア', cat:'stroke',
+    desc:'MCA領域を10領域に分け虚血変化のある部位を1点ずつ減点（10点満点）。6点以上でEVT適応。低スコアほど広範梗塞で予後不良。DAWN・DEFUSE3試験で重要基準' },
+  { id:'bgc', abbr:'BGC', full:'Balloon Guide Catheter', ja:'バルーンガイドカテーテル', cat:'stroke',
+    desc:'先端バルーンを膨らませて血流を遮断しながら血栓回収を行うカテーテル。遠位塞栓を減少させ再開通率を向上させるとされる。Walrus、Merci Balloon Guide等' },
+  { id:'adapt', abbr:'ADAPT', full:'A Direct Aspiration first Pass Technique', ja:'直接吸引ファーストパス法', cat:'stroke',
+    desc:'大口径吸引カテーテルを閉塞部に直接当て、吸引で血栓を回収する手技。Penumbraが提唱。手順がシンプルで手技時間の短縮が可能。SOFIA、ACE、JET 7等で使用' },
+  { id:'save', abbr:'SAVE', full:'Stent retriever Assisted Vacuum-locked Extraction', ja:'ステントリトリーバー吸引同時法', cat:'stroke',
+    desc:'ステントリトリーバーを展開しながら同時に吸引カテーテルで陰圧をかける方法。遠位塞栓を減少させ再開通率を向上。Solitaire＋ACEの組み合わせで有効性示唆' },
+  { id:'solumbra', abbr:'Solumbra法', full:'Solitaire + Penumbra combined technique', ja:'ソルンブラ法', cat:'stroke',
+    desc:'Solitaire（ステントリトリーバー）とPenumbraの大口径吸引カテーテルを組み合わせる血栓回収手技。再開通率の向上を目指した複合手技' },
+  { id:'dtb', abbr:'DTP / DTG', full:'Door-to-Puncture / Door-to-Groin', ja:'来院から穿刺・鼠径穿刺までの時間', cat:'stroke',
+    desc:'AIS患者の来院から動脈穿刺開始までの時間。院内フローの効率指標。目標60分以内（施設により異なる）' },
+  // ===== 動脈瘤・コイリング =====
+  { id:'sah', abbr:'SAH', full:'Subarachnoid Hemorrhage', ja:'くも膜下出血', cat:'aneurysm',
+    desc:'主に脳動脈瘤破裂による出血。突然の激しい頭痛（thunderclap headache）が特徴。30日死亡率約40〜50%。再破裂防止が最優先課題（24時間以内の再破裂率が最高）' },
+  { id:'uia', abbr:'UIA', full:'Unruptured Intracranial Aneurysm', ja:'未破裂脳動脈瘤', cat:'aneurysm',
+    desc:'症状のない脳動脈瘤。UCAS Japan研究：年間破裂率は全体で0.95%（7mm以上・後交通動脈瘤・後方循環は高リスク）。治療適応は患者背景・形態・部位を総合的に判断' },
+  { id:'hh', abbr:'HH（Hunt & Hess）', full:'Hunt and Hess Grade', ja:'ハント＆ヘス分類（SAH重症度）', cat:'aneurysm',
+    desc:'SAH重症度分類。Grade I（軽度頭痛・項部硬直のみ）→II（中等度頭痛）→III（傾眠・軽度麻痺）→IV（昏迷・片麻痺）→V（深昏睡）' },
+  { id:'wfns', abbr:'WFNS', full:'World Federation of Neurological Surgeons Grade', ja:'WFNS分類（SAH重症度）', cat:'aneurysm',
+    desc:'GCSとfocal deficitを組み合わせたSAH重症度分類。Grade I（GCS 15、focal deficit無し）→V（GCS 3〜6）。HH分類と並んで使用される' },
+  { id:'bac', abbr:'BAC', full:'Balloon Assisted Coiling', ja:'バルーン補助コイリング', cat:'aneurysm',
+    desc:'ワイドネック動脈瘤でコイル逸脱防止のためにバルーンで頸部を塞ぎながらコイリングする手技。DAPTが不要で急性期破裂瘤にも適応しやすい。HyperGlide/HyperForm、Scepter等を使用' },
+  { id:'sac', abbr:'SAC', full:'Stent Assisted Coiling', ja:'ステント補助コイリング', cat:'aneurysm',
+    desc:'ワイドネック動脈瘤でコイル逸脱防止のためにステントで頸部を補助しながらコイリングする手技。DAPT必須（最低1ヶ月、通常3〜6ヶ月）。LVIS・Neuroform・Solitaire AB等を使用' },
+  { id:'fd', abbr:'FD', full:'Flow Diverter', ja:'フローダイバーター', cat:'aneurysm',
+    desc:'高密度メッシュステントで血流を本血管側に向け、動脈瘤内血流を低下させ血栓化・縮小を促す治療法。大型・巨大・紡錘状動脈瘤に適応。DAPTが長期必要（最低6ヶ月）' },
+  { id:'dapt', abbr:'DAPT', full:'Dual Antiplatelet Therapy', ja:'抗血小板2剤併用療法', cat:'aneurysm',
+    desc:'アスピリン＋クロピドグレル（またはプラスグレル）の2剤投与。ステント・フローダイバーター留置後の血栓予防に必須。FDは最低6ヶ月、SACは通常3〜6ヶ月' },
+  { id:'wnr', abbr:'WNR / Neck Ratio', full:'Wide Neck Ratio / Dome-to-Neck Ratio', ja:'幅広頸部比 / ドーム頸部比', cat:'aneurysm',
+    desc:'頸部径が≥4mm または Dome/Neck比が＜2のものをワイドネックと定義。BAC・SACの適応判断に使用。コイリングのみでの治療が困難な目安' },
+  { id:'verpr', abbr:'VER / PR', full:'Volume Embolization Ratio / Packing Ratio', ja:'体積充填率 / コイル充填率', cat:'aneurysm',
+    desc:'動脈瘤体積に対するコイルの占める割合（%）。充填率が高いほど再開通・再治療リスクが低い。一般に20〜25%以上を目標とすることが多い' },
+  { id:'dsa', abbr:'DSA', full:'Digital Subtraction Angiography', ja:'デジタルサブトラクション血管造影', cat:'aneurysm',
+    desc:'カテーテル血管造影。骨・軟部組織を差し引いた血管像を取得。脳血管治療の標準的なガイド方法。3D-RAで動脈瘤の形態・頸部を立体的に評価' },
+  { id:'okm', abbr:'OKM', full:"O'Kelly Marotta Scale", ja:'OKMスコア（FD治療効果分類）', cat:'aneurysm',
+    desc:'フローダイバーター治療後の動脈瘤造影充填の評価。A（充填あり・停滞なし）→B（充填あり・停滞あり）→C（わずかな充填）→D（完全閉塞）。D判定が治療成功' },
+  { id:'raymond', abbr:'Raymond-Roy分類', full:'Raymond-Roy Occlusion Classification', ja:'レイモンドロイ分類（コイリング評価）', cat:'aneurysm',
+    desc:'コイリング後の造影評価。Class I（完全閉塞）・Class II（頸部残存）・Class III（体残存）。Class Iが最良転帰。再開通はClass III化として評価' },
+  { id:'dci', abbr:'DCI', full:'Delayed Cerebral Ischemia', ja:'遅発性脳虚血', cat:'aneurysm',
+    desc:'SAH後4〜14日頃に起こる脳虚血。血管攣縮（VSP）が主な原因。意識障害・神経症状の悪化として出現。Ca拮抗薬（ニカルジピン等）や経皮的血管形成術（PTA）で治療' },
+  { id:'vsp', abbr:'VSP', full:'Vasospasm', ja:'脳血管攣縮', cat:'aneurysm',
+    desc:'SAH後4〜14日に起こる脳動脈の攣縮。DCI・脳梗塞の原因。TCD（経頭蓋ドプラ）や血管造影で診断。血管拡張薬・PTAで治療。重症例は予後不良' },
+  // ===== 画像・評価スケール =====
+  { id:'cta', abbr:'CTA', full:'CT Angiography', ja:'CT血管造影', cat:'imaging',
+    desc:'造影剤静注後に撮影する血管造影CT。LVO・動脈瘤のスクリーニング・術前評価に必須。非侵襲的で迅速に実施可能。CTPと同時取得することも多い' },
+  { id:'mra', abbr:'MRA', full:'MR Angiography', ja:'MR血管造影', cat:'imaging',
+    desc:'MRIを用いた血管造影。TOF-MRAは造影剤不要。脳動脈瘤の検出・経過観察に使用。3mm以上の動脈瘤の検出感度は良好。DSAより解像度は低いが非侵襲的' },
+  { id:'ra3d', abbr:'3D-RA', full:'3D Rotational Angiography', ja:'3D回転血管造影', cat:'imaging',
+    desc:'カテーテル血管造影中に回転させて撮影した3次元再構成画像。動脈瘤の形態・頸部・コイル充填状況の評価に必須。治療前に動脈瘤体積計算にも使用' },
+  { id:'dwi', abbr:'DWI', full:'Diffusion Weighted Image', ja:'拡散強調画像（MRI）', cat:'imaging',
+    desc:'急性期脳梗塞の検出に最も鋭敏なMRI sequence。発症後数分〜数時間で高信号を呈する。ASPECTS評価に使用。梗塞確定領域（infarct core）の推定に有用' },
+  { id:'flair', abbr:'FLAIR', full:'Fluid Attenuated Inversion Recovery', ja:'液体減衰反転回復法（MRI）', cat:'imaging',
+    desc:'脳脊髄液信号を抑制したMRI画像。DWI-FLAIR mismatch：DWI高信号・FLAIR正常＝発症4.5時間以内の可能性が高く、発症時刻不明例のIVT・EVT適応判断に使用' },
+  { id:'ctp', abbr:'CTP', full:'CT Perfusion', ja:'CTパーフュージョン', cat:'imaging',
+    desc:'脳血流を定量評価するCT検査。Infarct core（梗塞核）とPenumbra（救済可能領域）を可視化。DAWN・DEFUSE3試験での時間窓延長の適応に使用。Tmax>6秒がPenumbraの目安' },
+  { id:'cbf', abbr:'CBF / CBV / MTT', full:'Cerebral Blood Flow / Volume / Mean Transit Time', ja:'脳血流量 / 脳血液量 / 平均通過時間', cat:'imaging',
+    desc:'CTP・MRPで測定する脳循環パラメータ。CBF↓CBV↓：梗塞核（Infarct core）。CBF↓CBV正常：Penumbra（救済可能）。MTT延長はいずれでも出現。Tmax>6秒がPenumbraの一般的閾値' },
+  { id:'gcs', abbr:'GCS', full:'Glasgow Coma Scale', ja:'グラスゴー昏睡スケール', cat:'imaging',
+    desc:'意識障害の評価スケール。開眼（E1〜4）・言語（V1〜5）・運動（M1〜6）の合計15点満点。8点以下は重症（挿管管理の目安）。SAHのWFNS分類にも組み込まれている' },
+  { id:'ucas', abbr:'UCAS Japan', full:'Unruptured Cerebral Aneurysm Study Japan', ja:'未破裂脳動脈瘤の多施設共同研究（日本）', cat:'imaging',
+    desc:'日本の多施設共同研究。年間破裂率：全体0.95%。サイズ・部位・形態（PHASES score等）による破裂リスク評価の根拠となる重要データ' },
+  // ===== 手技・デバイス =====
+  { id:'sr', abbr:'SR', full:'Stent Retriever', ja:'ステントリトリーバー', cat:'device',
+    desc:'自己拡張型のステント様構造で血栓を絡め取り回収する血栓回収デバイス。Trevo、Solitaire X、ERIC、EMBOTRAP III、eNVi-SR等。LVOの主要治療デバイス' },
+  { id:'ac_dev', abbr:'AC（吸引カテ）', full:'Aspiration Catheter / Reperfusion Catheter', ja:'吸引カテーテル（再灌流カテーテル）', cat:'device',
+    desc:'大口径カテーテルを閉塞部に誘導し陰圧吸引で血栓を回収するデバイス。ACE（Medtronic）、JET 7（Penumbra）、SOFIA（MicroVention）等。ADAPT法・SAVE法で使用' },
+  { id:'mc_dev', abbr:'MC', full:'Micro Catheter', ja:'マイクロカテーテル', cat:'device',
+    desc:'0.017"〜0.027"サイズの極細カテーテル。ステントリトリーバーやコイルの送達に使用。SL-10（0.017"）、Headway 17（0.017"）、Marksman（0.027"）等。サイズによって対応デバイスが異なる' },
+  { id:'gw_dev', abbr:'GW', full:'Guide Wire', ja:'ガイドワイヤー', cat:'device',
+    desc:'カテーテルを誘導するワイヤー。神経血管では先端が柔軟な0.014"マイクロワイヤーが標準的。Synchro（Stryker）、Transcend（Stryker）、Agility（Medtronic）等' },
+  { id:'gc_dev', abbr:'GC', full:'Guide Catheter', ja:'ガイディングカテーテル', cat:'device',
+    desc:'6〜8Fのカテーテル。ICAやVAに留置しマイクロカテーテル・デバイスの通路となる。Envoy（Cerenovus/J&J）、Chaperon（MicroVention）等。BGCはバルーン付き' },
+  { id:'pta_dev', abbr:'PTA', full:'Percutaneous Transluminal Angioplasty', ja:'経皮的血管形成術（バルーン拡張）', cat:'device',
+    desc:'バルーンカテーテルで血管内腔を拡張する手技。頸動脈狭窄（CAS前処置）や血管攣縮（VSP治療）に使用。脳血管攣縮へのPTAは重症例の救済に行われる' },
+  { id:'cas_dev', abbr:'CAS', full:'Carotid Artery Stenting', ja:'頸動脈ステント留置術', cat:'device',
+    desc:'頸動脈狭窄に対してステントを留置する血管内治療。CEA（外科的内膜剥離術）と並ぶ標準治療。タンデム病変では血栓回収と組み合わせることも。プロテクション使用が原則' },
+  { id:'cea_dev', abbr:'CEA', full:'Carotid Endarterectomy', ja:'頸動脈内膜剥離術', cat:'device',
+    desc:'頸動脈狭窄の外科的治療。CASと比較してプラーク塞栓リスクが低いとされる。症候性≥50%・無症候性≥60%が一般的な適応基準。全身麻酔または局所麻酔下に行う' },
+  { id:'otw_dev', abbr:'OTW', full:'Over The Wire', ja:'オーバー・ザ・ワイヤー方式', cat:'device',
+    desc:'ガイドワイヤーの全長にわたってカテーテルを交換できる方式。Scepter等のバルーンカテーテルで採用。Rapid Exchange（RX）方式と対比される' },
+  { id:'phases', abbr:'PHASESスコア', full:'Population, Hypertension, Age, Size, Earlier SAH, Site', ja:'PHASESスコア（動脈瘤破裂リスク評価）', cat:'device',
+    desc:'未破裂動脈瘤の5年間破裂リスクを推定するスコア。人種・高血圧・年齢・サイズ・既往SAH・部位の6項目。スコア高いほど破裂リスク高く治療適応の判断に使用' },
+
+  // ===== 追加略語 - 血管・解剖 =====
+  { id:'lvo', abbr:'LVO', full:'Large Vessel Occlusion', ja:'大血管閉塞', cat:'stroke',
+    desc:'血栓回収（EVT）の主要対象。ICA終末部・MCA M1〜M2・BA・ACA A1・PCA P1などの主幹動脈閉塞。NIHSS高値・CT/MRI所見（ASPECTS）と組み合わせて治療適応を判断。閉塞部位により症状と手術難易度が異なる' },
+  { id:'bao', abbr:'BAO', full:'Basilar Artery Occlusion', ja:'脳底動脈閉塞', cat:'stroke',
+    desc:'最重症のLVOで致死率・重症後遺率が極めて高い。意識障害・四肢麻痺・眼球運動障害・閉じ込め症候群（locked-in）が主症状。時間窓が前循環より長い場合もある（最長24時間の報告あり）。緊急血栓回収の適応。BASICS試験・ATTENTION試験でEVT有効性が示された' },
+  { id:'willis', abbr:'Willis輪', full:'Circle of Willis', ja:'ウィリス動脈輪', cat:'imaging',
+    desc:'脳底部に形成される動脈の輪状吻合。ICA・ACA（A1）・ACoA・PCoA・PCA（P1）・BAで構成。側副血行路として機能し、片側ICAが閉塞した場合でも対側からの血流補填が可能。個人差が大きく（低形成・欠如など）、術前CTAでの形態確認が重要' },
+  { id:'seg_mca', abbr:'M1/M2/M3/M4', full:'MCA Segment Classification', ja:'中大脳動脈セグメント分類', cat:'imaging',
+    desc:'M1：水平部（ICAからシルビウス裂まで）、M2：島部（シルビウス裂内）、M3：弁蓋部（シルビウス裂出口〜皮質表面）、M4：皮質部（皮質上）。LVOとしてEVTの主ターゲットはM1〜M2。M3以降の遠位閉塞は小径デバイスが必要' },
+  { id:'seg_aca', abbr:'A1/A2/A3', full:'ACA Segment Classification', ja:'前大脳動脈セグメント分類', cat:'imaging',
+    desc:'A1：水平部（ICAからACoAまで）、A2：上行部（ACoAから脳梁膝部まで）、A3：脳梁周囲部（脳梁を回り込む部分）。A1低形成（一側が細い）では対側からACoA経由で代償される。ACoA動脈瘤はA1-A2移行部・ACoAに好発' },
+  { id:'seg_ica', abbr:'C1〜C7', full:'ICA Segment Classification（Bouthillier）', ja:'内頸動脈セグメント分類（Bouthillier分類）', cat:'imaging',
+    desc:'C1：頸部、C2：錐体部、C3：破裂孔部、C4：海綿静脈洞部、C5：膝状部、C6：眼動脈部、C7：交通部（終末部）。動脈瘤はC6（眼動脈部）・C7（後交通動脈部）に最多。FDはC6〜C7の大型瘤が主適応' },
+  { id:'seg_va', abbr:'V1〜V4', full:'VA Segment Classification', ja:'椎骨動脈セグメント分類', cat:'imaging',
+    desc:'V1：前横突起部（起始〜C6）、V2：横突起孔内部（C6〜C2）、V3：後頭下三角部（硬膜外）、V4：硬膜内部（PICAまで）。解離性動脈瘤・紡錘状動脈瘤はV4に好発。コイリングのターゲットはV4が最多' },
+  { id:'seg_ba', abbr:'BA下・中・上部', full:'Basilar Artery Segment Classification', ja:'脳底動脈セグメント分類', cat:'imaging',
+    desc:'BA下1/3（AICA周辺）・BA中1/3（橋穿通枝多数）・BA上1/3（SCA）・BA先端部（BA tip）に分類。BA tip動脈瘤が最も多く、PCA・SCA・後穿通枝の保護が手術の鍵。BAO血栓回収はVA〜BA全体をターゲットにする' },
+  { id:'tandem', abbr:'タンデム病変', full:'Tandem Lesion / Tandem Occlusion', ja:'タンデム病変（頸部+頭蓋内同時閉塞）', cat:'stroke',
+    desc:'頸部ICA狭窄/閉塞と頭蓋内動脈閉塞が同時に存在する病変。心原性+動脈硬化性の複合機序が多い。治療戦略：①頸部ICAを先に再開通（anterograde）→頭蓋内へ進む、②頭蓋内閉塞を先に処置（retrograde）、の2種類があり施設・術者・患者状態によって選択される' },
+  { id:'penumbra_concept', abbr:'Penumbra（半影）', full:'Ischemic Penumbra', ja:'虚血半影（救済可能な周辺組織）', cat:'imaging',
+    desc:'梗塞核（Infarct core：CBF・CBV低下）を取り囲む潜在的救済可能な虚血領域。血流再開通により梗塞への進展を防げる。CTP（Tmax>6秒がPenumbraの目安）・MRIでのDWI-FLAIR mismatch等で評価。PenumbraがCoreより著しく大きい場合（mismatch）がEVT適応の重要基準' },
+
+  // ===== 追加略語 - 脳卒中・血栓回収 =====
+  { id:'nihss', abbr:'NIHSS', full:'NIH Stroke Scale', ja:'NIH脳卒中スケール', cat:'stroke',
+    desc:'急性期脳卒中の重症度評価スケール（0〜42点）。意識・注視・視野・顔面麻痺・上下肢運動・失調・感覚・言語・構音・消去の11項目。6点以上でEVT適応の目安。点数が高いほど重症' },
+  { id:'mrs', abbr:'mRS', full:'modified Rankin Scale', ja:'修正ランキンスケール（転帰評価）', cat:'stroke',
+    desc:'脳卒中後の機能転帰評価（0〜6点）。0：症状なし、1：日常生活ほぼ支障なし、2：軽度障害（自立）、3：中等度障害（介助一部必要）、4：中等重度（歩行・身体管理に介助）、5：重度（寝たきり）、6：死亡。mRS 0〜2を「良好転帰」と定義することが多い' },
+  { id:'ivt', abbr:'IVT / rt-PA', full:'Intravenous Thrombolysis / recombinant tissue Plasminogen Activator', ja:'静脈内血栓溶解療法（アルテプラーゼ）', cat:'stroke',
+    desc:'発症4.5時間以内のAISに適応。アルテプラーゼ0.6mg/kg（最大60mg）を静注。EVTと組み合わせるBridge療法が一般的。出血合併症（SICH）リスクに注意。禁忌：出血既往・高血圧未コントロール・血小板減少等' },
+  { id:'ais', abbr:'AIS', full:'Acute Ischemic Stroke', ja:'急性期脳梗塞', cat:'stroke',
+    desc:'急性期に発症した脳梗塞。LVOを伴うAISがEVT（血栓回収）の対象。TOAST分類で原因を評価（心原性・アテローム性・ラクナ・他原因・不明）。発症時刻の確定がIVT・EVTの適応決定に直結する' },
+  { id:'tia', abbr:'TIA', full:'Transient Ischemic Attack', ja:'一過性脳虚血発作', cat:'stroke',
+    desc:'虚血による神経症状が24時間以内（通常1時間以内）に完全回復するもの。脳梗塞の前駆症状として重要（ABCD2スコアで48時間内脳梗塞リスクを評価）。症状消失後も緊急対応が必要。頸動脈狭窄・心房細動のスクリーニングを実施' },
+  { id:'af', abbr:'AF / Afib', full:'Atrial Fibrillation', ja:'心房細動', cat:'stroke',
+    desc:'心原性脳塞栓の最多原因。心房内血栓（左心耳血栓）が脳へ飛散しLVOを引き起こす。心原性LVOは血栓が大きく閉塞血管径が太いことが多い。抗凝固療法（DOAC）が再発予防の標準治療。脳卒中後にホルター心電図・長時間心電図でAF検索が必須' },
+  { id:'pfo', abbr:'PFO', full:'Patent Foramen Ovale', ja:'卵円孔開存', cat:'stroke',
+    desc:'心房中隔の卵円孔が閉鎖せず残存した状態（成人の約25〜30%）。右左シャントを介した奇異性塞栓が若年脳梗塞の原因になりうる。ROPE（Risk of Paradoxical Embolism）スコアで関与を評価。閉鎖術（経皮的PFO閉鎖）の適応は年齢・再発リスク等を考慮して判断' },
+  { id:'sich', abbr:'SICH', full:'Symptomatic Intracranial Hemorrhage', ja:'症候性頭蓋内出血', cat:'stroke',
+    desc:'IVT（rt-PA）・EVT後の重大合併症。ECASS基準：48時間以内の出血で神経症状が4点以上悪化したもの。rt-PA投与後のSICH発症率は約6%。危険因子：高血圧・高齢・高NIHSS・広範早期虚血変化（ASPECTS低値）' },
+
+  // ===== 追加略語 - 動脈瘤・コイリング =====
+  { id:'ich', abbr:'ICH', full:'Intracerebral Hemorrhage', ja:'脳内出血（高血圧性）', cat:'aneurysm',
+    desc:'脳実質内への出血。高血圧性（被殻・視床・小脳・橋）が最多。LSA（被殻出血）・視床穿通枝（視床出血）・橋穿通枝（橋出血）が責任血管。AVMやCAVMが原因の場合は血管内治療の適応を検討。血腫拡大防止に血圧管理・凝固異常補正が急務' },
+  { id:'icp', abbr:'ICP / EVD', full:'Intracranial Pressure / External Ventricular Drain', ja:'頭蓋内圧 / 脳室ドレナージ', cat:'aneurysm',
+    desc:'ICP：正常5〜15mmHg。SAH・CVST・大量脳梗塞で上昇し脳ヘルニアの危険。EVD：側脳室にカテーテルを留置しCSFを体外排出する緊急処置。SAH後水頭症・脳室内出血に適応。ICP持続モニタリングにも使用' },
+  { id:'avm', abbr:'AVM', full:'Arteriovenous Malformation', ja:'脳動静脈奇形', cat:'aneurysm',
+    desc:'正常毛細血管網を欠き動脈が直接静脈に繋がる先天性血管奇形。年間出血率約2〜4%（既出血例は高い）。Spetzler-Martin gradeで治療難易度を評価。治療：血管内塞栓（Onyx/NBCA）・外科切除・定位放射線（ガンマナイフ）の組み合わせ' },
+  { id:'spetzler', abbr:'Spetzler-Martin', full:'Spetzler-Martin AVM Grading Scale', ja:'スペッツラー・マーティン分類（AVM）', cat:'aneurysm',
+    desc:'脳AVMの外科治療難易度・リスク分類。①病巣サイズ（<3cm=1点、3〜6cm=2点、>6cm=3点）②機能野局在（非機能野=0、機能野=1）③深部静脈ドレナージ（なし=0、あり=1）の合計1〜5点。Grade I〜IIは外科治療推奨、Grade IV〜Vは集学的治療を検討' },
+
+  // ===== 追加略語 - 手技・デバイス =====
+  { id:'web', abbr:'WEB', full:'Woven EndoBridge', ja:'ウーブン・エンドブリッジ（瘤内デバイス）', cat:'device',
+    desc:'動脈瘤内に留置するブレイド構造のIntrasaccularデバイス（MicroVention）。ステントやバルーン不要でDAPT期間が短い（3〜6ヶ月）。分岐部ワイドネック動脈瘤（特にMCA・ACoA・BA tip）に適応。WEB-IT試験・WEBCAST試験でエビデンス確立。サイズ選択が重要（幅・高さ・頸部径）' },
+  { id:'onyx_nbca', abbr:'Onyx / NBCA', full:'Ethylene Vinyl Alcohol Copolymer / N-Butyl Cyanoacrylate', ja:'液体塞栓剤（Onyx・NBCA）', cat:'device',
+    desc:'Onyx（Medtronic）：DMSO溶解エチレン酢酸ビニル共重合体。ゆっくり固化するため注入コントロールが容易。AVM・dAVF・MMA塞栓に使用。NBCA（ヒストアクリル）：シアノアクリレート系瞬間接着剤。速硬化でdAVF・AVM塞栓に使用。いずれも永久塞栓剤' },
+  { id:'tae_tve', abbr:'TAE / TVE', full:'Transarterial Embolization / Transvenous Embolization', ja:'経動脈的塞栓術 / 経静脈的塞栓術', cat:'device',
+    desc:'TAE：動脈側からカテーテルを進め塞栓剤（Onyx・NBCA・コイル・粒子）で閉塞する手技。dAVF・AVM・腫瘍塞栓に使用。TVE：静脈側（IJV→SigS→TS等）からカテーテルを進め静脈洞・瘻孔をコイル塞栓する手技。TS/SigS型dAVF・CCFの標準治療' },
+  { id:'mmae', abbr:'MMAE', full:'Middle Meningeal Artery Embolization', ja:'中硬膜動脈塞栓術', cat:'device',
+    desc:'MMAを経由して行う塞栓術。①慢性硬膜下血腫（CSDH）：外科ドレナージの補助または代替として急速に普及。Onyx・PVA・Embosphere等で塞栓し再発率を低減。②dAVF：TS/SigS型・SSS型へのMMAからのTAE。③髄膜腫術前塞栓。穿刺はMMAの顎動脈（ECA）起始部から' },
+  { id:'tof', abbr:'TOF-MRA', full:'Time of Flight MR Angiography', ja:'時間飛行法MR血管造影', cat:'device',
+    desc:'造影剤不要のMRA手法。流入する血流を高信号で描出。3mm以上の脳動脈瘤の検出・経過観察に有用。非侵襲的で繰り返し施行可能。DSAより解像度は劣るが外来スクリーニングに最適。コイル塞栓後の再開通評価でも使用（コイルアーチファクトに注意）' },
+];
+
+
+// ============================================================
+// APP STATE
+// ============================================================
+let currentTab = 'vessel';
+let vFilter = 'all';
+let cFilter = 'all';
+let aFilter = 'all';
+let favs = JSON.parse(localStorage.getItem('nn_favs') || '[]');
+let sq = '';
+
+const ALL_TABS = ['vessel','competitor','abbr','doctor','favorites'];
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  adjustPad();
+  loadDoctors();
+  autoSyncOnLoad();
+  renderVessels();
+  renderCompetitors();
+  renderAbbreviations();
+  document.getElementById('searchInput').addEventListener('input', e => {
+    sq = e.target.value.trim();
+    document.getElementById('clearBtn').style.display = sq ? 'block' : 'none';
+    doSearch();
+  });
+});
+
+window.addEventListener('resize', adjustPad);
+
+function adjustPad() {
+  const h = document.getElementById('header').offsetHeight;
+  document.getElementById('contentPad').style.paddingTop = h + 'px';
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tab) {
+  currentTab = tab;
+  ALL_TABS.forEach(t => {
+    document.getElementById('page' + cap(t)).classList.toggle('active', t === tab);
+    document.getElementById('nb' + cap(t)).classList.toggle('active', t === tab);
+  });
+  if (tab === 'favorites') renderFavs();
+  if (tab === 'doctor') renderDocList();
+  document.getElementById('addDocFab').classList.toggle('visible', tab === 'doctor');
+  if (sq) doSearch(); else hideSearch();
+  document.getElementById('content').scrollTop = 0;
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ============================================================
+// SEARCH
+// ============================================================
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  sq = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  hideSearch();
+}
+
+function hideSearch() {
+  document.getElementById('searchResults').style.display = 'none';
+  ALL_TABS.forEach(t => {
+    document.getElementById('page' + cap(t)).classList.toggle('active', t === currentTab);
+  });
+  document.getElementById('addDocFab').classList.toggle('visible', currentTab === 'doctor');
+}
+
+function doSearch() {
+  const q = sq.toLowerCase();
+  const rd = document.getElementById('searchResults');
+  if (!q) { hideSearch(); return; }
+
+  ALL_TABS.forEach(t => document.getElementById('page' + cap(t)).classList.remove('active'));
+  rd.style.display = 'block';
+  document.getElementById('addDocFab').classList.remove('visible');
+
+  // 血管検索
+  const mv = vessels.filter(v =>
+    v.ja.includes(q) || v.en.toLowerCase().includes(q) ||
+    v.abbr.toLowerCase().includes(q) || v.clinical.includes(q) ||
+    (v.branches && v.branches.includes(q)) || (v.devices && v.devices.includes(q))
+  );
+
+  // 製品検索（lineupも含む）
+  const mp = [];
+  competitors.forEach(c => {
+    c.products.forEach(p => {
+      if (p.name.toLowerCase().includes(q) || p.desc.includes(q) ||
+          c.company.toLowerCase().includes(q) || c.cja.includes(q) ||
+          p.feats.some(f => f.toLowerCase().includes(q)) ||
+          (p.lineup && p.lineup.some(l => l.toLowerCase().includes(q))) ||
+          (p.note && p.note.includes(q))) {
+        mp.push({...p, cja: c.cja, cid: c.id});
+      }
+    });
+  });
+
+  // 略語検索
+  const ma = abbreviations.filter(a =>
+    a.abbr.toLowerCase().includes(q) || a.full.toLowerCase().includes(q) ||
+    a.ja.includes(q) || a.desc.includes(q)
+  );
+
+  let html = '';
+
+  if (mv.length > 0) {
+    html += `<div class="rgtitle">🫀 血管 (${mv.length}件)</div>`;
+    mv.forEach(v => { html += vesselCard(v); });
+  }
+
+  if (mp.length > 0) {
+    html += `<div class="rgtitle">💊 製品 (${mp.length}件)</div>`;
+    mp.forEach(p => {
+      html += `<div class="cblock"><div class="prow" onclick="togglePD('sr_${p.id}')">
+        <div class="phd">
+          <div style="flex:1">
+            <div class="pname">${p.name}</div>
+            <div class="pdesc">${p.cja} ／ ${p.desc}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:6px">
+            <span class="star ${favs.includes('p_'+p.id)?'on':''}" onclick="toggleFav(event,'p_${p.id}')">${favs.includes('p_'+p.id)?'★':'☆'}</span>
+            <div class="ptag cat-${p.cat}">${p.catlabel}</div>
+          </div>
+        </div>
+        <div class="pdetail" id="sr_${p.id}">
+          ${p.feats.map(f=>`<div class="fi">${f}</div>`).join('')}
+          ${lineupHtml(p.lineup)}
+          ${p.note?`<div class="fnote">💡 ${p.note}</div>`:''}
+          <div class="apbadge ${p.appr}">${apprLabel(p.appr)}</div>
+        </div>
+      </div></div>`;
+    });
+  }
+
+  if (ma.length > 0) {
+    html += `<div class="rgtitle">📖 略語 (${ma.length}件)</div>`;
+    ma.forEach(a => { html += abbrCard(a); });
+  }
+
+  // 医師検索
+  const md = doctors.filter(d =>
+    d.name.includes(q) || (d.kana && d.kana.includes(q)) ||
+    (d.hospital && d.hospital.includes(q)) ||
+    (d.position && d.position.includes(q)) ||
+    (d.dept && d.dept.includes(q)) ||
+    (d.specialty && d.specialty.some(s => s.includes(q))) ||
+    (d.focus && d.focus.some(f => f.includes(q))) ||
+    (d.pref && d.pref.includes(q)) ||
+    (d.note && d.note.includes(q))
+  );
+  if (md.length > 0) {
+    html += `<div class="rgtitle">👨‍⚕️ 医師 (${md.length}名)</div>`;
+    md.forEach(d => { html += docCardHtml(d); });
+  }
+
+  if (!html) {
+    html = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-msg">「${sq}」の検索結果がありません</div></div>`;
+  }
+  rd.innerHTML = html;
+}
+
+// ============================================================
+// VESSELS
+// ============================================================
+function filterV(f, el) {
+  vFilter = f;
+  document.querySelectorAll('#vfbar .fc').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderVessels();
+}
+
+function renderVessels() {
+  const list = vFilter === 'all' ? vessels : vessels.filter(v => v.system === vFilter);
+  document.getElementById('vesselList').innerHTML = list.map(v => vesselCard(v)).join('') ||
+    '<div class="empty"><div class="empty-icon">🫀</div><div class="empty-msg">データなし</div></div>';
+}
+
+function vesselCard(v) {
+  const isFav = favs.includes('v_' + v.id);
+  const tagMap = {'血栓回収':'tred','コイリング':'tblue','フローダイバーター':'tpurp'};
+  const tagsHtml = (v.tags||[]).map(t=>`<span class="tag ${tagMap[t]||'tgreen'}">${t}</span>`).join('');
+  const segsHtml = v.segs && v.segs.length
+    ? `<div class="segrow">${v.segs.map(s=>`<span class="segchip">${s}</span>`).join('')}</div>` : '－';
+  return `<div class="vc">
+    <div class="vc-hd" onclick="toggleVC('${v.id}')">
+      <div class="vabbr">${v.abbr}</div>
+      <div class="vnames"><div class="vja">${v.ja}</div><div class="ven">${v.en}</div></div>
+      <div class="vright">
+        <span class="star ${isFav?'on':''}" onclick="toggleFav(event,'v_${v.id}')">${isFav?'★':'☆'}</span>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end">${tagsHtml}</div>
+      </div>
+    </div>
+    <div class="vc-bd" id="vb_${v.id}">
+      ${vesselDiagram(v.id)}
+      ${v.segs&&v.segs.length?`<div class="ir"><div class="il">セグメント</div><div class="iv">${segsHtml}</div></div>`:''}
+      ${v.branches?`<div class="ir"><div class="il">主な分枝</div><div class="iv">${v.branches}</div></div>`:''}
+      <div class="ir"><div class="il">臨床的意義</div><div class="iv">${v.clinical}</div></div>
+      <div class="ir"><div class="il">デバイス観点</div><div class="iv">${v.devices}</div></div>
+    </div>
+  </div>`;
+}
+
+function toggleVC(id) {
+  const el = document.getElementById('vb_' + id);
+  if (el) el.classList.toggle('open');
+}
+
+// ============================================================
+// COMPETITORS
+// ============================================================
+function filterC(f, el) {
+  cFilter = f;
+  document.querySelectorAll('#cfbar .fc').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderCompetitors();
+}
+
+function renderCompetitors() {
+  let html = '';
+  competitors.forEach(c => {
+    const prods = cFilter === 'all' ? c.products : c.products.filter(p => p.cat === cFilter);
+    if (!prods.length) return;
+    html += `<div class="cblock">
+      <div class="cbar" onclick="toggleCo('${c.id}')">
+        <div class="cdot" style="background:${c.color}"></div>
+        <div class="cname">${c.cja}</div>
+        <div class="ccountry">${c.country}</div>
+        <div class="chevron" id="ch_${c.id}">›</div>
+      </div>
+      <div class="plist" id="pl_${c.id}">
+        ${prods.map(p => productRow(c.id, p)).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('compList').innerHTML = html ||
+    '<div class="empty"><div class="empty-icon">🏢</div><div class="empty-msg">データなし</div></div>';
+}
+
+function lineupHtml(lineup) {
+  if (!lineup || !lineup.length) return '';
+  return `<div class="lineup-section">
+    <div class="lineup-label">ラインナップ / サイズ</div>
+    ${lineup.map(l => `<div class="lineup-item">${l}</div>`).join('')}
+  </div>`;
+}
+
+function productRow(cid, p) {
+  const isFav = favs.includes('p_' + p.id);
+  return `<div class="prow" onclick="togglePD('${cid}_${p.id}')">
+    <div class="phd">
+      <div style="flex:1">
+        <div class="pname">${p.name}</div>
+        <div class="pdesc">${p.desc}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:6px">
+        <span class="star ${isFav?'on':''}" onclick="toggleFav(event,'p_${p.id}')">${isFav?'★':'☆'}</span>
+        <div class="ptag cat-${p.cat}">${p.catlabel}</div>
+      </div>
+    </div>
+    <div class="pdetail" id="${cid}_${p.id}">
+      ${p.feats.map(f=>`<div class="fi">${f}</div>`).join('')}
+      ${lineupHtml(p.lineup)}
+      ${p.note?`<div class="fnote">💡 ${p.note}</div>`:''}
+      <div class="apbadge ${p.appr}">${apprLabel(p.appr)}</div>
+    </div>
+  </div>`;
+}
+
+function toggleCo(id) {
+  document.getElementById('pl_' + id).classList.toggle('open');
+  document.getElementById('ch_' + id).classList.toggle('open');
+}
+
+function togglePD(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function apprLabel(a) {
+  return a==='approved' ? '✓ 日本承認済' : a==='pending' ? '⏳ 申請中／要確認' : '✗ 未承認';
+}
+
+// ============================================================
+// ABBREVIATIONS
+// ============================================================
+const catLabel = { stroke:'脳卒中・血栓回収', aneurysm:'動脈瘤・コイリング', imaging:'画像・評価', device:'手技・デバイス' };
+
+function filterA(f, el) {
+  aFilter = f;
+  document.querySelectorAll('#afbar .fc').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAbbreviations();
+}
+
+function renderAbbreviations() {
+  const list = aFilter === 'all' ? abbreviations : abbreviations.filter(a => a.cat === aFilter);
+  document.getElementById('abbrList').innerHTML = list.map(a => abbrCard(a)).join('') ||
+    '<div class="empty"><div class="empty-icon">📖</div><div class="empty-msg">データなし</div></div>';
+}
+
+function abbrCard(a) {
+  const isFav = favs.includes('a_' + a.id);
+  const catColors = { stroke:'cat-stroke', aneurysm:'cat-aneurysm', imaging:'cat-imaging', device:'cat-device' };
+  return `<div class="ac">
+    <div class="ac-hd" onclick="toggleAC('${a.id}')">
+      <div class="ac-abbr">${a.abbr}</div>
+      <div class="ac-names">
+        <div class="ac-ja">${a.ja}</div>
+        <div class="ac-en">${a.full}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:6px">
+        <span class="star ${isFav?'on':''}" onclick="toggleFav(event,'a_${a.id}')">${isFav?'★':'☆'}</span>
+        <span class="actag ${catColors[a.cat]||''}">${catLabel[a.cat]||''}</span>
+      </div>
+    </div>
+    <div class="ac-bd" id="ab_${a.id}">
+      <div class="ac-desc">${a.desc}</div>
+    </div>
+  </div>`;
+}
+
+function toggleAC(id) {
+  const el = document.getElementById('ab_' + id);
+  if (el) el.classList.toggle('open');
+}
+
+// ============================================================
+// FAVORITES
+// ============================================================
+function toggleFav(e, key) {
+  e.stopPropagation();
+  const idx = favs.indexOf(key);
+  if (idx > -1) favs.splice(idx, 1); else favs.push(key);
+  localStorage.setItem('nn_favs', JSON.stringify(favs));
+  document.querySelectorAll('.star').forEach(el => {
+    const oc = el.getAttribute('onclick') || '';
+    if (oc.includes(`'${key}'`)) {
+      el.classList.toggle('on', favs.includes(key));
+      el.textContent = favs.includes(key) ? '★' : '☆';
+    }
+  });
+  if (currentTab === 'favorites') renderFavs();
+}
+
+function renderFavs() {
+  const fv = vessels.filter(v => favs.includes('v_' + v.id));
+  const fp = [];
+  competitors.forEach(c => {
+    c.products.forEach(p => {
+      if (favs.includes('p_' + p.id)) fp.push({...p, cja: c.cja});
+    });
+  });
+  const fa = abbreviations.filter(a => favs.includes('a_' + a.id));
+
+  let html = '';
+  if (fv.length) {
+    html += '<div class="slabel">🫀 血管</div>';
+    fv.forEach(v => { html += vesselCard(v); });
+  }
+  if (fp.length) {
+    html += '<div class="slabel">💊 製品</div>';
+    fp.forEach(p => {
+      html += `<div class="cblock"><div class="prow" onclick="togglePD('fv_${p.id}')">
+        <div class="phd">
+          <div style="flex:1">
+            <div class="pname">${p.name}</div>
+            <div class="pdesc">${p.cja} ／ ${p.desc}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:6px">
+            <span class="star on" onclick="toggleFav(event,'p_${p.id}')">★</span>
+            <div class="ptag cat-${p.cat}">${p.catlabel}</div>
+          </div>
+        </div>
+        <div class="pdetail" id="fv_${p.id}">
+          ${p.feats.map(f=>`<div class="fi">${f}</div>`).join('')}
+          ${lineupHtml(p.lineup)}
+          ${p.note?`<div class="fnote">💡 ${p.note}</div>`:''}
+        </div>
+      </div></div>`;
+    });
+  }
+  if (fa.length) {
+    html += '<div class="slabel">📖 略語</div>';
+    fa.forEach(a => { html += abbrCard(a); });
+  }
+  if (!html) {
+    html = `<div class="empty"><div class="empty-icon">⭐</div><div class="empty-msg">お気に入りはまだありません<br><span style="font-size:13px">☆ をタップして追加しましょう</span></div></div>`;
+  }
+  document.getElementById('favList').innerHTML = html;
+}
+
+// ============================================================
+// HELP MODAL
+// ============================================================
+function toggleHelp() { document.getElementById('helpOverlay').classList.toggle('open'); }
+function closeHelp(e) { if (e.target === document.getElementById('helpOverlay')) toggleHelp(); }
+
+// ============================================================
+// VESSEL DIAGRAMS (SVG模式図)
+// ============================================================
+function vesselDiagram(id) {
+  var cow=['ica','mca','aca','acom','pcom','opha','acha','va','ba','pca','pica','aica','sca','lsa','heubner','thalamic_perf','pontine_perf','asa','pericallosal','pcha'];
+  var neck=['cca','eca','subclav','aorticarch','bca'];
+  var venous=['sss','ts_sig','cs','ijv'];
+  var ecab=['mma','sta','oa'];
+  if(cow.includes(id)) return cowSvg(id);
+  if(neck.includes(id)) return neckSvg(id);
+  if(venous.includes(id)) return venousSvg(id);
+  if(ecab.includes(id)) return ecaBranchSvg(id);
+  return '';
+}
+
+function _diagWrap(title,svgStr) {
+  return '<div class="vc-diagram"><div class="diag-title">'+title+'</div>'+svgStr+
+    '<div class="diag-legend">'+
+    '<span><svg width="18" height="5" style="display:inline-block;vertical-align:middle"><line x1="0" y1="2" x2="18" y2="2" stroke="#E53935" stroke-width="3.5"/></svg> 該当血管</span>'+
+    '<span><svg width="18" height="5" style="display:inline-block;vertical-align:middle"><line x1="0" y1="2" x2="18" y2="2" stroke="#78909C" stroke-width="2"/></svg> 参照血管</span>'+
+    '</div></div>';
+}
+
+function cowSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var dc=function(id){return hl===id?H:D;};
+  var dw=function(id){return hl===id?'3.5':'1.5';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var DL=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="8" fill="'+dc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 320 268" style="width:100%;max-width:320px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 脳輪郭
+  s+='<ellipse cx="160" cy="123" rx="122" ry="101" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  // 小脳
+  s+='<ellipse cx="160" cy="232" rx="55" ry="28" fill="#EDE7F6" stroke="#B39DDB" stroke-width="1"/>';
+  // VA
+  s+='<line x1="100" y1="252" x2="160" y2="224" stroke="'+sc('va')+'" stroke-width="'+sw('va')+'"/>';
+  s+='<line x1="220" y1="252" x2="160" y2="224" stroke="'+sc('va')+'" stroke-width="'+sw('va')+'"/>';
+  s+=L('va','VA',82,260); s+=L('va','VA',215,260);
+  // ASA
+  s+='<line x1="160" y1="224" x2="160" y2="258" stroke="'+dc('asa')+'" stroke-width="'+dw('asa')+'" stroke-dasharray="3,2"/>';
+  s+=DL('asa','ASA↓',163,262);
+  // PICA
+  s+='<line x1="127" y1="240" x2="90" y2="234" stroke="'+sc('pica')+'" stroke-width="'+sw('pica')+'"/>';
+  s+='<line x1="193" y1="240" x2="230" y2="234" stroke="'+sc('pica')+'" stroke-width="'+sw('pica')+'"/>';
+  s+=L('pica','PICA',54,237); s+=L('pica','PICA',231,237);
+  // BA幹
+  s+='<line x1="160" y1="224" x2="160" y2="148" stroke="'+sc('ba')+'" stroke-width="'+sw('ba')+'"/>';
+  s+=L('ba','BA',163,192);
+  // 橋穿通枝
+  s+='<line x1="160" y1="196" x2="144" y2="196" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  s+='<line x1="160" y1="196" x2="176" y2="196" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  s+='<line x1="160" y1="204" x2="144" y2="204" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  s+='<line x1="160" y1="204" x2="176" y2="204" stroke="'+dc('pontine_perf')+'" stroke-width="'+dw('pontine_perf')+'"/>';
+  if(hl==='pontine_perf') s+='<text x="113" y="202" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">橋穿通枝</text>';
+  // AICA
+  s+='<line x1="160" y1="208" x2="118" y2="205" stroke="'+sc('aica')+'" stroke-width="'+sw('aica')+'"/>';
+  s+='<line x1="160" y1="208" x2="202" y2="205" stroke="'+sc('aica')+'" stroke-width="'+sw('aica')+'"/>';
+  s+=L('aica','AICA',74,208); s+=L('aica','AICA',203,208);
+  // SCA
+  s+='<line x1="160" y1="160" x2="120" y2="157" stroke="'+sc('sca')+'" stroke-width="'+sw('sca')+'"/>';
+  s+='<line x1="160" y1="160" x2="200" y2="157" stroke="'+sc('sca')+'" stroke-width="'+sw('sca')+'"/>';
+  s+=L('sca','SCA',80,160); s+=L('sca','SCA',201,160);
+  // BA tip dot
+  s+='<circle cx="160" cy="148" r="3" fill="'+(hl==='ba'||hl==='thalamic_perf'?H:'#90A4AE')+'"/>';
+  // 視床穿通動脈
+  s+='<line x1="160" y1="148" x2="152" y2="130" stroke="'+dc('thalamic_perf')+'" stroke-width="'+dw('thalamic_perf')+'"/>';
+  s+='<line x1="160" y1="148" x2="168" y2="130" stroke="'+dc('thalamic_perf')+'" stroke-width="'+dw('thalamic_perf')+'"/>';
+  if(hl==='thalamic_perf') s+='<text x="138" y="124" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">ThPA</text>';
+  // PCA
+  s+='<path d="M160,148 Q138,140 100,143" stroke="'+sc('pca')+'" stroke-width="'+sw('pca')+'"/>';
+  s+='<path d="M160,148 Q182,140 220,143" stroke="'+sc('pca')+'" stroke-width="'+sw('pca')+'"/>';
+  s+=L('pca','PCA',63,143); s+=L('pca','PCA',221,143);
+  // PChA
+  s+='<line x1="127" y1="144" x2="130" y2="128" stroke="'+dc('pcha')+'" stroke-width="'+dw('pcha')+'"/>';
+  s+='<line x1="193" y1="144" x2="190" y2="128" stroke="'+dc('pcha')+'" stroke-width="'+dw('pcha')+'"/>';
+  if(hl==='pcha'){s+='<text x="96" y="124" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">PChA</text>';s+='<text x="191" y="124" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">PChA</text>';}
+  // PCoA
+  s+='<line x1="110" y1="113" x2="100" y2="143" stroke="'+sc('pcom')+'" stroke-width="'+sw('pcom')+'"/>';
+  s+='<line x1="210" y1="113" x2="220" y2="143" stroke="'+sc('pcom')+'" stroke-width="'+sw('pcom')+'"/>';
+  s+=L('pcom','PCoA',66,132); s+=L('pcom','PCoA',221,132);
+  // ICA
+  s+='<line x1="103" y1="192" x2="110" y2="108" stroke="'+sc('ica')+'" stroke-width="'+sw('ica')+'"/>';
+  s+='<line x1="217" y1="192" x2="210" y2="108" stroke="'+sc('ica')+'" stroke-width="'+sw('ica')+'"/>';
+  s+=L('ica','ICA',78,168); s+=L('ica','ICA',216,168);
+  // OphA
+  s+='<line x1="108" y1="122" x2="78" y2="110" stroke="'+dc('opha')+'" stroke-width="'+dw('opha')+'"/>';
+  s+='<line x1="212" y1="122" x2="242" y2="110" stroke="'+dc('opha')+'" stroke-width="'+dw('opha')+'"/>';
+  if(hl==='opha'){s+='<text x="40" y="108" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">OphA</text>';s+='<text x="243" y="108" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">OphA</text>';}
+  // AChA
+  s+='<line x1="109" y1="115" x2="87" y2="132" stroke="'+dc('acha')+'" stroke-width="'+dw('acha')+'"/>';
+  s+='<line x1="211" y1="115" x2="233" y2="132" stroke="'+dc('acha')+'" stroke-width="'+dw('acha')+'"/>';
+  if(hl==='acha'){s+='<text x="54" y="140" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">AChA</text>';s+='<text x="234" y="140" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">AChA</text>';}
+  // MCA
+  s+='<line x1="110" y1="108" x2="37" y2="113" stroke="'+sc('mca')+'" stroke-width="'+sw('mca')+'"/>';
+  s+='<line x1="210" y1="108" x2="283" y2="113" stroke="'+sc('mca')+'" stroke-width="'+sw('mca')+'"/>';
+  s+=L('mca','MCA',15,113); s+=L('mca','MCA',284,113);
+  // LSA
+  s+='<line x1="75" y1="111" x2="73" y2="96" stroke="'+dc('lsa')+'" stroke-width="'+dw('lsa')+'"/>';
+  s+='<line x1="83" y1="110" x2="81" y2="93" stroke="'+dc('lsa')+'" stroke-width="'+dw('lsa')+'"/>';
+  s+='<line x1="91" y1="109" x2="89" y2="91" stroke="'+dc('lsa')+'" stroke-width="'+dw('lsa')+'"/>';
+  if(hl==='lsa') s+='<text x="60" y="88" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">LSA↑</text>';
+  // ACA
+  s+='<path d="M110,108 Q133,82 140,60" stroke="'+sc('aca')+'" stroke-width="'+sw('aca')+'"/>';
+  s+='<path d="M210,108 Q187,82 180,60" stroke="'+sc('aca')+'" stroke-width="'+sw('aca')+'"/>';
+  s+=L('aca','ACA',118,78); s+=L('aca','ACA',165,78);
+  // ACoA
+  s+='<line x1="140" y1="60" x2="180" y2="60" stroke="'+sc('acom')+'" stroke-width="'+sw('acom')+'"/>';
+  s+=L('acom','ACoA',141,52);
+  // RAH
+  s+='<line x1="140" y1="60" x2="122" y2="76" stroke="'+dc('heubner')+'" stroke-width="'+dw('heubner')+'"/>';
+  if(hl==='heubner') s+='<text x="100" y="84" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">RAH</text>';
+  // PcalA
+  s+='<path d="M140,60 Q148,42 160,30" stroke="'+dc('pericallosal')+'" stroke-width="'+dw('pericallosal')+'"/>';
+  s+='<path d="M180,60 Q172,42 160,30" stroke="'+dc('pericallosal')+'" stroke-width="'+dw('pericallosal')+'"/>';
+  if(hl==='pericallosal') s+='<text x="163" y="27" font-size="8" fill="'+H+'" font-weight="700" font-family="sans-serif">PcalA</text>';
+  s+='</svg>';
+  return _diagWrap('模式図 — Willis動脈輪（脳底面観）',s);
+}
+
+function neckSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 260 290" style="width:100%;max-width:260px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 頭蓋
+  s+='<ellipse cx="130" cy="48" rx="60" ry="44" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  s+='<text x="112" y="51" font-size="8" fill="#90A4AE" font-family="sans-serif">頭蓋内</text>';
+  // 頸部領域ガイド
+  s+='<rect x="82" y="90" width="96" height="105" rx="8" fill="#FFF8F0" stroke="#FFCCBC" stroke-width="1" stroke-dasharray="4,3"/>';
+  s+='<text x="117" y="143" font-size="8" fill="#FFAB91" font-family="sans-serif">頸部</text>';
+  // ICA (頭蓋内へ上行・破線)
+  s+='<line x1="122" y1="92" x2="118" y2="56" stroke="'+sc('ica')+'" stroke-width="'+sw('ica')+'" stroke-dasharray="4,3"/>';
+  s+=L('ica','ICA→頭蓋内',62,52);
+  // ECA (前外側へ)
+  s+='<path d="M122,92 Q108,80 96,72" stroke="'+sc('eca')+'" stroke-width="'+sw('eca')+'"/>';
+  s+=L('eca','ECA',62,72);
+  // CCA 分岐点
+  s+='<circle cx="122" cy="92" r="3.5" fill="'+sc('cca')+'"/>';
+  // CCA (下行)
+  s+='<line x1="122" y1="92" x2="122" y2="195" stroke="'+sc('cca')+'" stroke-width="'+sw('cca')+'"/>';
+  s+=L('cca','CCA',98,148);
+  // VA (後方頸椎内を上行・破線)
+  s+='<line x1="98" y1="228" x2="96" y2="130" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="72" y="160" font-size="8" fill="#90A4AE" font-family="sans-serif">VA↑</text>';
+  // SubA (水平)
+  s+='<line x1="52" y1="228" x2="208" y2="228" stroke="'+sc('subclav')+'" stroke-width="'+sw('subclav')+'"/>';
+  s+=L('subclav','SubA',55,223);
+  // VA分岐from SubA
+  s+='<line x1="98" y1="228" x2="98" y2="224" stroke="#B0BEC5" stroke-width="1.5"/>';
+  s+='<circle cx="98" cy="228" r="2.5" fill="#B0BEC5"/>';
+  // BCA (右→右CCA+右SubA)
+  s+='<path d="M108,265 L108,245 L136,228" stroke="'+sc('bca')+'" stroke-width="'+sw('bca')+'"/>';
+  s+='<path d="M108,245 L78,228" stroke="'+sc('bca')+'" stroke-width="'+sw('bca')+'"/>';
+  s+=L('bca','BCA',68,248);
+  // CCA右 (BCAから上行)
+  s+='<line x1="136" y1="228" x2="138" y2="190" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="142" y="212" font-size="8" fill="#90A4AE" font-family="sans-serif">右CCA</text>';
+  // 大動脈弓
+  s+='<path d="M52,272 Q130,252 208,272" stroke="'+sc('aorticarch')+'" stroke-width="'+sw('aorticarch')+'" fill="none"/>';
+  s+='<path d="M108,265 L108,272" stroke="'+sc('aorticarch')+'" stroke-width="1.5" stroke-dasharray="2,2"/>';
+  s+='<path d="M152,266 L152,272" stroke="'+sc('aorticarch')+'" stroke-width="1.5" stroke-dasharray="2,2"/>';
+  s+='<path d="M185,270 L185,272" stroke="'+sc('aorticarch')+'" stroke-width="1.5" stroke-dasharray="2,2"/>';
+  s+=L('aorticarch','大動脈弓',86,285);
+  // 左CCA (大動脈弓から直接)
+  s+='<line x1="152" y1="266" x2="122" y2="195" stroke="'+sc('cca')+'" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  // 左SubA
+  s+='<path d="M185,270 Q200,258 208,250" stroke="'+sc('subclav')+'" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='</svg>';
+  return _diagWrap('模式図 — 頸部・大血管（前面観）',s);
+}
+
+function venousSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 260 250" style="width:100%;max-width:260px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 頭蓋側面輪郭
+  s+='<ellipse cx="128" cy="100" rx="108" ry="90" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  // 前頭部
+  s+='<path d="M58,65 Q38,100 42,145" stroke="#CFD8DC" stroke-width="1.5" fill="none"/>';
+  // SSS (上矢状静脈洞)
+  s+='<path d="M55,62 Q128,22 200,62" stroke="'+sc('sss')+'" stroke-width="'+sw('sss')+'" fill="none"/>';
+  s+=L('sss','SSS',96,20);
+  // 静脈洞交会
+  s+='<circle cx="200" cy="62" r="4" fill="'+sc('sss')+'"/>';
+  s+='<text x="204" y="60" font-size="7" fill="#78909C" font-family="sans-serif">交会</text>';
+  // TS (横静脈洞)
+  s+='<path d="M200,62 Q200,88 185,100" stroke="'+sc('ts_sig')+'" stroke-width="'+sw('ts_sig')+'" fill="none"/>';
+  s+=L('ts_sig','TS',202,82);
+  // SigS (S状静脈洞)
+  s+='<path d="M185,100 Q178,120 185,138 Q190,155 175,168" stroke="'+sc('ts_sig')+'" stroke-width="'+sw('ts_sig')+'" fill="none"/>';
+  s+=L('ts_sig','SigS',188,130);
+  // IJV (内頸静脈)
+  s+='<line x1="175" y1="168" x2="175" y2="245" stroke="'+sc('ijv')+'" stroke-width="'+sw('ijv')+'"/>';
+  s+=L('ijv','IJV',178,210);
+  // CS (海綿静脈洞)
+  s+='<ellipse cx="112" cy="145" rx="28" ry="13" fill="none" stroke="'+sc('cs')+'" stroke-width="'+sw('cs')+'"/>';
+  s+=L('cs','CS',90,143);
+  // ICA海綿静脈洞部 (点線)
+  s+='<line x1="112" y1="132" x2="112" y2="95" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="115" y="112" font-size="7" fill="#90A4AE" font-family="sans-serif">ICA</text>';
+  // 岩下静脈洞 (CSからIJVへ)
+  s+='<path d="M140,145 Q158,152 175,168" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2" fill="none"/>';
+  s+='<text x="145" y="160" font-size="7" fill="#90A4AE" font-family="sans-serif">岩下洞</text>';
+  // 上眼静脈 (CSへ流入)
+  s+='<path d="M85,132 Q78,118 70,108" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2" fill="none"/>';
+  s+='<text x="50" y="106" font-size="7" fill="#90A4AE" font-family="sans-serif">上眼静脈</text>';
+  s+='</svg>';
+  return _diagWrap('模式図 — 硬膜静脈洞（側面観）',s);
+}
+
+function ecaBranchSvg(hl) {
+  var H='#E53935', N='#78909C', D='#CFD8DC';
+  var sc=function(id){return hl===id?H:N;};
+  var sw=function(id){return hl===id?'4':'2';};
+  var fw=function(id){return hl===id?'700':'400';};
+  var L=function(id,t,x,y){return '<text x="'+x+'" y="'+y+'" font-size="9" fill="'+sc(id)+'" font-weight="'+fw(id)+'" font-family="sans-serif">'+t+'</text>';};
+  var s='<svg viewBox="0 0 240 270" style="width:100%;max-width:240px;display:block;margin:0 auto" fill="none" stroke-linecap="round" stroke-linejoin="round">';
+  // 頭蓋側面輪郭
+  s+='<ellipse cx="115" cy="88" rx="95" ry="82" fill="#F8FAFF" stroke="#CFD8DC" stroke-width="1.5"/>';
+  // 顔面輪郭(前方)
+  s+='<path d="M40,120 Q28,150 35,185 Q45,210 75,225" stroke="#CFD8DC" stroke-width="1.5" fill="none"/>';
+  // ECA (本幹)
+  s+='<line x1="100" y1="195" x2="100" y2="140" stroke="#90A4AE" stroke-width="2" stroke-dasharray="4,2"/>';
+  s+='<text x="82" y="175" font-size="9" fill="#90A4AE" font-weight="400" font-family="sans-serif">ECA</text>';
+  // CCA (下部)
+  s+='<line x1="100" y1="195" x2="100" y2="240" stroke="#90A4AE" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  s+='<text x="83" y="230" font-size="8" fill="#90A4AE" font-family="sans-serif">CCA</text>';
+  // MMA (中硬膜動脈) — 棘孔→頭蓋内へ上行
+  s+='<path d="M100,158 Q125,145 138,125 Q145,110 145,88" stroke="'+sc('mma')+'" stroke-width="'+sw('mma')+'" fill="none"/>';
+  s+='<circle cx="138" cy="125" r="2.5" fill="'+sc('mma')+'" stroke="none"/>';
+  s+='<text x="102" y="120" font-size="7" fill="#78909C" font-family="sans-serif">棘孔</text>';
+  s+=L('mma','MMA',147,85);
+  // STA (浅側頭動脈) — 側頭部へ上行
+  s+='<path d="M100,148 Q82,130 70,110 Q58,90 60,65" stroke="'+sc('sta')+'" stroke-width="'+sw('sta')+'" fill="none"/>';
+  s+=L('sta','STA',35,60);
+  // STA前頭枝・頭頂枝 分岐
+  s+='<path d="M60,65 Q50,50 45,38" stroke="'+sc('sta')+'" stroke-width="1.5" fill="none"/>';
+  s+='<path d="M60,65 Q72,52 80,42" stroke="'+sc('sta')+'" stroke-width="1.5" fill="none"/>';
+  if(hl==='sta'){s+='<text x="24" y="35" font-size="7" fill="'+H+'" font-family="sans-serif">前頭枝</text>';s+='<text x="81" y="38" font-size="7" fill="'+H+'" font-family="sans-serif">頭頂枝</text>';}
+  // OA (後頭動脈) — 後頭部へ
+  s+='<path d="M100,165 Q118,158 138,165 Q158,172 170,185 Q178,195 178,210" stroke="'+sc('oa')+'" stroke-width="'+sw('oa')+'" fill="none"/>';
+  s+=L('oa','OA',178,208);
+  s+='</svg>';
+  return _diagWrap('模式図 — 外頸動脈分枝（側面観）',s);
+}
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
+
+// ============================================================
+// DATA - 都道府県
+// ============================================================
+const PREF_LIST = [
+  {code:'hokkaido',name:'北海道'},{code:'aomori',name:'青森県'},{code:'iwate',name:'岩手県'},
+  {code:'miyagi',name:'宮城県'},{code:'akita',name:'秋田県'},{code:'yamagata',name:'山形県'},
+  {code:'fukushima',name:'福島県'},{code:'ibaraki',name:'茨城県'},{code:'tochigi',name:'栃木県'},
+  {code:'gunma',name:'群馬県'},{code:'saitama',name:'埼玉県'},{code:'chiba',name:'千葉県'},
+  {code:'tokyo',name:'東京都'},{code:'kanagawa',name:'神奈川県'},{code:'niigata',name:'新潟県'},
+  {code:'toyama',name:'富山県'},{code:'ishikawa',name:'石川県'},{code:'fukui',name:'福井県'},
+  {code:'yamanashi',name:'山梨県'},{code:'nagano',name:'長野県'},{code:'gifu',name:'岐阜県'},
+  {code:'shizuoka',name:'静岡県'},{code:'aichi',name:'愛知県'},{code:'mie',name:'三重県'},
+  {code:'shiga',name:'滋賀県'},{code:'kyoto',name:'京都府'},{code:'osaka',name:'大阪府'},
+  {code:'hyogo',name:'兵庫県'},{code:'nara',name:'奈良県'},{code:'wakayama',name:'和歌山県'},
+  {code:'tottori',name:'鳥取県'},{code:'shimane',name:'島根県'},{code:'okayama',name:'岡山県'},
+  {code:'hiroshima',name:'広島県'},{code:'yamaguchi',name:'山口県'},{code:'tokushima',name:'徳島県'},
+  {code:'kagawa',name:'香川県'},{code:'ehime',name:'愛媛県'},{code:'kochi',name:'高知県'},
+  {code:'fukuoka',name:'福岡県'},{code:'saga',name:'佐賀県'},{code:'nagasaki',name:'長崎県'},
+  {code:'kumamoto',name:'熊本県'},{code:'oita',name:'大分県'},{code:'miyazaki',name:'宮崎県'},
+  {code:'kagoshima',name:'鹿児島県'},{code:'okinawa',name:'沖縄県'}
+];
+
+const PREF_MAP_POS = [
+  {code:'hokkaido', label:'北海道', cx:256, cy:28, w:54},
+  {code:'aomori',   label:'青森',   cx:261, cy:54},
+  {code:'akita',    label:'秋田',   cx:234, cy:66},
+  {code:'iwate',    label:'岩手',   cx:268, cy:68},
+  {code:'yamagata', label:'山形',   cx:234, cy:84},
+  {code:'miyagi',   label:'宮城',   cx:261, cy:84},
+  {code:'fukushima',label:'福島',   cx:252, cy:104},
+  {code:'niigata',  label:'新潟',   cx:214, cy:100},
+  {code:'tochigi',  label:'栃木',   cx:244, cy:116},
+  {code:'ibaraki',  label:'茨城',   cx:262, cy:116},
+  {code:'gunma',    label:'群馬',   cx:224, cy:122},
+  {code:'saitama',  label:'埼玉',   cx:242, cy:130},
+  {code:'chiba',    label:'千葉',   cx:260, cy:130},
+  {code:'tokyo',    label:'東京',   cx:246, cy:142},
+  {code:'kanagawa', label:'神奈川', cx:226, cy:150, w:38},
+  {code:'yamanashi',label:'山梨',   cx:218, cy:144},
+  {code:'toyama',   label:'富山',   cx:192, cy:124},
+  {code:'ishikawa', label:'石川',   cx:174, cy:132},
+  {code:'nagano',   label:'長野',   cx:208, cy:138},
+  {code:'fukui',    label:'福井',   cx:170, cy:154},
+  {code:'gifu',     label:'岐阜',   cx:188, cy:150},
+  {code:'shizuoka', label:'静岡',   cx:220, cy:162},
+  {code:'aichi',    label:'愛知',   cx:200, cy:164},
+  {code:'shiga',    label:'滋賀',   cx:167, cy:162},
+  {code:'mie',      label:'三重',   cx:183, cy:172},
+  {code:'kyoto',    label:'京都',   cx:149, cy:162},
+  {code:'osaka',    label:'大阪',   cx:150, cy:176},
+  {code:'hyogo',    label:'兵庫',   cx:128, cy:168},
+  {code:'nara',     label:'奈良',   cx:164, cy:180},
+  {code:'wakayama', label:'和歌山', cx:156, cy:196, w:38},
+  {code:'tottori',  label:'鳥取',   cx:116, cy:166},
+  {code:'shimane',  label:'島根',   cx:98,  cy:176},
+  {code:'okayama',  label:'岡山',   cx:128, cy:180},
+  {code:'hiroshima',label:'広島',   cx:110, cy:192},
+  {code:'yamaguchi',label:'山口',   cx:90,  cy:202},
+  {code:'kagawa',   label:'香川',   cx:130, cy:198},
+  {code:'tokushima',label:'徳島',   cx:148, cy:208},
+  {code:'ehime',    label:'愛媛',   cx:110, cy:212},
+  {code:'kochi',    label:'高知',   cx:126, cy:226},
+  {code:'fukuoka',  label:'福岡',   cx:74,  cy:208},
+  {code:'oita',     label:'大分',   cx:96,  cy:218},
+  {code:'saga',     label:'佐賀',   cx:58,  cy:218},
+  {code:'nagasaki', label:'長崎',   cx:40,  cy:228},
+  {code:'kumamoto', label:'熊本',   cx:72,  cy:230},
+  {code:'miyazaki', label:'宮崎',   cx:90,  cy:244},
+  {code:'kagoshima',label:'鹿児島', cx:62,  cy:258, w:38},
+  {code:'okinawa',  label:'沖縄',   cx:36,  cy:306}
+];
+
+// ============================================================
+// DATA - 医師サンプル
+// ============================================================
+const DOCTOR_DEFAULTS = [
+  {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
+  {id:'s02',name:'君和田 友美',kana:'きみわだ ともみ',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'准教授（小児脳神経疾患治療センター）',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "小児神経外科学会認定医", "日本神経内視鏡学会技術認定医", "ITB療法登録医"],focus:["小児脳神経外科", "水頭症", "二分脊椎", "頭蓋縫合早期癒合症", "キアリ奇形", "もやもや病"],career:'東北大学医学部医学科非常勤講師・東北医科薬科大学脳神経外科臨床教授（兼任）',photo:'',note:''},
+  {id:'s03',name:'吉金 努',kana:'よしきね つとむ',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'講師',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳卒中の外科学会技術認定医・指導医", "小児神経外科学会認定医", "日本脳神経外傷学会認定指導医"],focus:["脳血管障害", "脳腫瘍", "機能外科手術", "頭蓋底外科", "美容面に配慮した開頭手術"],career:'',photo:'',note:''},
+  {id:'s04',name:'神原 瑞樹',kana:'かんばら みずき',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳神経血管内治療専門医", "脳卒中学会専門医", "日本神経内視鏡学会技術認定医", "がん治療認定医", "日本脳神経外傷学会認定指導医"],focus:["脳血管障害（血管内治療）", "脳腫瘍（間脳下垂体経鼻内視鏡治療）"],career:'',photo:'',note:''},
+  {id:'s05',name:'辻 将大',kana:'つじ まさひろ',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医", "総合診療医学会認定医・特任指導医"],focus:["脳血管障害", "脳神経外科一般"],career:'',photo:'',note:''},
+  {id:'s06',name:'藤原 勇太',kana:'ふじわら ゆうた',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "小児神経外科学会認定医", "脳神経血管内治療専門医"],focus:["小児脳神経外科", "脳血管障害（血管内治療）"],career:'',photo:'',note:''},
+  {id:'s07',name:'山本 和博',kana:'やまもと かずひろ',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'助教（高度脳卒中センター）',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳神経血管内治療専門医"],focus:["脳血管障害", "脳神経外科一般"],career:'',photo:'',note:''},
+  {id:'s08',name:'山﨑 智博',kana:'やまさき ともひろ',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'医科医員',pref:'島根県',prefCode:'shimane',specialty:[],focus:[],career:'脳神経外科一般',photo:'',note:''},
+  {id:'s09',name:'長井 篤',kana:'ながい あつし',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'教授',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "認知症専門医", "脳卒中専門医・指導医", "漢方専門医・指導医", "臨床遺伝専門医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s10',name:'田中 智貴',kana:'たなか ともたか',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'准教授',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "脳卒中専門医・指導医", "てんかん専門医・指導医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s11',name:'有竹 洵',kana:'ありたけ じゅん',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'助教（高度脳卒中センター）',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医", "脳卒中専門医", "神経免疫診療認定医"],focus:["脳神経内科（高度脳卒中センター）"],career:'',photo:'',note:''},
+  {id:'s12',name:'金井 由貴枝',kana:'かない ゆきえ',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'助教',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医", "総合内科専門医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s13',name:'岩佐 憲一',kana:'いわさ けんいち',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'助教',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医", "認知症専門医・指導医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s14',name:'青木 慶仁',kana:'あおき よしひと',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'助教（高度脳卒中センター）',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医", "内科専門医"],focus:["脳神経内科（高度脳卒中センター）"],career:'',photo:'',note:''},
+  {id:'s15',name:'大森 直樹',kana:'おおもり なおき',hospital:'島根大学医学部附属病院',dept:'脳神経内科',position:'助教',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医", "内科専門医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s16',name:'井川 房夫',kana:'いかわ ふさお',hospital:'島根県立中央病院',dept:'脳神経外科',position:'医療局次長（治験管理室長）',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医・指導医・代議員", "脳卒中の外科学会技術指導医・代議員", "脳卒中専門医・指導医・代議員", "日本意識障害学会認定サポート医"],focus:["脳神経外科全般", "脳卒中"],career:'',photo:'',note:''},
+  {id:'s17',name:'日髙 敏和',kana:'ひだか としかず',hospital:'島根県立中央病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医・指導医", "脳卒中専門医", "脳卒中の外科学会技術指導医", "脳神経血管内治療専門医", "神経内視鏡学会認定医", "がん治療認定医"],focus:["脳血管内治療", "脳卒中", "脳腫瘍"],career:'',photo:'',note:''},
+  {id:'s18',name:'橋本 幸繁',kana:'はしもと ゆきしげ',hospital:'島根県立中央病院',dept:'脳神経外科',position:'脳神経外科医長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳神経血管内治療専門医"],focus:["脳神経外科", "脳血管内治療"],career:'',photo:'',note:''},
+  {id:'s19',name:'山口 修平',kana:'やまぐち しゅうへい',hospital:'島根県立中央病院',dept:'脳神経内科',position:'病院事業管理者',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "総合内科専門医・指導医", "老年科専門医・指導医", "脳卒中専門医", "認知症専門医・指導医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s20',name:'安部 哲史',kana:'あべ さとし',hospital:'島根県立中央病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "総合内科専門医・指導医", "老年科専門医・指導医", "脳卒中専門医・指導医", "認知症専門医・指導医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s21',name:'高吉 宏幸',kana:'たかよし ひろゆき',hospital:'島根県立中央病院',dept:'脳神経内科',position:'脳神経内科医長',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "総合内科専門医", "脳卒中専門医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s22',name:'稲垣 諭史',kana:'いながき さとし',hospital:'島根県立中央病院',dept:'脳神経内科',position:'脳神経内科医長',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "認定内科医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s23',name:'福田 弘毅',kana:'ふくだ ひろき',hospital:'松江赤十字病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "脳卒中専門医・指導医", "脳血栓回収療法実施医"],focus:["脳神経内科", "脳卒中", "リハビリテーション"],career:'鳥取大学1994年卒',photo:'',note:''},
+  {id:'s24',name:'周藤 豊',kana:'すとう ゆたか',hospital:'松江赤十字病院',dept:'脳神経内科',position:'脳神経内科副部長',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "脳卒中専門医"],focus:["脳神経内科"],career:'鳥取大学2001年卒',photo:'',note:''},
+  {id:'s25',name:'本田 誠',kana:'ほんだ まこと',hospital:'松江赤十字病院',dept:'脳神経内科',position:'脳神経内科医師',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医"],focus:["脳神経内科"],career:'鳥取大学2012年卒',photo:'',note:''},
+  {id:'s26',name:'大林 直彦',kana:'おおばやし なおひこ',hospital:'松江赤十字病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳神経血管内治療専門医"],focus:["脳神経外科"],career:'広島大学H3年卒',photo:'',note:''},
+  {id:'s27',name:'並河 慎也',kana:'なびか しんや',hospital:'松江赤十字病院',dept:'脳神経外科',position:'脳神経外科副部長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中専門医", "がん治療認定医"],focus:["脳神経外科"],career:'広島大学H11年卒',photo:'',note:''},
+  {id:'s28',name:'小林 尚平',kana:'こばやし しょうへい',hospital:'松江赤十字病院',dept:'脳神経外科',position:'脳神経外科医師',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳血管内治療専門医"],focus:["脳神経外科"],career:'鳥取大学2018年卒',photo:'',note:''},
+  {id:'s29',name:'瀧川 晴夫',kana:'たきがわ はるお',hospital:'松江市立病院',dept:'脳神経外科',position:'科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳神経血管内治療専門医", "脳卒中学会指導医"],focus:["脳血管内手術"],career:'',photo:'',note:''},
+  {id:'s30',name:'中川 史生',kana:'なかがわ ふみお',hospital:'松江市立病院',dept:'脳神経外科',position:'医員',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中専門医", "脳神経血管内治療専門医"],focus:["脳神経外科"],career:'',photo:'',note:''},
+  {id:'s31',name:'山﨑 智博',kana:'やまさき ともひろ',hospital:'松江市立病院',dept:'脳神経外科',position:'医員',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳血栓回収療法実施医"],focus:["脳神経外科"],career:'',photo:'',note:''},
+  {id:'s32',name:'阿武 雄一',kana:'あんの ゆういち',hospital:'松江市立病院',dept:'脳神経外科',position:'医員',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医"],focus:["機能的神経外科（不随意運動・難治性疼痛・痙性麻痺）", "脳脊髄液漏出症"],career:'',photo:'',note:''},
+  {id:'s33',name:'松井 龍吉',kana:'まつい りゅうきち',hospital:'益田赤十字病院',dept:'脳神経内科',position:'',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "老年病専門医・指導医", "漢方専門医・指導医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s34',name:'中川 知憲',kana:'なかがわ とものり',hospital:'益田赤十字病院',dept:'脳神経内科',position:'',pref:'島根県',prefCode:'shimane',specialty:["神経内科専門医・指導医", "総合内科専門医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'s35',name:'上田 真大',kana:'うえだ まさひろ',hospital:'益田赤十字病院',dept:'脳神経内科',position:'',pref:'島根県',prefCode:'shimane',specialty:["内科専門医", "神経内科専門医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'t01',name:'黒﨑 雅道',kana:'くろさき まさみち',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'教授・科長',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "脳卒中専門医", "神経内視鏡技術認定医", "内分泌代謝科専門医・指導医"],focus:["脳神経外科全般", "間脳下垂体腫瘍", "頭蓋底腫瘍"],career:'',photo:'',note:''},
+  {id:'t02',name:'坂本 誠',kana:'さかもと まこと',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'准教授',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "脳神経血管内治療専門医・指導医"],focus:["脳神経外科全般", "脳卒中の外科", "脳血管内手術"],career:'',photo:'',note:''},
+  {id:'t03',name:'神部 敦司',kana:'じんべ あつし',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'講師',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "がん治療認定医", "小児神経外科認定医"],focus:["脳神経外科全般", "悪性脳腫瘍", "脳腫瘍の外科"],career:'',photo:'',note:''},
+  {id:'t04',name:'宇野 哲史',kana:'うの てつし',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "脳神経血管内治療専門医"],focus:["脳神経外科全般", "脳卒中の外科", "脳血管内手術"],career:'',photo:'',note:''},
+  {id:'t05',name:'吉岡 裕樹',kana:'よしおか ひろき',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "神経内視鏡技術認定医", "小児神経外科認定医"],focus:["脳神経外科全般", "脳卒中の外科", "脳血管内手術", "小児神経外科"],career:'',photo:'',note:''},
+  {id:'t06',name:'中島 定男',kana:'なかしま さだお',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医"],focus:["脳神経外科全般"],career:'',photo:'',note:''},
+  {id:'t07',name:'細谷 朋央',kana:'ほそや ともお',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "がん治療認定医", "脳神経血管内治療専門医"],focus:["脳神経外科全般", "脳血管内手術", "悪性脳腫瘍"],career:'',photo:'',note:''},
+  {id:'t08',name:'小椋 貴文',kana:'おぐら たかふみ',hospital:'鳥取大学医学部附属病院',dept:'脳神経外科',position:'助教',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "内分泌代謝科専門医", "神経内視鏡技術認定医"],focus:["脳神経外科全般", "間脳下垂体腫瘍", "頭蓋底腫瘍"],career:'',photo:'',note:''},
+  {id:'t09',name:'花島 律子',kana:'はなしま りつこ',hospital:'鳥取大学医学部附属病院',dept:'脳神経内科',position:'教授・科長',pref:'鳥取県',prefCode:'tottori',specialty:["内科学会総合内科専門医・指導医", "神経学会専門医・指導医", "臨床神経生理学会専門医"],focus:["臨床神経学全般", "神経変性疾患", "パーキンソン病・運動障害疾患", "神経生理"],career:'',photo:'',note:''},
+  {id:'t10',name:'瀧川 洋史',kana:'たきかわ ひろし',hospital:'鳥取大学医学部附属病院',dept:'脳神経内科',position:'講師・病棟医長',pref:'鳥取県',prefCode:'tottori',specialty:["内科学会総合内科専門医・指導医", "神経学会専門医・指導医", "認知症学会専門医", "頭痛学会専門医", "脳卒中学会専門医", "臨床神経生理学会専門医", "老年医学会専門医"],focus:["臨床神経学全般", "頭痛", "神経変性疾患", "進行性核上性麻痺"],career:'',photo:'',note:''},
+  {id:'t11',name:'村上 丈伸',kana:'むらかみ たけのぶ',hospital:'鳥取大学医学部附属病院',dept:'脳神経内科',position:'講師・外来医長',pref:'鳥取県',prefCode:'tottori',specialty:["内科学会総合内科専門医・指導医", "神経学会専門医・指導医", "臨床神経生理学会専門医"],focus:["臨床神経学全般", "パーキンソン病・運動障害疾患", "神経生理"],career:'',photo:'',note:''},
+  {id:'t12',name:'足立 正',kana:'あだち ただし',hospital:'鳥取大学医学部附属病院',dept:'脳神経内科',position:'准教授（神経病理学分野）',pref:'鳥取県',prefCode:'tottori',specialty:["内科学会総合内科専門医・指導医", "神経学会専門医・指導医", "認知症学会専門医・指導医", "神経病理学会認定医・指導医"],focus:["臨床神経学全般", "神経病理", "認知症"],career:'',photo:'',note:''},
+  {id:'t13',name:'河瀬 真也',kana:'かわせ しんや',hospital:'鳥取大学医学部附属病院',dept:'脳神経内科',position:'助教（学部内講師）',pref:'鳥取県',prefCode:'tottori',specialty:["内科学会総合内科専門医・指導医", "神経学会専門医・指導医", "脳卒中学会専門医・指導医", "頭痛学会専門医"],focus:["臨床神経学全般", "脳卒中"],career:'',photo:'',note:''},
+  {id:'t14',name:'守安 正太郎',kana:'もりやす しょうたろう',hospital:'鳥取大学医学部附属病院',dept:'脳神経内科',position:'助教・統括医長',pref:'鳥取県',prefCode:'tottori',specialty:["内科学会総合内科専門医・指導医", "神経学会専門医・指導医"],focus:["臨床神経学全般", "神経生理", "神経免疫"],career:'',photo:'',note:''},
+  {id:'t15',name:'田渕 貞治',kana:'たぶち ていじ',hospital:'鳥取県立中央病院',dept:'脳神経外科',position:'統括部長',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医・指導医", "脳卒中の外科学会技術指導医", "脳卒中専門医・指導医", "神経内視鏡学会技術認定医"],focus:["脳卒中の外科", "神経内視鏡手術", "脳ドック"],career:'',photo:'',note:''},
+  {id:'t16',name:'長尾 裕一郎',kana:'ながお ゆういちろう',hospital:'鳥取県立中央病院',dept:'脳神経外科',position:'医長',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医", "脳血管内治療専門医", "脳血栓回収療法実施医"],focus:["脳神経外科全般"],career:'',photo:'',note:''},
+  {id:'t17',name:'桑本 雄平',kana:'くわもと ゆうへい',hospital:'鳥取県立中央病院',dept:'脳神経外科',position:'副医長',pref:'鳥取県',prefCode:'tottori',specialty:["脳神経外科専門医"],focus:["脳神経外科全般"],career:'',photo:'',note:''},
+  {id:'t18',name:'下田 学',kana:'しもだ まなぶ',hospital:'鳥取県立中央病院',dept:'脳神経内科',position:'部長',pref:'鳥取県',prefCode:'tottori',specialty:["神経学会専門医・指導医", "脳卒中専門医", "総合内科専門医・指導医"],focus:["脳神経内科"],career:'',photo:'',note:''},
+  {id:'k01',name:'三宅 啓介',kana:'みやけ けいすけ',hospital:'香川大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "がん治療認定医", "小児脳神経外科認定医", "神経内視鏡技術認定医"],focus:["脳腫瘍", "覚醒下手術", "機能的脳神経外科", "小児脳神経外科"],career:'香川医科大学H5年卒\\n米国国立衛生研究所研修',photo:'',note:''},
+  {id:'k02',name:'川西 正彦',kana:'かわにし まさひこ',hospital:'香川大学医学部附属病院',dept:'脳神経外科',position:'准教授（病院教授）・副診療科長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳卒中の外科技術指導医", "脳卒中学会専門医", "脳血管内治療学会指導医"],focus:["脳血管障害", "脳血管内治療"],career:'香川医科大学H5年卒\\n京都大学研修',photo:'',note:''},
+  {id:'k03',name:'岡内 正信',kana:'おかうち まさのぶ',hospital:'香川大学医学部附属病院',dept:'脳神経外科',position:'講師・外来医長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳卒中の外科技術指導医", "脳卒中学会専門医", "脳血管内治療学会指導医"],focus:["脳血管障害", "脳血管内治療"],career:'香川医科大学H10年卒\\n米国ミシガン大学・京都大学研修',photo:'',note:''},
+  {id:'k04',name:'畠山 哲宗',kana:'はたけやま てつひろ',hospital:'香川大学医学部附属病院',dept:'脳神経外科',position:'助教（学内講師）',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "機能的定位脳手術技術認定医"],focus:["PET", "脳腫瘍", "機能的脳神経外科", "高次脳機能障害", "脳脊髄液漏出症"],career:'香川医科大学H11年卒\\n米国ミシガン大学研修',photo:'',note:''},
+  {id:'k05',name:'小川 大輔',kana:'おがわ だいすけ',hospital:'香川大学医学部附属病院',dept:'脳神経外科',position:'助教・医局長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳卒中学会専門医", "がん治療認定医", "神経内視鏡技術認定医", "内分泌代謝科専門医"],focus:["脳腫瘍", "神経内視鏡"],career:'香川大学H15年卒\\n慶応大学・米国オハイオ州立大学・米国ハーバード大学研修',photo:'',note:''},
+  {id:'k06',name:'河北 賢哉',kana:'かわきた けんや',hospital:'香川大学医学部附属病院',dept:'脳神経外科（救命救急センター）',position:'教授・センター長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳卒中の外科技術指導医", "脳卒中学会専門医", "脳血管内治療学会専門医", "救急医学会指導医", "神経外傷学会認定指導医"],focus:["救急・神経外傷", "脳血管障害", "脳血管内治療"],career:'香川医科大学H6年卒',photo:'',note:''},
+  {id:'k07',name:'鎌田 正紀',kana:'かまた まさのり',hospital:'香川大学医学部附属病院',dept:'脳神経内科',position:'講師・科長',pref:'香川県',prefCode:'kagawa',specialty:[],focus:[],career:'神経内科一般',photo:'',note:''},
+  {id:'k08',name:'川北 梨愛',kana:'かわきた りあ',hospital:'香川大学医学部附属病院',dept:'脳神経内科',position:'病院助教',pref:'香川県',prefCode:'kagawa',specialty:[],focus:[],career:'神経内科一般',photo:'',note:''},
+  {id:'k09',name:'高場 啓太',kana:'たかば けいた',hospital:'香川大学医学部附属病院',dept:'脳神経内科',position:'病院助教',pref:'香川県',prefCode:'kagawa',specialty:[],focus:[],career:'神経内科一般',photo:'',note:''},
+  {id:'k10',name:'市川 智継',kana:'いちかわ ともつぐ',hospital:'香川県立中央病院',dept:'脳神経外科',position:'院長補佐・診療科長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "がん治療認定医", "小児神経外科学会認定医", "神経内視鏡学会技術認定医"],focus:["脳神経外科一般", "脳腫瘍"],career:'',photo:'',note:''},
+  {id:'k11',name:'小野 恭裕',kana:'おの やすひろ',hospital:'香川県立中央病院',dept:'脳神経外科',position:'部長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "神経内視鏡学会技術認定医", "脳卒中学会専門医", "リハビリテーション科専門医"],focus:["脳神経外科一般", "脳腫瘍", "脳卒中", "リハビリテーション"],career:'',photo:'',note:''},
+  {id:'k12',name:'藏本 智士',kana:'くらもと さとし',hospital:'香川県立中央病院',dept:'脳神経外科',position:'部長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "神経外傷学会指導医", "脳卒中学会専門医", "脳卒中の外科学会技術認定医"],focus:["脳神経外科一般", "機能的脳神経外科", "頭部外傷"],career:'',photo:'',note:''},
+  {id:'k13',name:'西廣 真吾',kana:'にしひろ しんご',hospital:'香川県立中央病院',dept:'脳神経外科',position:'部長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳神経血管内治療専門医・指導医", "脳卒中専門医"],focus:["脳神経外科一般"],career:'',photo:'',note:''},
+  {id:'k14',name:'高橋 悠',kana:'たかはし ゆう',hospital:'香川県立中央病院',dept:'脳神経外科',position:'医長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳神経血管内治療専門医", "脳卒中専門医"],focus:["脳神経外科一般", "脳血管障害"],career:'',photo:'',note:''},
+  {id:'k15',name:'森本 展年',kana:'もりもと のぶとし',hospital:'香川県立中央病院',dept:'脳神経内科',position:'部長・診療科長',pref:'香川県',prefCode:'kagawa',specialty:["総合内科専門医・指導医", "神経内科専門医・指導医", "脳卒中学会専門医・指導医", "認知症学会専門医・指導医"],focus:["神経内科全般", "神経変性疾患"],career:'愛媛大学H14年卒;;医学博士',photo:'',note:''},
+  {id:'k16',name:'高橋 義秋',kana:'たかはし よしあき',hospital:'香川県立中央病院',dept:'脳神経内科',position:'部長',pref:'香川県',prefCode:'kagawa',specialty:["内科学会認定内科医", "神経内科専門医", "脳卒中学会専門医"],focus:["神経内科全般"],career:'信州大学H20年卒',photo:'',note:''},
+  {id:'k17',name:'佐々木 諒',kana:'ささき りょう',hospital:'香川県立中央病院',dept:'脳神経内科',position:'医長',pref:'香川県',prefCode:'kagawa',specialty:["内科学会認定内科医", "神経内科専門医", "脳卒中学会専門医", "頭痛専門医"],focus:["神経内科全般", "神経免疫疾患"],career:'香川大学H26年卒;;医学博士',photo:'',note:''},
+  {id:'k18',name:'香川 昌弘',kana:'かがわ まさひろ',hospital:'高松赤十字病院',dept:'脳神経外科',position:'副院長・脳神経外科部長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医・指導医", "脳卒中専門医・指導医", "脊髄外科学会認定医", "脊椎脊髄外科専門医"],focus:["脳腫瘍", "脊椎脊髄外科", "脳卒中", "顔面けいれん", "三叉神経痛"],career:'',photo:'',note:''},
+  {id:'k19',name:'新堂 敦',kana:'しんどう あつし',hospital:'高松赤十字病院',dept:'脳神経外科',position:'脳卒中科部長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医・指導医", "脳神経血管内治療専門医・指導医", "脳卒中専門医・指導医", "脳卒中の外科学会技術指導医", "神経内視鏡学会技術認定医", "頭痛学会専門医"],focus:["脳卒中", "脳血管内治療", "神経内視鏡手術", "頭痛"],career:'',photo:'',note:''},
+  {id:'k20',name:'入江 恵一郎',kana:'いりえ けいいちろう',hospital:'高松赤十字病院',dept:'脳神経外科',position:'医師',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医・指導医", "脳神経血管内治療専門医", "脳卒中専門医"],focus:["脳卒中", "脳血管内治療"],career:'',photo:'',note:''},
+  {id:'k21',name:'峯 秀樹',kana:'みね ひでき',hospital:'高松赤十字病院',dept:'脳神経内科',position:'第一脳神経内科部長',pref:'香川県',prefCode:'kagawa',specialty:["神経学会専門医・指導医", "内科学会認定内科医"],focus:["脳神経内科"],career:'徳島大学1989年卒',photo:'',note:''},
+  {id:'k22',name:'荒木 みどり',kana:'あらき みどり',hospital:'高松赤十字病院',dept:'脳神経内科',position:'院長補佐・第二脳神経内科部長',pref:'香川県',prefCode:'kagawa',specialty:["内科学会総合内科専門医", "循環器学会認定循環器専門医"],focus:["内科", "循環器科", "脳神経内科"],career:'徳島大学1993年卒;;医学博士・経営修士',photo:'',note:''},
+  {id:'k23',name:'松原 俊二',kana:'まつばら しゅんじ',hospital:'高松市立みんなの病院',dept:'脳神経外科',position:'院長補佐・診療部長・脳卒中神経センター長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳神経血管内治療学会指導医", "脳卒中学会指導医"],focus:["脳神経外科一般", "血管内治療", "脳卒中"],career:'昭和63年医師免許取得;;医学博士',photo:'',note:''},
+  {id:'k24',name:'庄野 健児',kana:'しょうの けんじ',hospital:'高松市立みんなの病院',dept:'脳神経外科',position:'医長・脳卒中神経センター副センター長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医", "脳卒中専門医", "脳神経外傷学会認定専門医"],focus:["脳神経外科一般", "脳卒中", "脳腫瘍", "頭部外傷"],career:'平成19年医師免許取得;;医学博士',photo:'',note:''},
+  {id:'k25',name:'四方 英二',kana:'しかた えいじ',hospital:'高松市立みんなの病院',dept:'脳神経外科',position:'医長',pref:'香川県',prefCode:'kagawa',specialty:["脳神経外科専門医"],focus:["脳神経外科一般", "東洋医学"],career:'平成19年医師免許取得;;医学博士',photo:'',note:''},
+  {id:'k26',name:'浦井 由光',kana:'うらい よしみつ',hospital:'高松市立みんなの病院',dept:'脳神経内科',position:'診療部長・脳卒中神経センター副センター長',pref:'香川県',prefCode:'kagawa',specialty:["神経学会専門医・指導医", "内科学会総合内科専門医", "神経免疫学会神経免疫診療認定医"],focus:["脳神経内科一般"],career:'平成8年医師免許取得;;認知症サポート医',photo:'',note:''},
+  {id:'k27',name:'向井 麻央',kana:'むかい あさお',hospital:'高松市立みんなの病院',dept:'脳神経内科',position:'医長・メンタルサポートセンター副センター長',pref:'香川県',prefCode:'kagawa',specialty:["内科学会認定内科医・指導医", "神経学会専門医・指導医", "老年医学会専門医・指導医", "脳卒中学会専門医"],focus:["脳神経内科一般"],career:'平成18年医師免許取得',photo:'',note:''},
+  {id:'k28',name:'塚口 眞砂',kana:'つかぐち まさご',hospital:'KKR高松病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'香川県',prefCode:'kagawa',specialty:["内科学会認定内科医・指導医", "神経学会専門医・指導医", "臨床神経生理学会専門医（筋電図・神経伝導分野）"],focus:["パーキンソン病", "ボトックス治療", "免疫性神経疾患"],career:'香川大学医学部臨床教授（兼任）',photo:'',note:''},
+  {id:'d01',name:'髙木 康志',kana:'たかぎ やすし',hospital:'徳島大学病院',dept:'脳神経外科',position:'教授・科長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中学会指導医", "脳卒中外科技術認定医・指導医"],focus:["脳神経外科手術全般", "脳血管障害"],career:'京都大学1991年卒\\nハーバード大学マサチューセッツ総合病院留学（2000-2002年）;;医学博士',photo:'',note:''},
+  {id:'d02',name:'島田 健司',kana:'しまだ けんじ',hospital:'徳島大学病院',dept:'脳神経外科',position:'地域脳神経外科診療部特任准教授',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医・指導医", "脳神経血管内治療専門医・指導医"],focus:["脳血管障害", "脳卒中外科", "脳神経血管内治療"],career:'徳島大学2000年卒\\nUCSF留学（2012-2014年）;;医学博士',photo:'',note:''},
+  {id:'d03',name:'多田 恵曜',kana:'ただ しゅうよう',hospital:'徳島大学病院',dept:'脳神経外科',position:'准教授（てんかんセンター副センター長）',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "てんかん学会専門医", "臨床神経生理学会専門医", "迷走神経刺激療法認定医", "脳卒中専門医"],focus:["てんかん"],career:'徳島大学2000年卒\\nUCSF留学（2009-2012年）;;医学博士',photo:'',note:''},
+  {id:'d04',name:'中島 公平',kana:'なかじま こうへい',hospital:'徳島大学病院',dept:'脳神経外科',position:'講師（総務医長）',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医・指導医", "神経内視鏡学会認定医", "小児神経外科学会認定医"],focus:["脳腫瘍", "神経内視鏡手術"],career:'徳島大学2002年卒;;医学博士',photo:'',note:''},
+  {id:'d05',name:'高麗 雅章',kana:'こうらい まさあき',hospital:'徳島大学病院',dept:'脳神経外科',position:'講師（病棟医長）',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医・指導医", "脳神経血管内治療専門医・指導医", "脳卒中外科学会技術認定医"],focus:["脳血管障害", "脳卒中外科", "脳血管内治療"],career:'徳島大学2005年卒\\nUCSF留学（2014-2016年）;;医学博士',photo:'',note:''},
+  {id:'d06',name:'森垣 龍馬',kana:'もりがき りゅうま',hospital:'徳島大学病院',dept:'脳神経外科',position:'特任教授（先端脳機能研究開発分野）',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "機能的定位脳手術技術認定医"],focus:["ニューロモジュレーション"],career:'徳島大学2003年卒\\nMIT留学（2017-2019年）;;医学博士',photo:'',note:''},
+  {id:'d07',name:'宮本 健志',kana:'みやもと けんし',hospital:'徳島大学病院',dept:'脳神経外科',position:'助教（外来医長）',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医", "脳神経血管内治療専門医"],focus:["脳血管障害", "脳卒中外科", "脳神経血管内治療"],career:'徳島大学2006年卒;;医学博士',photo:'',note:''},
+  {id:'d08',name:'和泉 唯信',kana:'いずみ ただのぶ',hospital:'徳島大学病院',dept:'脳神経内科',position:'教授・科長',pref:'徳島県',prefCode:'tokushima',specialty:["神経内科専門医・指導医", "認定内科医・総合内科専門医・指導医", "脳卒中専門医・指導医", "認知症専門医・指導医", "老年病科専門医", "頭痛専門医", "神経病理認定医・指導医"],focus:["脳神経内科全般"],career:'',photo:'',note:''},
+  {id:'d09',name:'松井 尚子',kana:'まつい なおこ',hospital:'徳島大学病院',dept:'脳神経内科',position:'教授・副科長',pref:'徳島県',prefCode:'tokushima',specialty:["神経内科専門医・指導医", "認定内科医・総合内科専門医・指導医", "臨床神経生理学会専門医（筋電図・神経伝導分野）"],focus:["脳神経内科全般"],career:'',photo:'',note:''},
+  {id:'d10',name:'藤田 浩司',kana:'ふじた こうじ',hospital:'徳島大学病院',dept:'脳神経内科',position:'講師・総務医長',pref:'徳島県',prefCode:'tokushima',specialty:[],focus:[],career:'脳神経内科',photo:'',note:''},
+  {id:'d11',name:'兼松 康久',kana:'かねまつ やすひさ',hospital:'徳島県立中央病院',dept:'脳神経外科',position:'部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科学会指導医・代議員", "脳卒中学会指導医・代議員", "脳神経血管内治療学会指導医・代議員"],focus:["脳血管障害", "脳神経外科全般"],career:'',photo:'',note:''},
+  {id:'d12',name:'田村 哲也',kana:'たむら てつや',hospital:'徳島県立中央病院',dept:'脳神経外科',position:'部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医", "脳血管内治療専門医"],focus:["脳卒中"],career:'',photo:'',note:''},
+  {id:'d13',name:'亘 雄也',kana:'わたり ゆうや',hospital:'徳島県立中央病院',dept:'脳神経外科',position:'副部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳血管内治療専門医"],focus:["脳神経外科一般"],career:'',photo:'',note:''},
+  {id:'d14',name:'佐藤 健太',kana:'さとう けんた',hospital:'徳島県立中央病院',dept:'脳神経内科',position:'部長',pref:'徳島県',prefCode:'tokushima',specialty:["総合内科専門医", "神経内科専門医"],focus:["神経内科"],career:'',photo:'',note:''},
+  {id:'d15',name:'黒田 一駿',kana:'くろだ かずたか',hospital:'徳島県立中央病院',dept:'脳神経内科',position:'医長',pref:'徳島県',prefCode:'tokushima',specialty:["内科学会認定内科医", "神経内科専門医", "脳卒中専門医"],focus:["脳卒中"],career:'',photo:'',note:''},
+  {id:'d16',name:'大崎 裕亮',kana:'おおさき ゆうすけ',hospital:'徳島県立中央病院',dept:'脳神経内科',position:'医長',pref:'徳島県',prefCode:'tokushima',specialty:["神経内科専門医・指導医", "総合内科専門医", "臨床神経生理学会専門医・指導医（脳波・筋電図・神経伝達分野）"],focus:["神経筋疾患"],career:'',photo:'',note:''},
+  {id:'d17',name:'松﨑 和仁',kana:'まつざき かずひと',hospital:'徳島赤十字病院',dept:'脳神経外科',position:'副院長・脳神経外科部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医", "脳卒中脳外科学会技術指導医", "脳神経外傷学会認定専門医"],focus:["脳腫瘍", "脳血管障害"],career:'',photo:'',note:''},
+  {id:'d18',name:'花岡 真実',kana:'はなおか まみ',hospital:'徳島赤十字病院',dept:'脳神経外科',position:'脳神経血管内治療科部長・アンギオセンター副センター長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳血管内治療指導医", "脳卒中専門医・指導医", "認知症学会指導医・専門医"],focus:["脳神経血管内治療"],career:'',photo:'',note:''},
+  {id:'d19',name:'山口 真司',kana:'やまぐち ただし',hospital:'徳島赤十字病院',dept:'脳神経外科',position:'脳神経血管内治療科指導医師',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医・指導医", "脳血管内治療専門医", "脳卒中専門医", "脳神経外傷学会認定専門医"],focus:["脳血管障害"],career:'',photo:'',note:''},
+  {id:'d20',name:'仁木 均',kana:'にき ひとし',hospital:'徳島赤十字病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'徳島県',prefCode:'tokushima',specialty:["内科学会認定内科医・総合内科専門医", "神経内科専門医・指導医", "脳卒中専門医"],focus:["神経内科（脳卒中）"],career:'大阪医療センター・国立循環器病センター・多根総合病院勤務歴あり',photo:'',note:''},
+  {id:'d21',name:'木内 智也',kana:'きのうち ともや',hospital:'徳島市民病院',dept:'脳神経外科',position:'脳神経外科総括部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医・指導医", "脳卒中専門医・指導医", "脳神経血管内治療専門医"],focus:["脳血管障害", "脳血管内治療", "医学博士"],career:'',photo:'',note:''},
+  {id:'d22',name:'宮本 理司',kana:'みやもと ただし',hospital:'徳島市民病院',dept:'脳神経外科',position:'救急室総括部長・脳神経外科診療部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医指導医", "脳卒中専門医・指導医", "がん治療認定医"],focus:["脳神経外科全般"],career:'',photo:'',note:''},
+  {id:'d23',name:'宇山 慎一',kana:'うやま しんいち',hospital:'徳島市民病院',dept:'脳神経外科',position:'脳神経外科診療部長',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医"],focus:["脳神経外科全般"],career:'',photo:'',note:''},
+  {id:'d24',name:'上田 博弓',kana:'うえた ひろみ',hospital:'徳島市民病院',dept:'脳神経外科',position:'臨床検査科兼脳神経外科医師',pref:'徳島県',prefCode:'tokushima',specialty:["脳神経外科専門医", "脳卒中専門医", "脳神経血管内治療専門医", "頸動脈ステント実施医"],focus:["脳神経外科一般", "脳血管障害"],career:'',photo:'',note:''}
+];
+
+// ============================================================
+// DOCTORS - State & Storage
+// ============================================================
+let doctors = [];
+let docSearchMode = 'name';
+let docFilter = 'all';
+let selectedPref = null;
+let editingDocId = null;
+
+function loadDoctors() {
+  const s = localStorage.getItem('nn_doctors');
+  doctors = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DOCTOR_DEFAULTS));
+  if (!s) localStorage.setItem('nn_doctors', JSON.stringify(doctors));
+}
+
+function saveDoctors() {
+  localStorage.setItem('nn_doctors', JSON.stringify(doctors));
+}
+
+// ============================================================
+// DOCTORS - Name Search
+// ============================================================
+function setDocSearchMode(mode) {
+  docSearchMode = mode;
+  document.getElementById('dstName').classList.toggle('active', mode === 'name');
+  document.getElementById('dstMap').classList.toggle('active', mode === 'map');
+  document.getElementById('docNameSearch').style.display = mode === 'name' ? '' : 'none';
+  document.getElementById('docMapSearch').style.display = mode === 'map' ? '' : 'none';
+  if (mode === 'map') {
+    selectedPref = null;
+    renderPrefMap();
+    document.getElementById('prefDocTitle').style.display = 'none';
+    document.getElementById('prefDocList').innerHTML = '';
+  }
+}
+
+function filterDoc(f, el) {
+  docFilter = f;
+  document.querySelectorAll('#docSpecFilter .fc').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  renderDocList();
+}
+
+function getFilteredDocs(list) {
+  return (list || doctors).filter(d => {
+    if (docFilter === 'all') return true;
+    if (docFilter === 'ns') return d.dept && d.dept.includes('外科');
+    if (docFilter === 'ni') return d.dept && d.dept.includes('内科');
+    if (docFilter === 'ais') return d.focus && d.focus.some(f => f.includes('AIS') || f.includes('脳梗塞') || f.includes('血栓回収'));
+    if (docFilter === 'sah') return d.focus && d.focus.some(f => f.includes('SAH') || f.includes('くも膜下') || f.includes('コイリング') || f.includes('動脈瘤'));
+    return true;
+  });
+}
+
+function renderDocList(list) {
+  const filtered = getFilteredDocs(list);
+  const el = document.getElementById('docList');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👨‍⚕️</div><div class="empty-msg">該当する医師が見つかりません</div></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(docCardHtml).join('');
+}
+
+function docInitials(name) {
+  const p = name.replace(/\s+/g, ' ').trim().split(' ');
+  return (p[0] ? p[0][0] : '') + (p[1] ? p[1][0] : '');
+}
+
+function specChipClass(s) {
+  if (s.includes('脳神経外科')) return 'schip-ns';
+  if (s.includes('内科') || s.includes('神経内')) return 'schip-ni';
+  if (s.includes('脳卒中')) return 'schip-st';
+  if (s.includes('血管内') || s.includes('脳血管')) return 'schip-ev';
+  return 'schip-ot';
+}
+
+function docCardHtml(d) {
+  const initStr = docInitials(d.name);
+  const av = d.photo
+    ? `<img src="${d.photo}" alt="${d.name}" onerror="this.style.display='none';this.parentElement.textContent='${initStr}'">`
+    : initStr;
+  const specs = (d.specialty || []).map(s => `<span class="schip ${specChipClass(s)}">${s}</span>`).join('');
+  const focuses = (d.focus || []).map(f => `<span class="fchip">${f}</span>`).join('');
+  return `<div class="dcard" id="dc_${d.id}">
+    <div class="dcard-hd" onclick="toggleDCard('${d.id}')">
+      <div class="davatar">${av}</div>
+      <div class="dinfo">
+        <div class="dname">${d.name}</div>
+        ${d.kana ? `<div class="dkana">${d.kana}</div>` : ''}
+        <div class="dhosp">${d.hospital || ''}</div>
+        <div class="dpos-row">
+          ${d.position ? `<span class="dpos">${d.position}</span>` : ''}
+          ${d.dept ? `<span class="ddept">${d.dept}</span>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="dcard-bd" id="dbd_${d.id}">
+      ${specs ? `<div class="drow"><span class="dlabel">専門医</span><div class="dval"><div class="spec-chips">${specs}</div></div></div>` : ''}
+      ${focuses ? `<div class="drow"><span class="dlabel">専門分野</span><div class="dval"><div class="focus-chips">${focuses}</div></div></div>` : ''}
+      ${d.pref ? `<div class="drow"><span class="dlabel">所在地</span><span class="dval">${d.pref}</span></div>` : ''}
+      ${d.career ? `<div class="drow"><span class="dlabel">経歴</span><span class="dval career-txt">${d.career}</span></div>` : ''}
+      ${d.note ? `<div class="drow"><span class="dlabel">備考</span><span class="dval note-txt">${d.note}</span></div>` : ''}
+      <div class="dcard-actions">
+        <button class="dact-btn dact-edit" onclick="openDocModal('${d.id}')">✏️ 編集</button>
+        <button class="dact-btn dact-del" onclick="deleteDoc('${d.id}')">🗑 削除</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleDCard(id) {
+  const bd = document.getElementById('dbd_' + id);
+  if (bd) bd.classList.toggle('open');
+}
+
+// ============================================================
+// DOCTORS - Prefecture Map
+// ============================================================
+function renderPrefMap() {
+  const cnt = {};
+  doctors.forEach(d => { if (d.prefCode) cnt[d.prefCode] = (cnt[d.prefCode] || 0) + 1; });
+  const DW = 32, DH = 15;
+  let svg = '<svg viewBox="0 0 300 322" style="width:100%;display:block;margin:0 auto">';
+  svg += '<line x1="36" y1="268" x2="36" y2="295" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3,2"/>';
+  PREF_MAP_POS.forEach(p => {
+    const w = p.w || DW, h = DH;
+    const x = p.cx - w / 2, y = p.cy - h / 2;
+    const has = cnt[p.code] > 0, sel = selectedPref === p.code;
+    const fill   = sel ? '#1565C0' : has ? '#DBEAFE' : '#EFF6FF';
+    const stroke = sel ? '#1565C0' : has ? '#3B82F6' : '#93C5FD';
+    const sw     = has ? '1.5' : '1';
+    const tf     = sel ? '#fff'   : has ? '#1E40AF' : '#6B7280';
+    const fw     = (has || sel)   ? '700' : '400';
+    const badge  = cnt[p.code] > 0 && !sel
+      ? `<circle cx="${x + w - 1}" cy="${y + 1}" r="5.5" fill="#EF4444"/>
+         <text x="${x + w - 1}" y="${y + 1}" font-size="7" fill="#fff" text-anchor="middle" dominant-baseline="central" font-weight="700" font-family="sans-serif">${cnt[p.code]}</text>`
+      : '';
+    svg += `<g onclick="selectPref('${p.code}')">
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
+      <text x="${p.cx}" y="${p.cy}" font-size="8.5" fill="${tf}" font-weight="${fw}" text-anchor="middle" dominant-baseline="central" font-family="-apple-system,'Hiragino Sans',sans-serif">${p.label}</text>
+      ${badge}
+    </g>`;
+  });
+  svg += '</svg>';
+  document.getElementById('prefMapWrap').innerHTML = svg;
+}
+
+function selectPref(code) {
+  selectedPref = selectedPref === code ? null : code;
+  renderPrefMap();
+  const titleEl = document.getElementById('prefDocTitle');
+  const listEl  = document.getElementById('prefDocList');
+  if (!selectedPref) { titleEl.style.display = 'none'; listEl.innerHTML = ''; return; }
+  const pref = PREF_LIST.find(p => p.code === code);
+  const prefDocs = doctors.filter(d => d.prefCode === code);
+  titleEl.style.display = '';
+  titleEl.textContent = `${pref ? pref.name : code}の医師（${prefDocs.length}名）`;
+  listEl.innerHTML = prefDocs.length
+    ? prefDocs.map(docCardHtml).join('')
+    : '<div style="padding:12px 14px;font-size:13px;color:#6B7280">この都道府県の医師はまだ登録されていません</div>';
+}
+
+// ============================================================
+// DOCTORS - Add / Edit / Delete
+// ============================================================
+function populatePrefSelect() {
+  document.getElementById('dfPref').innerHTML =
+    '<option value="">都道府県を選択</option>' +
+    PREF_LIST.map(p => `<option value="${p.code}">${p.name}</option>`).join('');
+}
+
+function openDocModal(id) {
+  editingDocId = id || null;
+  populatePrefSelect();
+  const title = document.getElementById('docModalTitle');
+  if (id) {
+    const d = doctors.find(doc => doc.id === id);
+    if (!d) return;
+    title.textContent = '医師情報を編集';
+    document.getElementById('dfName').value      = d.name     || '';
+    document.getElementById('dfKana').value      = d.kana     || '';
+    document.getElementById('dfHospital').value  = d.hospital || '';
+    document.getElementById('dfDept').value      = d.dept     || '';
+    document.getElementById('dfPosition').value  = d.position || '';
+    document.getElementById('dfPref').value      = d.prefCode || '';
+    document.getElementById('dfSpecialty').value = (d.specialty || []).join(', ');
+    document.getElementById('dfFocus').value     = (d.focus    || []).join(', ');
+    document.getElementById('dfCareer').value    = d.career   || '';
+    document.getElementById('dfPhoto').value     = d.photo    || '';
+    document.getElementById('dfNote').value      = d.note     || '';
+  } else {
+    title.textContent = '医師を追加';
+    ['dfName','dfKana','dfHospital','dfDept','dfPosition','dfSpecialty','dfFocus','dfCareer','dfPhoto','dfNote']
+      .forEach(fid => { document.getElementById(fid).value = ''; });
+    document.getElementById('dfPref').value = '';
+  }
+  document.getElementById('docModal').classList.add('open');
+}
+
+function closeDocModal(e) {
+  if (e && e.target !== document.getElementById('docModal')) return;
+  document.getElementById('docModal').classList.remove('open');
+}
+
+function saveDoctor() {
+  const name = document.getElementById('dfName').value.trim();
+  if (!name) { alert('氏名を入力してください'); return; }
+  const prefCode = document.getElementById('dfPref').value;
+  const data = {
+    name,
+    kana:      document.getElementById('dfKana').value.trim(),
+    hospital:  document.getElementById('dfHospital').value.trim(),
+    dept:      document.getElementById('dfDept').value.trim(),
+    position:  document.getElementById('dfPosition').value.trim(),
+    prefCode,
+    pref:      (PREF_LIST.find(p => p.code === prefCode) || {}).name || '',
+    specialty: document.getElementById('dfSpecialty').value.split(',').map(s => s.trim()).filter(Boolean),
+    focus:     document.getElementById('dfFocus').value.split(',').map(s => s.trim()).filter(Boolean),
+    career:    document.getElementById('dfCareer').value.trim(),
+    photo:     document.getElementById('dfPhoto').value.trim(),
+    note:      document.getElementById('dfNote').value.trim()
+  };
+  if (editingDocId) {
+    const i = doctors.findIndex(d => d.id === editingDocId);
+    if (i >= 0) doctors[i] = { ...doctors[i], ...data };
+  } else {
+    data.id = 'd' + Date.now();
+    doctors.push(data);
+  }
+  saveDoctors();
+  document.getElementById('docModal').classList.remove('open');
+  if (docSearchMode === 'name') {
+    renderDocList();
+  } else {
+    selectedPref = null;
+    renderPrefMap();
+    document.getElementById('prefDocTitle').style.display = 'none';
+    document.getElementById('prefDocList').innerHTML = '';
+  }
+}
+
+// ============================================================
+// DOCTORS - Google Sheets Sync
+// ============================================================
+function toggleGSyncPanel() {
+  const panel = document.getElementById('gSyncPanel');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? '' : 'none';
+  if (open) {
+    const savedUrl = localStorage.getItem('nn_gsheet_url') || '';
+    const savedAuto = localStorage.getItem('nn_gsheet_auto') === '1';
+    document.getElementById('gSheetUrl').value = savedUrl;
+    document.getElementById('gAutoSync').checked = savedAuto;
+    updateGSyncBadge(savedUrl);
+  }
+}
+
+function updateGSyncBadge(url) {
+  const badge = document.getElementById('gSyncBadge');
+  if (url) {
+    badge.className = 'gsync-badge connected';
+    badge.textContent = '🟢 連携中';
+  } else {
+    badge.className = 'gsync-badge none';
+    badge.textContent = '⚪ 未連携';
+  }
+}
+
+function convertToCSVUrl(url) {
+  if (url.includes('output=csv') || url.includes('format=csv')) return url;
+  const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (m) {
+    const gid = (url.match(/[#&?]gid=(\d+)/) || [])[1] || '0';
+    return `https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv&gid=${gid}`;
+  }
+  return url;
+}
+
+async function syncGoogleSheet() {
+  const url = document.getElementById('gSheetUrl').value.trim();
+  if (!url) { alert('URLを入力してください'); return; }
+  const status = document.getElementById('gSyncStatus');
+  status.textContent = '⏳ 同期中...';
+  try {
+    const res = await fetch(convertToCSVUrl(url));
+    if (!res.ok) throw new Error('取得失敗（' + res.status + '）');
+    const text = await res.text();
+    const newDocs = parseDoctorCSV(text);
+    if (!newDocs.length) { status.textContent = '❌ 有効なデータが見つかりません'; return; }
+    doctors = newDocs;
+    saveDoctors();
+    localStorage.setItem('nn_gsheet_url', url);
+    localStorage.setItem('nn_gsheet_auto', document.getElementById('gAutoSync').checked ? '1' : '0');
+    updateGSyncBadge(url);
+    renderDocList();
+    if (docSearchMode === 'map') renderPrefMap();
+    const now = new Date().toLocaleString('ja-JP', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    status.textContent = '✅ ' + newDocs.length + '名を同期しました（' + now + '）';
+    localStorage.setItem('nn_gsheet_last', now);
+  } catch(err) {
+    status.textContent = '❌ エラー: ' + err.message + '（シートが「ウェブに公開」されているか確認してください）';
+  }
+}
+
+function clearGSync() {
+  if (!confirm('Googleシート連携を解除しますか？\n（登録済みの医師データは残ります）')) return;
+  localStorage.removeItem('nn_gsheet_url');
+  localStorage.removeItem('nn_gsheet_auto');
+  localStorage.removeItem('nn_gsheet_last');
+  document.getElementById('gSheetUrl').value = '';
+  document.getElementById('gAutoSync').checked = false;
+  updateGSyncBadge('');
+  document.getElementById('gSyncStatus').textContent = '連携を解除しました';
+}
+
+async function autoSyncOnLoad() {
+  const url = localStorage.getItem('nn_gsheet_url');
+  const auto = localStorage.getItem('nn_gsheet_auto') === '1';
+  if (!url || !auto) return;
+  try {
+    const res = await fetch(convertToCSVUrl(url));
+    if (!res.ok) return;
+    const text = await res.text();
+    const newDocs = parseDoctorCSV(text);
+    if (!newDocs.length) return;
+    doctors = newDocs;
+    saveDoctors();
+    renderDocList();
+  } catch(e) { /* サイレントに失敗 */ }
+}
+
+// ============================================================
+// DOCTORS - CSV Import / Export
+// ============================================================
+const CSV_HEADER = ['氏名','フリガナ','所属病院','診療科','役職','都道府県','専門医（;区切り）','専門分野（;区切り）','経歴（改行は\\n）','写真URL','備考'];
+
+function csvCell(v) { return '"' + (v || '').replace(/"/g, '""') + '"'; }
+
+function parseDoctorCSV(text) {
+  const lines = parseCSV(text);
+  if (lines.length < 2) return [];
+  const docs = [];
+  for (let i = 1; i < lines.length; i++) {
+    const r = lines[i];
+    if (!r[0] || !r[0].trim()) continue;
+    const prefName = (r[5] || '').trim();
+    const prefEntry = PREF_LIST.find(p =>
+      p.name === prefName ||
+      p.name.replace(/[都道府県]$/, '') === prefName.replace(/[都道府県]$/, '')
+    );
+    docs.push({
+      id: 'd' + Date.now() + '_' + i,
+      name:      r[0].trim(),
+      kana:      (r[1] || '').trim(),
+      hospital:  (r[2] || '').trim(),
+      dept:      (r[3] || '').trim(),
+      position:  (r[4] || '').trim(),
+      pref:      prefEntry ? prefEntry.name : prefName,
+      prefCode:  prefEntry ? prefEntry.code : '',
+      specialty: r[6] ? r[6].split(';').map(s => s.trim()).filter(Boolean) : [],
+      focus:     r[7] ? r[7].split(';').map(s => s.trim()).filter(Boolean) : [],
+      career:    (r[8] || '').replace(/\\n/g, '\n'),
+      photo:     (r[9] || '').trim(),
+      note:      (r[10] || '').trim()
+    });
+  }
+  return docs;
+}
+
+function downloadDocTemplate() {
+  const sample = ['山田 太郎','やまだ たろう','○○大学病院','脳神経外科','教授','東京都',
+    '脳神経外科専門医;脳卒中専門医','AIS;SAH;血栓回収術','2000年 ○○大学卒業\\n2010年 現職','','訪問メモなど'];
+  const csv = [CSV_HEADER, sample].map(r => r.map(csvCell).join(',')).join('\r\n');
+  downloadFile('医師登録テンプレート.csv', '﻿' + csv, 'text/csv');
+}
+
+function exportDocCSV() {
+  const rows = doctors.map(d => [
+    d.name, d.kana, d.hospital, d.dept, d.position, d.pref,
+    (d.specialty || []).join(';'), (d.focus || []).join(';'),
+    (d.career || '').replace(/\n/g, '\\n'), d.photo, d.note
+  ]);
+  const csv = [CSV_HEADER, ...rows].map(r => r.map(csvCell).join(',')).join('\r\n');
+  downloadFile('医師リスト_' + new Date().toISOString().slice(0,10) + '.csv', '﻿' + csv, 'text/csv');
+}
+
+function importDocCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const newDocs = parseDoctorCSV(e.target.result);
+      if (!newDocs.length) { alert('有効なデータが見つかりません'); input.value = ''; return; }
+      const mode = confirm(
+        newDocs.length + '名のデータを読み込みます。\n\n「OK」→ 既存データに追加\n「キャンセル」→ 全て置き換え'
+      );
+      if (mode) {
+        doctors = [...doctors, ...newDocs];
+      } else {
+        if (!confirm('既存の全医師データを削除して置き換えますか？')) { input.value = ''; return; }
+        doctors = newDocs;
+      }
+      saveDoctors();
+      renderDocList();
+      alert(newDocs.length + '名を登録しました');
+    } catch(err) {
+      alert('CSVの読み込みに失敗しました:\n' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = '', inQ = false;
+  const s = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inQ) {
+      if (c === '"' && s[i+1] === '"') { cell += '"'; i++; }
+      else if (c === '"') { inQ = false; }
+      else { cell += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n') { row.push(cell); if (row.some(v => v.trim())) rows.push(row); row = []; cell = ''; }
+      else { cell += c; }
+    }
+  }
+  if (cell || row.length) { row.push(cell); if (row.some(v => v.trim())) rows.push(row); }
+  return rows;
+}
+
+function downloadFile(filename, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function deleteDoc(id) {
+  if (!confirm('この医師を削除しますか？')) return;
+  doctors = doctors.filter(d => d.id !== id);
+  saveDoctors();
+  const card = document.getElementById('dc_' + id);
+  if (card) card.remove();
+  if (docSearchMode === 'map') renderPrefMap();
+}
+</script>
+</body>
+</html>
