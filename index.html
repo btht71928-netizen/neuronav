@@ -190,7 +190,8 @@
     .career-txt { font-size:13px; line-height:1.8; white-space:pre-wrap; }
     .note-txt { font-size:12px; color:var(--text-sub); background:var(--bg); padding:8px 10px; border-radius:8px; line-height:1.5; margin-top:2px; }
     .dcard-actions { display:flex; gap:8px; margin-top:12px; }
-    .dact-btn { flex:1; padding:9px; border-radius:9px; border:1.5px solid var(--border); background:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; }
+    .dact-btn { flex:1; padding:9px; border-radius:9px; border:1.5px solid var(--border); background:#fff; font-size:13px; font-weight:600; cursor:pointer; text-align:center; text-decoration:none; color:var(--text); display:flex; align-items:center; justify-content:center; }
+    .dact-page { background:#E3F2FD; border-color:#90CAF9; color:#1565C0; }
     .dact-edit { color:var(--primary); border-color:var(--primary); }
     .dact-del { color:#DC2626; border-color:#DC2626; }
     .pmap-wrap { padding:6px 10px 2px; }
@@ -486,6 +487,10 @@
     <div class="dfield">
       <label>写真URL（任意）</label>
       <input type="text" id="dfPhoto" placeholder="https://...">
+    </div>
+    <div class="dfield">
+      <label>病院プロフィールページURL（任意）</label>
+      <input type="text" id="dfProfileUrl" placeholder="https://...">
     </div>
     <div class="dfield">
       <label>備考・メモ</label>
@@ -2012,6 +2017,77 @@ function specChipClass(s) {
   return 'schip-ot';
 }
 
+// 病院名→診療科ページURLマッピング
+const HOSPITAL_PAGE_MAP = {
+  '島根大学医学部附属病院': {
+    '脳神経外科': 'https://www.med.shimane-u.ac.jp/neuro_surg/member.html',
+    '脳神経内科': 'https://www.med.shimane-u.ac.jp/neuro_med/members.html'
+  },
+  '島根県立中央病院': {
+    '脳神経外科': 'https://www.pref.shimane.lg.jp/iryou/hospital/shinryouka/noushinkeigekai.html',
+    '脳神経内科': 'https://www.pref.shimane.lg.jp/iryou/hospital/shinryouka/nousinkeinaika.html'
+  },
+  '松江赤十字病院': {
+    '脳神経外科': 'https://www.matsue.jrc.or.jp/department/brain_surgery/',
+    '脳神経内科': 'https://www.matsue.jrc.or.jp/department/neurology/'
+  },
+  '松江市立病院': {
+    '脳神経外科': 'https://www.hospital.matsue.shimane.jp/departments/neurosurgery/'
+  },
+  '益田赤十字病院': {
+    '脳神経内科': 'https://www.masuda.jrc.or.jp/department/neurology/'
+  },
+  '鳥取大学医学部附属病院': {
+    '脳神経外科': 'https://www.med.tottori-u.ac.jp/neurosurgery/member.html',
+    '脳神経内科': 'https://www.med.tottori-u.ac.jp/neurology/member.html'
+  },
+  '鳥取県立中央病院': {
+    '脳神経外科': 'https://www.pref.tottori.lg.jp/hospital/section/brain-surgery/',
+    '脳神経内科': 'https://www.pref.tottori.lg.jp/hospital/section/neurology/'
+  },
+  '香川大学医学部附属病院': {
+    '脳神経外科': 'https://www.med.kagawa-u.ac.jp/~brain/staff.html',
+    '脳神経内科': 'https://www.med.kagawa-u.ac.jp/neurology/staff.html'
+  },
+  '香川県立中央病院': {
+    '脳神経外科': 'https://www.prefhospital.kagawa.jp/department/neurosurgery/',
+    '脳神経内科': 'https://www.prefhospital.kagawa.jp/department/neurology/'
+  },
+  '高松赤十字病院': {
+    '脳神経外科': 'https://www.takamatsu.jrc.or.jp/department/neurosurgery/',
+    '脳神経内科': 'https://www.takamatsu.jrc.or.jp/department/neurology/'
+  },
+  '高松市立みんなの病院': {
+    '脳神経外科': 'https://www.city.takamatsu.kagawa.jp/hospital/department/neurosurgery.html',
+    '脳神経内科': 'https://www.city.takamatsu.kagawa.jp/hospital/department/neurology.html'
+  },
+  'KKR高松病院': {
+    '脳神経内科': 'https://www.kkr-takamatsu.jp/department/neurology/'
+  },
+  '徳島大学病院': {
+    '脳神経外科': 'https://neurosurgery.med.tokushima-u.ac.jp/member.html',
+    '脳神経内科': 'https://www.neurology.med.tokushima-u.ac.jp/staff.html'
+  },
+  '徳島県立中央病院': {
+    '脳神経外科': 'https://www.pref-tokushima-hospital.jp/department/neurosurgery/',
+    '脳神経内科': 'https://www.pref-tokushima-hospital.jp/department/neurology/'
+  },
+  '徳島赤十字病院': {
+    '脳神経外科': 'https://www.tokushima.jrc.or.jp/section/brain/',
+    '脳神経内科': 'https://www.tokushima.jrc.or.jp/section/neurology/'
+  },
+  '徳島市民病院': {
+    '脳神経外科': 'https://www.city.tokushima.tokushima.jp/hospital/department/neurosurgery.html'
+  }
+};
+
+function getHospitalPageUrl(d) {
+  if (d.profileUrl) return d.profileUrl;
+  const h = HOSPITAL_PAGE_MAP[d.hospital];
+  if (h) return h[d.dept] || Object.values(h)[0] || null;
+  return null;
+}
+
 function docCardHtml(d) {
   const initStr = docInitials(d.name);
   const av = d.photo
@@ -2019,6 +2095,7 @@ function docCardHtml(d) {
     : initStr;
   const specs = (d.specialty || []).map(s => `<span class="schip ${specChipClass(s)}">${s}</span>`).join('');
   const focuses = (d.focus || []).map(f => `<span class="fchip">${f}</span>`).join('');
+  const pageUrl = getHospitalPageUrl(d);
   return `<div class="dcard" id="dc_${d.id}">
     <div class="dcard-hd" onclick="toggleDCard('${d.id}')">
       <div class="davatar">${av}</div>
@@ -2039,6 +2116,7 @@ function docCardHtml(d) {
       ${d.career ? `<div class="drow"><span class="dlabel">経歴</span><span class="dval career-txt">${d.career}</span></div>` : ''}
       ${d.note ? `<div class="drow"><span class="dlabel">備考</span><span class="dval note-txt">${d.note}</span></div>` : ''}
       <div class="dcard-actions">
+        ${pageUrl ? `<a class="dact-btn dact-page" href="${pageUrl}" target="_blank" rel="noopener">🌐 病院ページ</a>` : ''}
         <button class="dact-btn dact-edit" onclick="openDocModal('${d.id}')">✏️ 編集</button>
         <button class="dact-btn dact-del" onclick="deleteDoc('${d.id}')">🗑 削除</button>
       </div>
@@ -2124,11 +2202,12 @@ function openDocModal(id) {
     document.getElementById('dfSpecialty').value = (d.specialty || []).join(', ');
     document.getElementById('dfFocus').value     = (d.focus    || []).join(', ');
     document.getElementById('dfCareer').value    = d.career   || '';
-    document.getElementById('dfPhoto').value     = d.photo    || '';
-    document.getElementById('dfNote').value      = d.note     || '';
+    document.getElementById('dfPhoto').value      = d.photo      || '';
+    document.getElementById('dfProfileUrl').value = d.profileUrl || '';
+    document.getElementById('dfNote').value       = d.note       || '';
   } else {
     title.textContent = '医師を追加';
-    ['dfName','dfKana','dfHospital','dfDept','dfPosition','dfSpecialty','dfFocus','dfCareer','dfPhoto','dfNote']
+    ['dfName','dfKana','dfHospital','dfDept','dfPosition','dfSpecialty','dfFocus','dfCareer','dfPhoto','dfProfileUrl','dfNote']
       .forEach(fid => { document.getElementById(fid).value = ''; });
     document.getElementById('dfPref').value = '';
   }
@@ -2155,8 +2234,9 @@ function saveDoctor() {
     specialty: document.getElementById('dfSpecialty').value.split(',').map(s => s.trim()).filter(Boolean),
     focus:     document.getElementById('dfFocus').value.split(',').map(s => s.trim()).filter(Boolean),
     career:    document.getElementById('dfCareer').value.trim(),
-    photo:     document.getElementById('dfPhoto').value.trim(),
-    note:      document.getElementById('dfNote').value.trim()
+    photo:      document.getElementById('dfPhoto').value.trim(),
+    profileUrl: document.getElementById('dfProfileUrl').value.trim(),
+    note:       document.getElementById('dfNote').value.trim()
   };
   if (editingDocId) {
     const i = doctors.findIndex(d => d.id === editingDocId);
