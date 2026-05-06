@@ -201,6 +201,15 @@
     .pmleg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-sub); }
     .pmleg-box { width:14px; height:10px; border-radius:3px; flex-shrink:0; }
     .psel-title { font-size:13px; font-weight:700; padding:6px 14px 4px; color:var(--text); }
+    .region-btn { display:inline-flex; flex-direction:column; align-items:center; padding:7px 10px 5px; border-radius:10px; border:1.5px solid #93C5FD; background:#EFF6FF; cursor:pointer; font-size:12px; font-weight:700; color:#1E40AF; min-width:56px; gap:2px; transition:background 0.15s,border-color 0.15s; }
+    .region-btn .rcnt { font-size:10px; font-weight:700; color:#EF4444; }
+    .region-btn.sel,.region-btn:active { background:#1565C0; border-color:#1565C0; color:#fff; }
+    .region-btn.sel .rcnt { color:#FECACA; }
+    .pref-btn { display:inline-flex; flex-direction:column; align-items:center; padding:6px 8px 4px; border-radius:8px; border:1.5px solid #93C5FD; background:#DBEAFE; cursor:pointer; font-size:11px; font-weight:700; color:#1E40AF; min-width:48px; gap:1px; transition:background 0.15s; }
+    .pref-btn .pcnt { font-size:10px; font-weight:700; color:#EF4444; }
+    .pref-btn.sel,.pref-btn:active { background:#1565C0; border-color:#1565C0; color:#fff; }
+    .pref-btn.sel .pcnt { color:#FECACA; }
+    .pref-btn.empty { background:#F1F5F9; border-color:#CBD5E1; color:#94A3B8; opacity:0.7; }
     #docModal { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.5); align-items:flex-end; }
     #docModal.open { display:flex; }
     .doc-sheet { background:#fff; border-radius:20px 20px 0 0; width:100%; max-height:90vh; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:20px 16px calc(env(safe-area-inset-bottom)+20px); }
@@ -398,11 +407,17 @@
         <div id="docList"></div>
       </div>
       <div id="docMapSearch" style="display:none">
-        <div class="pmap-wrap" id="prefMapWrap"></div>
-        <div class="pmap-legend">
-          <div class="pmleg"><div class="pmleg-box" style="background:#DBEAFE;border:1.5px solid #3B82F6"></div>医師登録あり</div>
-          <div class="pmleg"><div class="pmleg-box" style="background:#EFF6FF;border:1px solid #93C5FD"></div>未登録</div>
+        <!-- 地域選択 -->
+        <div style="padding:12px 14px 4px">
+          <div style="font-size:11px;color:#6B7280;font-weight:600;margin-bottom:8px;">① 地方を選択</div>
+          <div id="regionBtns" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
         </div>
+        <!-- 都道府県選択 -->
+        <div id="prefBtnWrap" style="display:none;padding:10px 14px 4px">
+          <div style="font-size:11px;color:#6B7280;font-weight:600;margin-bottom:8px;">② 都道府県を選択</div>
+          <div id="prefBtns" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <!-- 医師一覧 -->
         <div id="prefDocTitle" class="psel-title" style="display:none"></div>
         <div id="prefDocList"></div>
       </div>
@@ -1787,6 +1802,17 @@ const PREF_LIST = [
   {code:'kagoshima',name:'鹿児島県'},{code:'okinawa',name:'沖縄県'}
 ];
 
+const REGION_LIST_FINAL = [
+  { id:'hokkaido', label:'北海道',   prefs:['hokkaido'] },
+  { id:'tohoku',   label:'東北',    prefs:['aomori','iwate','miyagi','akita','yamagata','fukushima'] },
+  { id:'kanto',    label:'関東',    prefs:['ibaraki','tochigi','gunma','saitama','chiba','tokyo','kanagawa'] },
+  { id:'chubu',    label:'中部',    prefs:['niigata','toyama','ishikawa','fukui','yamanashi','nagano','gifu','shizuoka','aichi'] },
+  { id:'kinki',    label:'近畿',    prefs:['mie','shiga','kyoto','osaka','hyogo','nara','wakayama'] },
+  { id:'chugoku',  label:'中国地方', prefs:['tottori','shimane','okayama','hiroshima','yamaguchi'] },
+  { id:'shikoku',  label:'四国',    prefs:['tokushima','kagawa','ehime','kochi'] },
+  { id:'kyushu',   label:'九州・沖縄',prefs:['fukuoka','saga','nagasaki','kumamoto','oita','miyazaki','kagoshima','okinawa'] },
+];
+
 const PREF_MAP_POS = [
   {code:'hokkaido', label:'北海道', cx:256, cy:28, w:54},
   {code:'aomori',   label:'青森',   cx:261, cy:54},
@@ -1840,7 +1866,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.05';
+const APP_VERSION = '2026.05.06';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
@@ -2249,8 +2275,10 @@ function setDocSearchMode(mode) {
   document.getElementById('docNameSearch').style.display = mode === 'name' ? '' : 'none';
   document.getElementById('docMapSearch').style.display = mode === 'map' ? '' : 'none';
   if (mode === 'map') {
-    selectedPref = null;
-    renderPrefMap();
+    selectedPref   = null;
+    selectedRegion = null;
+    renderRegionMap();
+    document.getElementById('prefBtnWrap').style.display = 'none';
     document.getElementById('prefDocTitle').style.display = 'none';
     document.getElementById('prefDocList').innerHTML = '';
   }
@@ -2509,40 +2537,59 @@ function toggleDCard(id) {
 }
 
 // ============================================================
-// DOCTORS - Prefecture Map
+// DOCTORS - Region / Prefecture Map (2-step UI)
 // ============================================================
-function renderPrefMap() {
+let selectedRegion = null;
+
+function renderRegionMap() {
   const cnt = {};
   doctors.forEach(d => { if (d.prefCode) cnt[d.prefCode] = (cnt[d.prefCode] || 0) + 1; });
-  const DW = 32, DH = 15;
-  let svg = '<svg viewBox="0 0 300 322" style="width:100%;display:block;margin:0 auto">';
-  svg += '<line x1="36" y1="268" x2="36" y2="295" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3,2"/>';
-  PREF_MAP_POS.forEach(p => {
-    const w = p.w || DW, h = DH;
-    const x = p.cx - w / 2, y = p.cy - h / 2;
-    const has = cnt[p.code] > 0, sel = selectedPref === p.code;
-    const fill   = sel ? '#1565C0' : has ? '#DBEAFE' : '#EFF6FF';
-    const stroke = sel ? '#1565C0' : has ? '#3B82F6' : '#93C5FD';
-    const sw     = has ? '1.5' : '1';
-    const tf     = sel ? '#fff'   : has ? '#1E40AF' : '#6B7280';
-    const fw     = (has || sel)   ? '700' : '400';
-    const badge  = cnt[p.code] > 0 && !sel
-      ? `<circle cx="${x + w - 1}" cy="${y + 1}" r="5.5" fill="#EF4444"/>
-         <text x="${x + w - 1}" y="${y + 1}" font-size="7" fill="#fff" text-anchor="middle" dominant-baseline="central" font-weight="700" font-family="sans-serif">${cnt[p.code]}</text>`
-      : '';
-    svg += `<g onclick="selectPref('${p.code}')">
-      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>
-      <text x="${p.cx}" y="${p.cy}" font-size="8.5" fill="${tf}" font-weight="${fw}" text-anchor="middle" dominant-baseline="central" font-family="-apple-system,'Hiragino Sans',sans-serif">${p.label}</text>
-      ${badge}
-    </g>`;
-  });
-  svg += '</svg>';
-  document.getElementById('prefMapWrap').innerHTML = svg;
+
+  // Region buttons
+  const regionEl = document.getElementById('regionBtns');
+  regionEl.innerHTML = REGION_LIST_FINAL.map(r => {
+    const total = r.prefs.reduce((s, c) => s + (cnt[c] || 0), 0);
+    const sel = selectedRegion === r.id ? ' sel' : '';
+    return `<div class="region-btn${sel}" onclick="selectRegion('${r.id}')">
+      <span>${r.label}</span>
+      ${total > 0 ? `<span class="rcnt">${total}名</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // Prefecture buttons (only if a region is selected)
+  const prefWrap = document.getElementById('prefBtnWrap');
+  const prefEl   = document.getElementById('prefBtns');
+  if (!selectedRegion) {
+    prefWrap.style.display = 'none';
+    prefEl.innerHTML = '';
+    return;
+  }
+  const region = REGION_LIST_FINAL.find(r => r.id === selectedRegion);
+  if (!region) return;
+  prefWrap.style.display = '';
+  prefEl.innerHTML = region.prefs.map(code => {
+    const pref = PREF_LIST.find(p => p.code === code);
+    const c = cnt[code] || 0;
+    const sel = selectedPref === code ? ' sel' : '';
+    const empty = c === 0 ? ' empty' : '';
+    return `<div class="pref-btn${sel}${empty}" onclick="selectPref('${code}')">
+      <span>${pref ? pref.name.replace(/[都道府県]$/, '') : code}</span>
+      ${c > 0 ? `<span class="pcnt">${c}名</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function selectRegion(regionId) {
+  selectedRegion = selectedRegion === regionId ? null : regionId;
+  selectedPref   = null;
+  document.getElementById('prefDocTitle').style.display = 'none';
+  document.getElementById('prefDocList').innerHTML = '';
+  renderRegionMap();
 }
 
 function selectPref(code) {
   selectedPref = selectedPref === code ? null : code;
-  renderPrefMap();
+  renderRegionMap();
   const titleEl = document.getElementById('prefDocTitle');
   const listEl  = document.getElementById('prefDocList');
   if (!selectedPref) { titleEl.style.display = 'none'; listEl.innerHTML = ''; return; }
@@ -2554,6 +2601,8 @@ function selectPref(code) {
     ? prefDocs.map(docCardHtml).join('')
     : '<div style="padding:12px 14px;font-size:13px;color:#6B7280">この都道府県の医師はまだ登録されていません</div>';
 }
+
+function renderPrefMap() { renderRegionMap(); }
 
 // ============================================================
 // DOCTORS - Add / Edit / Delete
@@ -2629,8 +2678,10 @@ function saveDoctor() {
   if (docSearchMode === 'name') {
     renderDocList();
   } else {
-    selectedPref = null;
-    renderPrefMap();
+    selectedPref   = null;
+    selectedRegion = null;
+    renderRegionMap();
+    document.getElementById('prefBtnWrap').style.display = 'none';
     document.getElementById('prefDocTitle').style.display = 'none';
     document.getElementById('prefDocList').innerHTML = '';
   }
