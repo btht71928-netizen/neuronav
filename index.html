@@ -219,6 +219,7 @@
     .add-doc-fab.visible { display:flex; }
     .doc-toolbar { display:flex; gap:7px; padding:0 14px 8px; flex-wrap:wrap; }
     .dtb-btn { font-size:12px; font-weight:600; padding:7px 12px; border-radius:8px; border:1.5px solid var(--border); background:#fff; color:var(--text-sub); cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    .dtb-btn.update-btn { background:#E3F2FD; border-color:#90CAF9; color:#1565C0; }
     .dtb-btn.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
     .gsync-panel { padding:0 14px 14px; }
     .gsync-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; margin-bottom:10px; }
@@ -355,10 +356,17 @@
         <button class="dst-btn" id="dstMap" onclick="setDocSearchMode('map')">🗾 地図で検索</button>
       </div>
       <div class="doc-toolbar">
+        <button class="dtb-btn update-btn" id="updateBtn" onclick="checkAppUpdate()">🔄 アップデート確認</button>
         <button class="dtb-btn primary" onclick="toggleGSyncPanel()">🔗 Googleシート連携</button>
         <button class="dtb-btn" onclick="exportDocCSV()">📤 バックアップ</button>
         <button class="dtb-btn" onclick="document.getElementById('csvImportFile').click()">📥 CSV取込</button>
         <input type="file" id="csvImportFile" accept=".csv" style="display:none" onchange="importDocCSV(this)">
+      </div>
+      <div id="updateBanner" style="display:none;margin:8px 14px;padding:12px;background:#E8F5E9;border-radius:10px;border:1px solid #A5D6A7;font-size:13px;">
+        <div style="font-weight:700;color:#2E7D32;margin-bottom:6px;">🆕 新しいバージョンがあります</div>
+        <div style="color:#388E3C;margin-bottom:8px;">医師データや機能が更新されています。</div>
+        <button onclick="applyAppUpdate()" style="background:#2E7D32;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">今すぐ更新する</button>
+        <button onclick="document.getElementById('updateBanner').style.display='none'" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-left:8px;">後で</button>
       </div>
       <div class="gsync-panel" id="gSyncPanel" style="display:none">
         <div id="gSyncBadge" class="gsync-badge none">⚪ 未連携</div>
@@ -1832,6 +1840,8 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
+const APP_VERSION = '2026.05.05';
+
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
   {id:'s02',name:'君和田 友美',kana:'きみわだ ともみ',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'准教授（小児脳神経疾患治療センター）',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "小児神経外科学会認定医", "日本神経内視鏡学会技術認定医", "ITB療法登録医"],focus:["小児脳神経外科", "水頭症", "二分脊椎", "頭蓋縫合早期癒合症", "キアリ奇形", "もやもや病"],career:'東北大学医学部医学科非常勤講師・東北医科薬科大学脳神経外科臨床教授（兼任）',photo:'',note:''},
@@ -2627,6 +2637,40 @@ function saveDoctor() {
 }
 
 // ============================================================
+// ============================================================
+// APP UPDATE CHECK
+// ============================================================
+const APP_URL = 'https://btht71928-netizen.github.io/neuronav/';
+
+async function checkAppUpdate() {
+  const btn = document.getElementById('updateBtn');
+  btn.textContent = '🔄 確認中...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(APP_URL + '?t=' + Date.now(), {cache:'no-store'});
+    const html = await res.text();
+    const remoteMatch = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    const remoteVer = remoteMatch ? remoteMatch[1] : null;
+    if (remoteVer && remoteVer !== APP_VERSION) {
+      document.getElementById('updateBanner').style.display = 'block';
+      document.getElementById('updateBanner').scrollIntoView({behavior:'smooth'});
+    } else {
+      alert('✅ 最新バージョンです（' + APP_VERSION + '）');
+    }
+  } catch(e) {
+    alert('確認に失敗しました。ネットワークを確認してください。');
+  }
+  btn.textContent = '🔄 アップデート確認';
+  btn.disabled = false;
+}
+
+function applyAppUpdate() {
+  if ('caches' in window) {
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  }
+  location.reload(true);
+}
+
 // DOCTORS - Google Sheets Sync
 // ============================================================
 function toggleGSyncPanel() {
