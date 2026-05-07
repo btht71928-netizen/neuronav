@@ -375,11 +375,13 @@
         <button class="dtb-btn" onclick="document.getElementById('csvImportFile').click()">📥 CSV取込</button>
         <input type="file" id="csvImportFile" accept=".csv" style="display:none" onchange="importDocCSV(this)">
       </div>
-      <div id="updateBanner" style="display:none;margin:8px 14px;padding:12px;background:#E8F5E9;border-radius:10px;border:1px solid #A5D6A7;font-size:13px;">
-        <div style="font-weight:700;color:#2E7D32;margin-bottom:6px;">🆕 新しいバージョンがあります</div>
-        <div style="color:#388E3C;margin-bottom:8px;">医師データや機能が更新されています。</div>
-        <button onclick="applyAppUpdate()" style="background:#2E7D32;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">今すぐ更新する</button>
-        <button onclick="document.getElementById('updateBanner').style.display='none'" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;margin-left:8px;">後で</button>
+      <div id="updateBanner" style="display:none;margin:8px 14px;padding:14px 14px 12px;background:linear-gradient(135deg,#E3F2FD,#E8F5E9);border-radius:12px;border:1.5px solid #90CAF9;font-size:13px;">
+        <div style="font-weight:700;color:#1565C0;margin-bottom:4px;font-size:14px;">🆕 アプリの新バージョンがあります</div>
+        <div style="color:#374151;margin-bottom:10px;font-size:12px;">ホーム画面から開いた場合もこのボタンで更新できます。</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button onclick="applyAppUpdate()" style="background:#1565C0;color:white;border:none;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;flex:1;">⚡ 今すぐ更新する</button>
+          <button onclick="document.getElementById('updateBanner').style.display='none'" style="background:none;border:1px solid #ccc;color:#888;font-size:12px;cursor:pointer;padding:10px 12px;border-radius:10px;">後で</button>
+        </div>
       </div>
       <div class="gsync-panel" id="gSyncPanel" style="display:none">
         <div id="gSyncBadge" class="gsync-badge none">⚪ 未連携</div>
@@ -1848,8 +1850,70 @@ function ecaBranchSvg(hl) {
 // ============================================================
 // SERVICE WORKER
 // ============================================================
+let swRegistration = null;
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      swRegistration = reg;
+
+      // ① 既にwaitingのSWがあれば即バナー表示（アプリ起動時に更新あり）
+      if (reg.waiting) showSwUpdateBanner();
+
+      // ② 新しいSWがインストールされ始めたら監視
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          // installedになった = waitingになった = 更新準備完了
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showSwUpdateBanner();
+          }
+        });
+      });
+
+      // バックグラウンドでSWの更新を定期チェック（5分ごと）
+      setInterval(() => reg.update(), 5 * 60 * 1000);
+
+    }).catch(() => {});
+
+    // ③ SWが切り替わったら自動リロード（applyAppUpdateで発火）
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  });
+}
+
+function showSwUpdateBanner() {
+  const banner = document.getElementById('updateBanner');
+  if (banner) {
+    banner.style.display = 'block';
+    // 医師タブにいない場合でも分かるようにトースト通知も出す
+    showUpdateToast();
+  }
+}
+
+function showUpdateToast() {
+  // 既存のトーストがあれば削除
+  const old = document.getElementById('swUpdateToast');
+  if (old) old.remove();
+  const toast = document.createElement('div');
+  toast.id = 'swUpdateToast';
+  toast.innerHTML = '🆕 アプリ更新あり <span onclick="applyAppUpdate()" style="text-decoration:underline;cursor:pointer;font-weight:700;">今すぐ更新</span>';
+  Object.assign(toast.style, {
+    position:'fixed', bottom:'80px', left:'50%', transform:'translateX(-50%)',
+    background:'#1565C0', color:'#fff', padding:'10px 18px', borderRadius:'20px',
+    fontSize:'13px', fontWeight:'600', zIndex:'9999', whiteSpace:'nowrap',
+    boxShadow:'0 4px 16px rgba(0,0,0,0.25)', cursor:'pointer'
+  });
+  toast.onclick = applyAppUpdate;
+  document.body.appendChild(toast);
+  // 10秒後に消える（バナーは残る）
+  setTimeout(() => { if (toast.parentNode) toast.style.opacity = '0'; }, 10000);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 11000);
 }
 
 // ============================================================
@@ -1938,7 +2002,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.07';
+const APP_VERSION = '2026.05.07b';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
@@ -2788,10 +2852,16 @@ async function checkAppUpdate() {
 }
 
 function applyAppUpdate() {
-  if ('caches' in window) {
-    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  if (swRegistration && swRegistration.waiting) {
+    // waitingのSWに「skipWaiting」を指示 → controllerchangeイベント → 自動リロード
+    swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+  } else {
+    // SWが使えない環境ではキャッシュ削除＋強制リロード
+    if ('caches' in window) {
+      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    }
+    location.reload(true);
   }
-  location.reload(true);
 }
 
 // DOCTORS - Google Sheets Sync
