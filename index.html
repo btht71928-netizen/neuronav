@@ -30,6 +30,12 @@
     .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
     .logo-sub { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 1px; }
     .hd-help { width: 32px; height: 32px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; cursor: pointer; }
+    .hd-update { position: relative; width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; cursor: pointer; flex-shrink: 0; transition: background 0.2s; }
+    .hd-update:active { background: rgba(255,255,255,0.3); }
+    .hd-update.has-update { background: rgba(255,255,255,0.25); animation: pulse-ring 2s ease-in-out infinite; }
+    .hd-update-badge { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; background: #FF3B30; border-radius: 50%; border: 2px solid var(--primary-dark); display: none; }
+    .hd-update.has-update .hd-update-badge { display: block; }
+    @keyframes pulse-ring { 0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.4)} 50%{box-shadow:0 0 0 6px rgba(255,255,255,0)} }
     .search-box { display: flex; align-items: center; background: rgba(255,255,255,0.17); border-radius: 12px; padding: 9px 13px; gap: 8px; }
     #searchInput { flex: 1; background: none; border: none; outline: none; color: #fff; font-size: 16px; font-family: inherit; }
     #searchInput::placeholder { color: rgba(255,255,255,0.55); }
@@ -433,7 +439,13 @@
       <div class="logo">🧠 NeuroNav</div>
       <div class="logo-sub">脳神経外科 営業支援アプリ</div>
     </div>
-    <div class="hd-help" onclick="toggleHelp()">?</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="hd-update" id="hdUpdateBtn" onclick="hdUpdateTap()" title="アップデート確認">
+        🔄
+        <span class="hd-update-badge" id="hdUpdateBadge"></span>
+      </button>
+      <div class="hd-help" onclick="toggleHelp()">?</div>
+    </div>
   </div>
   <div class="search-box">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -501,7 +513,6 @@
         <button class="dst-btn" id="dstMap" onclick="setDocSearchMode('map')">🗾 地図で検索</button>
       </div>
       <div class="doc-toolbar">
-        <button class="dtb-btn update-btn" id="updateBtn" onclick="checkAppUpdate()">🔄 アップデート確認</button>
         <button class="dtb-btn" id="faceIdSettingBtn" onclick="resetFaceId()" style="display:none;">🪪 Face ID再設定</button>
         <button class="dtb-btn primary" onclick="toggleGSyncPanel()">🔗 Googleシート連携</button>
         <button class="dtb-btn" onclick="exportDocCSV()">📤 バックアップ</button>
@@ -2025,33 +2036,55 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// 更新あり状態にする（ヘッダーボタン赤バッジ + バナー表示）
+let _hasUpdate = false;
 function showSwUpdateBanner() {
+  _hasUpdate = true;
+  // ヘッダーボタンに赤バッジ＋アニメ
+  const hdBtn = document.getElementById('hdUpdateBtn');
+  if (hdBtn) hdBtn.classList.add('has-update');
+  // バナーも表示（どのタブにいても見える）
   const banner = document.getElementById('updateBanner');
-  if (banner) {
-    banner.style.display = 'block';
-    // 医師タブにいない場合でも分かるようにトースト通知も出す
-    showUpdateToast();
-  }
+  if (banner) banner.style.display = 'block';
 }
 
-function showUpdateToast() {
-  // 既存のトーストがあれば削除
-  const old = document.getElementById('swUpdateToast');
-  if (old) old.remove();
-  const toast = document.createElement('div');
-  toast.id = 'swUpdateToast';
-  toast.innerHTML = '🆕 アプリ更新あり <span onclick="applyAppUpdate()" style="text-decoration:underline;cursor:pointer;font-weight:700;">今すぐ更新</span>';
-  Object.assign(toast.style, {
-    position:'fixed', bottom:'80px', left:'50%', transform:'translateX(-50%)',
-    background:'#1565C0', color:'#fff', padding:'10px 18px', borderRadius:'20px',
-    fontSize:'13px', fontWeight:'600', zIndex:'9999', whiteSpace:'nowrap',
-    boxShadow:'0 4px 16px rgba(0,0,0,0.25)', cursor:'pointer'
-  });
-  toast.onclick = applyAppUpdate;
-  document.body.appendChild(toast);
-  // 10秒後に消える（バナーは残る）
-  setTimeout(() => { if (toast.parentNode) toast.style.opacity = '0'; }, 10000);
-  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 11000);
+// ヘッダー更新ボタンをタップしたとき
+async function hdUpdateTap() {
+  if (_hasUpdate) {
+    // 更新あり → 即適用
+    applyAppUpdate();
+    return;
+  }
+  // 更新なし → ネットワーク確認
+  const hdBtn = document.getElementById('hdUpdateBtn');
+  hdBtn.textContent = '⏳';
+  hdBtn.disabled = true;
+  try {
+    const res = await fetch(APP_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    const html = await res.text();
+    const remoteMatch = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    const remoteVer = remoteMatch ? remoteMatch[1] : null;
+    if (remoteVer && remoteVer !== APP_VERSION) {
+      _hasUpdate = true;
+      hdBtn.classList.add('has-update');
+      // 更新バナー表示して促す
+      const banner = document.getElementById('updateBanner');
+      if (banner) { banner.style.display = 'block'; banner.scrollIntoView({ behavior: 'smooth' }); }
+    } else {
+      // 最新版 → アイコンを一時的にチェックマークに
+      hdBtn.textContent = '✅';
+      setTimeout(() => { hdBtn.textContent = '🔄'; }, 2000);
+    }
+  } catch(e) {
+    hdBtn.textContent = '❌';
+    setTimeout(() => { hdBtn.textContent = '🔄'; }, 2000);
+  }
+  hdBtn.disabled = false;
+  if (!_hasUpdate) {
+    const span = document.getElementById('hdUpdateBadge');
+    hdBtn.textContent = '🔄';
+    if (span) hdBtn.appendChild(span);
+  }
 }
 
 // ============================================================
@@ -2140,7 +2173,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.07c';
+const APP_VERSION = '2026.05.07d';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
@@ -2967,27 +3000,8 @@ function saveDoctor() {
 // ============================================================
 const APP_URL = 'https://btht71928-netizen.github.io/neuronav/';
 
-async function checkAppUpdate() {
-  const btn = document.getElementById('updateBtn');
-  btn.textContent = '🔄 確認中...';
-  btn.disabled = true;
-  try {
-    const res = await fetch(APP_URL + '?t=' + Date.now(), {cache:'no-store'});
-    const html = await res.text();
-    const remoteMatch = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
-    const remoteVer = remoteMatch ? remoteMatch[1] : null;
-    if (remoteVer && remoteVer !== APP_VERSION) {
-      document.getElementById('updateBanner').style.display = 'block';
-      document.getElementById('updateBanner').scrollIntoView({behavior:'smooth'});
-    } else {
-      alert('✅ 最新バージョンです（' + APP_VERSION + '）');
-    }
-  } catch(e) {
-    alert('確認に失敗しました。ネットワークを確認してください。');
-  }
-  btn.textContent = '🔄 アップデート確認';
-  btn.disabled = false;
-}
+// checkAppUpdate は hdUpdateTap に統合済み（後方互換のためエイリアスを残す）
+function checkAppUpdate() { hdUpdateTap(); }
 
 function applyAppUpdate() {
   if (swRegistration && swRegistration.waiting) {
