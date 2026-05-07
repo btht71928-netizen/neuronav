@@ -101,6 +101,8 @@
     .cat-flowdiverter { background: #EDE9FE; color: #6D28D9; }
     .cat-stent { background: #D1FAE5; color: #065F46; }
     .cat-balloon { background: #FEF3C7; color: #92400E; }
+    .cat-microcath { background: #FFF7ED; color: #C2410C; }
+    .cat-microgw { background: #F0FDF4; color: #166534; }
     .pdetail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
     .pdetail.open { display: block; }
     .fi { font-size: 13px; line-height: 1.6; padding: 2px 0 2px 15px; position: relative; }
@@ -332,9 +334,11 @@
     <div id="pageCompetitor" class="page">
       <div class="fbar" id="cfbar">
         <div class="fc active" onclick="filterC('all',this)">すべて</div>
-        <div class="fc" onclick="filterC('thrombectomy',this)">血栓回収</div>
-        <div class="fc" onclick="filterC('coiling',this)">コイリング</div>
-        <div class="fc" onclick="filterC('flowdiverter',this)">フローダイバーター</div>
+        <div class="fc" onclick="filterC('coiling',this)">🔵 コイル</div>
+        <div class="fc" onclick="filterC('thrombectomy',this)">🔴 SR・吸引カテ</div>
+        <div class="fc" onclick="filterC('microcath',this)">🟠 マイクロカテ</div>
+        <div class="fc" onclick="filterC('microgw',this)">🟢 マイクロGW</div>
+        <div class="fc" onclick="filterC('flowdiverter',this)">FD</div>
         <div class="fc" onclick="filterC('stent',this)">ステント</div>
         <div class="fc" onclick="filterC('balloon',this)">バルーン</div>
       </div>
@@ -825,6 +829,16 @@ const competitors = [
         feats:['Neuroform EZ：開放セル型、側枝保護・分岐部動脈瘤に有利','Neuroform Atlas：遠位アクセス性向上、先端部の柔軟性改善','ワイドネック動脈瘤・分岐部動脈瘤にSAC（ステント補助コイリング）として使用'],
         lineup:['Neuroform EZ 3.0mm×15mm','Neuroform EZ 4.0mm×20mm','Neuroform EZ 4.5mm×20mm','Neuroform EZ 4.5mm×30mm'],
         note:'競合：LVIS/LVIS Jr（MicroVention）、Solitaire AB（Medtronic）' },
+      { id:'stryker_mc', name:'Marksman / Renegade Hi-Flo マイクロカテーテル', cat:'microcath', catlabel:'マイクロカテ', appr:'approved',
+        desc:'血栓回収・コイリング・デバイス送達用マイクロカテーテル',
+        feats:['Marksman（0.027"）：Trevo XP ProVue送達専用。推進力と追跡性を両立した設計','Renegade Hi-Flo（0.021"）：コイリング・SAC用途。High-flow設計で造影剤注入時の圧損失を低減','先端部はX線不透過プラチナマーカー付きで透視下視認性良好','StrykerデバイスとのシステムマッチングによりTrevoシステムとして一貫使用可能'],
+        lineup:['Marksman 0.027"：有効長150cm（Trevo XP対応）','Renegade Hi-Flo 0.021"：有効長150cm（コイリング・SAC）'],
+        note:'競合：Headway/Phenom（テルモ/MicroVention）、Rebar（Medtronic）、Echelon（J&J）' },
+      { id:'stryker_gw', name:'Synchro 2 マイクロガイドワイヤー', cat:'microgw', catlabel:'マイクロGW', appr:'approved',
+        desc:'神経血管内治療の標準マイクロガイドワイヤー（0.014"）',
+        feats:['Synchro 2 Standard（0.014"）：汎用型。M1〜M2・A1〜A2等幅広い血管に対応','Synchro 2 Soft（0.014"）：先端柔軟型。屈曲強い血管・遠位部への誘導に最適','Transend EX Floppy（0.014"）：超柔軟先端タイプ。高難度・屈曲強い遠位部症例向け','ステンレス＋ニチノール複合コア構造によりトルク伝達性と柔軟性を両立'],
+        lineup:['Synchro 2 Standard：0.014" × 200cm','Synchro 2 Soft：0.014" × 200cm','Transend EX Floppy：0.014" × 200cm'],
+        note:'競合：Traxcess 14（テルモ/MicroVention）、Agility 14（Medtronic）' },
     ]
   },
   { id:'medtronic', company:'Medtronic Neurovascular', cja:'メドトロニック', country:'🇺🇸 米国', color:'#0066CC',
@@ -859,6 +873,16 @@ const competitors = [
         feats:['SAC（ステント補助コイリング）と血栓回収の両機能を持つ','展開途中の回収・再位置決めが可能'],
         lineup:['Solitaire AB 4mm×15mm','Solitaire AB 4mm×20mm','Solitaire AB 6mm×20mm','Solitaire AB 6mm×30mm'],
         note:'競合：Neuroform EZ（Stryker）、LVIS（MicroVention）' },
+      { id:'medtronic_mc', name:'Rebar 18 / Rebar 27 / Marathon マイクロカテーテル', cat:'microcath', catlabel:'マイクロカテ', appr:'approved',
+        desc:'血栓回収・FD送達・液体塞栓剤送達用マイクロカテーテル（Medtronic）',
+        feats:['Rebar 18（0.021"）：Solitaire X血栓回収の送達カテーテル。コシのあるシャフトで推進力に優れる','Rebar 27（0.027"）：Pipeline Flex送達専用。高い軸力と追跡性でスムーズなFD送達を実現','Marathon（0.017"）：Onyx/NBCA等の液体塞栓剤送達に特化。耐溶剤ライニングを採用','MedtronicデバイスとのシステムマッチングによりACE＋Rebar＋Solitaire Xの一貫構成が可能'],
+        lineup:['Rebar 18：0.021"内腔 × 有効長150cm','Rebar 27：0.027"内腔 × 有効長153cm（Pipeline専用）','Marathon：0.017"内腔 × 有効長150cm（Onyx/NBCA対応）'],
+        note:'競合：Headway/Phenom（テルモ/MicroVention）、Marksman（Stryker）、Echelon（J&J）' },
+      { id:'medtronic_gw', name:'Agility 14 マイクロガイドワイヤー', cat:'microgw', catlabel:'マイクロGW', appr:'approved',
+        desc:'神経血管内治療用マイクロガイドワイヤー（Medtronic Neurovascular）',
+        feats:['Agility 14 Standard（0.014"）：ニチノールコアで柔軟性とトルク伝達を両立。血栓回収・コイリング等に幅広く対応','先端のJ字またはストレート形状付け（シェイピング）が容易','Medtronicデバイス（Solitaire X・ACE・Rebar等）との組み合わせで一貫したシステム構築が可能','Agility Pro：より強度のサポート力が必要な症例向けの強化版'],
+        lineup:['Agility 14：0.014" × 200cm（標準）','Agility 14 Pro：0.014" × 200cm（高サポート）'],
+        note:'競合：Synchro 2（Stryker）、Traxcess 14（テルモ/MicroVention）' },
     ]
   },
   { id:'microvention', company:'MicroVention（テルモグループ）', cja:'マイクロベンション', country:'🇯🇵/🇺🇸 日米', color:'#00A651',
@@ -893,6 +917,16 @@ const competitors = [
         feats:['Scepter C：コンプライアント（不整形・広頸部の動脈瘤に適合）','Scepter XC：クロスリンクトコンプライアント（形状保持性と適合性のバランス）','Over-the-Wire（OTW）構造でコイリング中の操作性良好'],
         lineup:['Scepter C 4mm×10mm, 4mm×15mm, 4mm×20mm, 7mm×20mm','Scepter XC 4mm×10mm, 4mm×20mm, 7mm×20mm'],
         note:'競合：HyperGlide/HyperForm（Medtronic）' },
+      { id:'mv_mc', name:'Headway / Phenom マイクロカテーテル', cat:'microcath', catlabel:'マイクロカテ', appr:'approved',
+        desc:'血栓回収・コイリング・液体塞栓剤送達用マイクロカテーテル（テルモ/MicroVention）',
+        feats:['Headway 17（0.017"）：コイリング・液体塞栓・細径遠位部アクセスに対応する最細径モデル','Headway 21（0.021"）：LVIS Jr・HydroCoil等との親和性高く、コイリングの標準カテーテル','Headway 27（0.027"）：ERIC・LVIS・FRED等の大口径デバイス送達に対応','Phenom 17/21/27：プラチナ/イリジウムマーカーで視認性強化。先端の形状付けが容易で操作性向上','全モデルにハイドロコーティングを採用し、低摩擦・高追跡性を実現。テルモグループとして安定供給・迅速サポート'],
+        lineup:['Headway 17：0.017"内腔 × 有効長150/155cm','Headway 21：0.021"内腔 × 有効長150/155cm','Headway 27：0.027"内腔 × 有効長150/155cm','Phenom 17：0.017"内腔 × 有効長150cm','Phenom 21：0.021"内腔 × 有効長150cm','Phenom 27：0.027"内腔 × 有効長150cm'],
+        note:'競合：Rebar（Medtronic）、Marksman（Stryker）、Echelon（J&J）' },
+      { id:'mv_gw', name:'Traxcess 14 マイクロガイドワイヤー', cat:'microgw', catlabel:'マイクロGW', appr:'approved',
+        desc:'神経血管内治療用マイクロガイドワイヤー（テルモ/MicroVention）',
+        feats:['Traxcess 14 Standard（0.014"）：汎用型。血栓回収・コイリング・各種デバイス誘導に対応','Traxcess 14 ES（Extra Support）：高サポート力型。スパズムの強い血管・骨折症例・解剖学的複雑症例に適応','テルモグループの国内流通網・迅速サポート体制による安定供給','MicroVentionデバイス（ERIC・HydroCoil・SOFIA・Headway等）との組み合わせで一貫したシステム構築が可能'],
+        lineup:['Traxcess 14 Standard：0.014" × 200cm','Traxcess 14 ES（Extra Support）：0.014" × 200cm'],
+        note:'競合：Synchro 2（Stryker）、Agility 14（Medtronic）' },
     ]
   },
   { id:'penumbra', company:'Penumbra', cja:'ペナンブラ', country:'🇺🇸 米国', color:'#8B1A4A',
@@ -921,6 +955,11 @@ const competitors = [
         feats:['DeltaPlush：外面にポリエステルフィラメントを撚り込み血栓形成を促進','DeltaFill：充填専用コイル（超柔軟、フィリング効率重視）'],
         lineup:['DeltaPlush：2〜20mm（各径×各長）','DeltaFill：2〜14mm（各径×各長）'],
         note:'競合：Target（Stryker）、Axium（Medtronic）、HydroCoil（MicroVention）' },
+      { id:'jnj_mc', name:'Echelon / Prowler Plus マイクロカテーテル', cat:'microcath', catlabel:'マイクロカテ', appr:'approved',
+        desc:'コイリング・血栓回収補助・液体塞栓用マイクロカテーテル（Cerenovus/J&J）',
+        feats:['Echelon 10（0.021"）：コイリング・SAC用途の主力カテーテル。安定した先端操作性と優れた視認性','Echelon 14（0.017"）：細径コイリング・遠位部アクセス向け。小型動脈瘤・末梢動脈瘤に対応','Prowler Plus（0.021"）：ステント補助コイリング・中大脳動脈アクセスに適した柔軟性設計','EMBOTRAP IIIとの組み合わせで、血栓回収システムとしてJ&J製品で統一運用が可能'],
+        lineup:['Echelon 10：0.021"内腔 × 有効長150cm','Echelon 14：0.017"内腔 × 有効長150cm','Prowler Plus：0.021"内腔 × 有効長150cm'],
+        note:'競合：Headway/Phenom（テルモ/MicroVention）、Marksman（Stryker）、Rebar（Medtronic）' },
     ]
   },
   { id:'cmi', company:'CMI（シーエムアイ）', cja:'CMI', country:'🇯🇵 日本', color:'#2E7D32',
@@ -940,6 +979,39 @@ const competitors = [
         feats:['対応血管径：2.0〜2.5mm（細径血管・末梢動脈瘤にも適応可能）','ブレイデッド（編み込み）構造で高い柔軟性と追跡性','Silk（先代）からの改良型、視認性マーカー強化','フランスBalt社製、欧州での使用実績豊富','CMIが国内取扱い・サポートを担当'],
         lineup:['Silk Vista Baby：対応血管径2.0〜3.0mm','長さ：20, 25, 30, 40mm（径に応じた組み合わせあり）'],
         note:'競合：Pipeline Flex（Medtronic）、FRED（MicroVention）' },
+    ]
+  },
+  { id:'kaneka', company:'カネカメディックス株式会社', cja:'カネカ', country:'🇯🇵 日本', color:'#E65100',
+    products:[
+      { id:'kaneka_coil', name:'KAIROS コイルシリーズ', cat:'coiling', catlabel:'コイリング', appr:'approved',
+        desc:'脳動脈瘤コイル塞栓術用離脱コイル（カネカメディックス）',
+        feats:['KAIROS Standard：3Dランダムループ形状で安定したフレーム形成が可能','KAIROS Soft：柔軟性を高めた充填用コイル。フレームに沿って隙間なく充填','KAIROS Extra Soft：超柔軟タイプ。急性期破裂瘤や再破裂リスクの高い症例にも使用可能','国内製造（日本）による安定供給と迅速なサポート体制','日本の主要神経血管内治療施設での使用実績あり'],
+        lineup:['KAIROS Standard：2〜20mm（各径×各長）','KAIROS Soft：2〜18mm（各径×各長）','KAIROS Extra Soft：2〜14mm（各径×各長）'],
+        note:'競合：Target（Stryker）、Axium（Medtronic）、HydroCoil（テルモ/MicroVention）、OPTIMA（CMI）' },
+      { id:'kaneka_sr', name:'KAIROS SR ステントリトリーバー', cat:'thrombectomy', catlabel:'血栓回収', appr:'approved',
+        desc:'ステントリトリーバー型血栓回収デバイス（カネカメディックス）',
+        feats:['国産メーカーとして国内神経血管内治療市場向けに開発','安定した血栓把持力と再開通性能','カネカグループのサポート体制による迅速な製品供給・技術支援','詳細スペック・適応はカネカメディックス担当者に確認推奨'],
+        lineup:['詳細サイズはカネカメディックス営業担当に要確認'],
+        note:'競合：Trevo（Stryker）、Solitaire X（Medtronic）、ERIC（テルモ/MicroVention）' },
+      { id:'kaneka_mc', name:'カネカ マイクロカテーテル', cat:'microcath', catlabel:'マイクロカテ', appr:'approved',
+        desc:'コイル送達・脳血管内治療用マイクロカテーテル（カネカメディックス）',
+        feats:['KAIROS コイルシリーズとのシステム適合性を考慮した内腔設計','先端部の柔軟性と安定した追跡性を両立','コイリング用途（0.021"）を中心に展開','国内製造・国内サポート体制の強み'],
+        lineup:['0.021"対応マイクロカテーテル（詳細サイズはカネカ担当者に確認）'],
+        note:'最新ラインナップはカネカメディックス営業担当に確認のこと' },
+    ]
+  },
+  { id:'nipro', company:'ニプロ株式会社', cja:'ニプロ', country:'🇯🇵 日本', color:'#1565C0',
+    products:[
+      { id:'nipro_mc', name:'ニプロ マイクロカテーテル', cat:'microcath', catlabel:'マイクロカテ', appr:'approved',
+        desc:'脳血管内治療用マイクロカテーテル（ニプロ）',
+        feats:['ニプロは国内医療機器メーカーとして脳血管内治療用カテーテルを展開','先端の柔軟性・追跡性に優れたマイクロカテーテルを提供','コイリング（0.021"）・液体塞栓剤送達（0.017"）用途に対応','日本国内での安定した流通体制とサポートが特長'],
+        lineup:['0.017"対応（液体塞栓・細径コイリング用）','0.021"対応（標準コイリング用）','詳細サイズはニプロ営業担当に要確認'],
+        note:'競合：Headway（テルモ/MicroVention）、Rebar（Medtronic）、Echelon（J&J）' },
+      { id:'nipro_gw', name:'ニプロ マイクロガイドワイヤー', cat:'microgw', catlabel:'マイクロGW', appr:'approved',
+        desc:'脳血管内治療用マイクロガイドワイヤー（ニプロ）',
+        feats:['ニプロの神経血管向けガイドワイヤーラインナップ（0.014"）','先端の柔軟性とトルク伝達のバランスを追求した設計','屈曲部・遠位部への誘導性能を重視','国内サポート体制の充実が特長。詳細スペックは担当者に確認推奨'],
+        lineup:['0.014" × 200cm（詳細スペックはニプロ営業担当に要確認）'],
+        note:'競合：Synchro 2（Stryker）、Traxcess 14（テルモ/MicroVention）、Agility 14（Medtronic）' },
     ]
   },
 ];
@@ -1866,7 +1938,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.06';
+const APP_VERSION = '2026.05.07';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
