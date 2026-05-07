@@ -254,6 +254,71 @@
     .gsync-status { font-size:12px; margin-top:8px; min-height:18px; color:var(--text-sub); }
     .auto-sync-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:12px; color:var(--text-sub); cursor:pointer; }
     .auto-sync-row input { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
+
+    /* ===== KANBAN PAGE ===== */
+    .kb-header { padding: 10px 14px 0; }
+    .kb-stats { display: flex; gap: 8px; margin-bottom: 10px; }
+    .kb-stat { background: var(--card); border-radius: 12px; padding: 10px 0; flex: 1; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .kb-stat-num { font-size: 20px; font-weight: 800; color: var(--primary); line-height: 1; }
+    .kb-stat-label { font-size: 9px; color: var(--text-sub); margin-top: 3px; font-weight: 600; }
+    .kb-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+    .kb-search { flex: 1; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 12px; font-size: 14px; color: var(--text); outline: none; font-family: inherit; }
+    .kb-search:focus { border-color: var(--primary); }
+    .kb-add-btn { background: var(--primary); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .kb-export-btn { background: var(--card); color: var(--text-sub); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 12px; font-size: 14px; cursor: pointer; }
+    .kb-board { display: flex; gap: 10px; padding: 0 14px 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; align-items: flex-start; scrollbar-width: none; }
+    .kb-board::-webkit-scrollbar { display: none; }
+    .kb-col { flex: 0 0 200px; background: #F1F5F9; border-radius: 14px; overflow: hidden; }
+    .kb-col-hd { padding: 10px 12px 9px; display: flex; align-items: center; justify-content: space-between; }
+    .kb-col-title { font-size: 12px; font-weight: 800; letter-spacing: 0.2px; }
+    .kb-col-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: rgba(0,0,0,0.1); color: inherit; opacity: 0.7; }
+    .kb-col:nth-child(1) .kb-col-hd { background: #EFF6FF; } .kb-col:nth-child(1) .kb-col-title { color: #1D4ED8; }
+    .kb-col:nth-child(2) .kb-col-hd { background: #FFFBEB; } .kb-col:nth-child(2) .kb-col-title { color: #B45309; }
+    .kb-col:nth-child(3) .kb-col-hd { background: #FFF7ED; } .kb-col:nth-child(3) .kb-col-title { color: #C2410C; }
+    .kb-col:nth-child(4) .kb-col-hd { background: #F0FDF4; } .kb-col:nth-child(4) .kb-col-title { color: #166534; }
+    .kb-cards { padding: 8px 8px 10px; min-height: 60px; display: flex; flex-direction: column; gap: 8px; }
+    .kb-card { background: var(--card); border-radius: 11px; padding: 11px 11px 9px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); cursor: pointer; position: relative; border-left: 4px solid transparent; transition: box-shadow 0.15s; }
+    .kb-card:active { box-shadow: 0 3px 10px rgba(0,0,0,0.14); }
+    .kb-card.urg-high { border-left-color: #EF4444; }
+    .kb-card.urg-mid  { border-left-color: #F59E0B; }
+    .kb-card.urg-low  { border-left-color: #22C55E; }
+    .kb-card.due-soon { background: #FFFBEB; }
+    .kb-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+    .kb-card-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .kb-card-hospital { font-size: 11px; color: var(--text-sub); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+    .kb-urg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .kb-urg-dot.high { background: #EF4444; }
+    .kb-urg-dot.mid  { background: #F59E0B; }
+    .kb-urg-dot.low  { background: #22C55E; }
+    .kb-card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .kb-card-amount { font-size: 12px; font-weight: 700; color: var(--primary); }
+    .kb-card-date { font-size: 10px; color: var(--text-sub); }
+    .kb-card-date.due-alert { color: #EF4444; font-weight: 700; }
+    .kb-empty { padding: 10px 4px; font-size: 11px; color: #9CA3AF; text-align: center; }
+    /* kanban modals */
+    .kb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
+    .kb-overlay.open { display: flex; }
+    .kb-sheet { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; padding: 20px 18px calc(env(safe-area-inset-bottom) + 20px); }
+    .kb-sheet-title { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+    .kb-sheet-close { width: 28px; height: 28px; background: #F3F4F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; border: none; color: var(--text-sub); flex-shrink: 0; }
+    .kb-field { margin-bottom: 13px; }
+    .kb-field label { font-size: 12px; font-weight: 600; color: var(--text-sub); display: block; margin-bottom: 5px; }
+    .kb-field input, .kb-field select, .kb-field textarea { width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 14px; color: var(--text); outline: none; font-family: inherit; box-sizing: border-box; }
+    .kb-field input:focus, .kb-field select:focus, .kb-field textarea:focus { border-color: var(--primary); }
+    .kb-field textarea { min-height: 72px; resize: vertical; }
+    .kb-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .kb-btn-save { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .kb-btn-cancel { background: #F3F4F6; color: var(--text-sub); border: none; border-radius: 12px; padding: 13px 18px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .kb-btn-delete { background: #FEE2E2; color: #DC2626; border: none; border-radius: 12px; padding: 13px 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .kb-btn-edit { flex: 1; background: var(--primary); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .kb-stage-btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 14px; }
+    .kb-stage-btn { flex: 1; min-width: 60px; padding: 8px 4px; border-radius: 10px; border: 2px solid var(--border); background: none; font-size: 11px; font-weight: 700; color: var(--text-sub); cursor: pointer; text-align: center; transition: all 0.15s; }
+    .kb-stage-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .kb-detail-info { background: var(--bg); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
+    .kb-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .kb-detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .kb-detail-label { color: var(--text-sub); font-size: 12px; }
+    .kb-detail-val { font-weight: 600; color: var(--text); text-align: right; max-width: 60%; }
   </style>
 </head>
 <body>
@@ -497,6 +562,19 @@
       <div id="favList"></div>
     </div>
 
+    <!-- 営業カンバン -->
+    <div id="pageKanban" class="page">
+      <div class="kb-header">
+        <div class="kb-stats" id="kbStats"></div>
+        <div class="kb-toolbar">
+          <input class="kb-search" id="kbSearch" type="search" placeholder="医師名・病院名で検索…" oninput="renderKbBoard()">
+          <button class="kb-add-btn" onclick="openKbAdd()">＋ 追加</button>
+          <button class="kb-export-btn" onclick="kbExport()" title="JSONエクスポート">⬇️</button>
+        </div>
+      </div>
+      <div class="kb-board" id="kbBoard"></div>
+    </div>
+
     <!-- 医師 -->
     <div id="pageDoctor" class="page">
       <div class="dsearch-toggle">
@@ -604,6 +682,14 @@
     </svg>
     <span>★</span>
   </div>
+  <div class="nb" id="nbKanban" onclick="switchTab('kanban')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="5" height="18" rx="1"/>
+      <rect x="10" y="3" width="5" height="12" rx="1"/>
+      <rect x="17" y="3" width="5" height="15" rx="1"/>
+    </svg>
+    <span>商談</span>
+  </div>
 </div>
 
 <!-- ADD/EDIT DOCTOR MODAL -->
@@ -668,6 +754,60 @@
 </div>
 <!-- FAB -->
 <div class="add-doc-fab" id="addDocFab" onclick="openDocModal()">＋</div>
+
+<!-- KANBAN ADD/EDIT MODAL -->
+<div class="kb-overlay" id="kbAddOverlay" onclick="closeKbAdd(event)">
+  <div class="kb-sheet" onclick="event.stopPropagation()">
+    <div class="kb-sheet-title">
+      <span id="kbAddTitle">顧客を追加</span>
+      <button class="kb-sheet-close" onclick="closeKbAdd()">✕</button>
+    </div>
+    <div class="kb-field"><label>医師名 *</label><input id="kbfName" type="text" placeholder="例: 田中 誠 先生"></div>
+    <div class="kb-field"><label>病院名</label><input id="kbfHospital" type="text" placeholder="例: 大阪大学医学部附属病院"></div>
+    <div class="kb-field"><label>取引先代理店</label><input id="kbfAgency" type="text" placeholder="例: メディカル商事"></div>
+    <div class="kb-field"><label>商談ステージ</label>
+      <select id="kbfStage">
+        <option value="0">初回接触</option>
+        <option value="1">提案中</option>
+        <option value="2">交渉中</option>
+        <option value="3">成約</option>
+      </select>
+    </div>
+    <div class="kb-field"><label>売上金額（万円）</label><input id="kbfAmount" type="number" min="0" placeholder="例: 100"></div>
+    <div class="kb-field"><label>次回アクション日</label><input id="kbfDate" type="date"></div>
+    <div class="kb-field"><label>優先度</label>
+      <select id="kbfUrgency">
+        <option value="high">🔴 高</option>
+        <option value="mid">🟡 中</option>
+        <option value="low">🟢 低</option>
+      </select>
+    </div>
+    <div class="kb-field"><label>メモ</label><textarea id="kbfMemo" placeholder="自由記述…"></textarea></div>
+    <div class="kb-actions">
+      <button class="kb-btn-cancel" onclick="closeKbAdd()">キャンセル</button>
+      <button class="kb-btn-save" onclick="saveKbCustomer()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- KANBAN DETAIL MODAL -->
+<div class="kb-overlay" id="kbDetailOverlay" onclick="closeKbDetail(event)">
+  <div class="kb-sheet" onclick="event.stopPropagation()">
+    <div class="kb-sheet-title">
+      <span id="kbDetailName">詳細</span>
+      <button class="kb-sheet-close" onclick="closeKbDetail()">✕</button>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-sub);margin-bottom:6px;">ステージを変更</div>
+    <div class="kb-stage-btns" id="kbDetailStages"></div>
+    <div class="kb-detail-info" id="kbDetailInfo"></div>
+    <div class="kb-field"><label>メモ</label><textarea id="kbDetailMemo" placeholder="メモを入力…"></textarea></div>
+    <div class="kb-actions">
+      <button class="kb-btn-delete" onclick="deleteKbCustomer()">🗑</button>
+      <button class="kb-btn-cancel" onclick="openKbAdd(window._kbDetailId)">✏️ 編集</button>
+      <button class="kb-btn-edit" onclick="saveKbDetail()">💾 保存</button>
+    </div>
+  </div>
+</div>
 
 <!-- HELP -->
 <div id="helpOverlay" onclick="closeHelp(event)">
@@ -1336,7 +1476,7 @@ let aFilter = 'all';
 let favs = JSON.parse(localStorage.getItem('nn_favs') || '[]');
 let sq = '';
 
-const ALL_TABS = ['vessel','competitor','abbr','doctor','favorites'];
+const ALL_TABS = ['vessel','competitor','abbr','doctor','favorites','kanban'];
 
 // ============================================================
 // INIT
@@ -1348,6 +1488,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderVessels();
   renderCompetitors();
   renderAbbreviations();
+  initKanban();
   // Face ID登録済みなら再設定ボタンを表示
   if (localStorage.getItem('nn_faceid_enabled') === 'true') {
     const btn = document.getElementById('faceIdSettingBtn');
@@ -1378,6 +1519,7 @@ function switchTab(tab) {
   });
   if (tab === 'favorites') renderFavs();
   if (tab === 'doctor') renderDocList();
+  if (tab === 'kanban') renderKbBoard();
   document.getElementById('addDocFab').classList.toggle('visible', tab === 'doctor');
   if (sq) doSearch(); else hideSearch();
   document.getElementById('content').scrollTop = 0;
@@ -2164,7 +2306,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.07g';
+const APP_VERSION = '2026.05.07h';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
@@ -3215,6 +3357,214 @@ function deleteDoc(id) {
   const card = document.getElementById('dc_' + id);
   if (card) card.remove();
   if (docSearchMode === 'map') renderPrefMap();
+}
+
+// ============================================================
+// KANBAN - 顧客ステータス管理
+// ============================================================
+let kbCustomers = [];
+let kbEditingId = null;
+window._kbDetailId = null;
+
+const KB_STAGES = ['初回接触', '提案中', '交渉中', '成約'];
+
+function initKanban() {
+  kbCustomers = JSON.parse(localStorage.getItem('nn_kb_customers') || '[]');
+}
+
+function saveKbData() {
+  localStorage.setItem('nn_kb_customers', JSON.stringify(kbCustomers));
+}
+
+function kbEsc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function kbFmtDate(d) {
+  if (!d) return '';
+  const parts = d.split('-');
+  return parts[1] + '/' + parts[2];
+}
+
+function renderKbBoard() {
+  // Stats
+  const total = kbCustomers.length;
+  const active = kbCustomers.filter(c => c.stage < 3).length;
+  const closed = kbCustomers.filter(c => c.stage === 3).length;
+  const revenue = kbCustomers.filter(c => c.stage === 3).reduce((s,c) => s + (Number(c.amount)||0), 0);
+  const statsEl = document.getElementById('kbStats');
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <div class="kb-stat"><div class="kb-stat-num">${total}</div><div class="kb-stat-label">顧客総数</div></div>
+      <div class="kb-stat"><div class="kb-stat-num">${active}</div><div class="kb-stat-label">商談中</div></div>
+      <div class="kb-stat"><div class="kb-stat-num">${closed}</div><div class="kb-stat-label">成約</div></div>
+      <div class="kb-stat"><div class="kb-stat-num">${revenue}</div><div class="kb-stat-label">売上(万)</div></div>
+    `;
+  }
+  // Filter
+  const q = (document.getElementById('kbSearch')?.value || '').toLowerCase();
+  const list = q ? kbCustomers.filter(c =>
+    c.name.toLowerCase().includes(q) || (c.hospital||'').toLowerCase().includes(q)
+  ) : kbCustomers;
+  // Board
+  const today = new Date().toISOString().split('T')[0];
+  const soonMs = new Date(); soonMs.setDate(soonMs.getDate() + 3);
+  const soon = soonMs.toISOString().split('T')[0];
+  const board = document.getElementById('kbBoard');
+  if (!board) return;
+  board.innerHTML = KB_STAGES.map((stageName, si) => {
+    const cards = list.filter(c => c.stage === si);
+    const cardsHtml = cards.length ? cards.map(c => {
+      const isOverdue = c.nextActionDate && c.nextActionDate < today;
+      const isSoon = c.nextActionDate && c.nextActionDate <= soon && !isOverdue;
+      return `<div class="kb-card urg-${c.urgency}${isSoon||isOverdue?' due-soon':''}" onclick="openKbDetail('${c.id}')">
+        <div class="kb-card-top">
+          <div>
+            <div class="kb-card-name">${kbEsc(c.name)}</div>
+            <div class="kb-card-hospital">${kbEsc(c.hospital||'')}</div>
+          </div>
+          <div class="kb-urg-dot ${c.urgency}"></div>
+        </div>
+        <div class="kb-card-footer">
+          <div class="kb-card-amount">${c.amount ? c.amount+'万円' : ''}</div>
+          <div class="kb-card-date${isOverdue?' due-alert':''}">${c.nextActionDate ? (isOverdue?'⚠️':'')+kbFmtDate(c.nextActionDate) : ''}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="kb-empty">なし</div>';
+    return `<div class="kb-col">
+      <div class="kb-col-hd"><div class="kb-col-title">${stageName}</div><div class="kb-col-badge">${cards.length}</div></div>
+      <div class="kb-cards">${cardsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function openKbAdd(id) {
+  kbEditingId = id || null;
+  const isEdit = !!id;
+  document.getElementById('kbAddTitle').textContent = isEdit ? '顧客を編集' : '顧客を追加';
+  if (isEdit) {
+    const c = kbCustomers.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('kbfName').value = c.name;
+    document.getElementById('kbfHospital').value = c.hospital || '';
+    document.getElementById('kbfAgency').value = c.agency || '';
+    document.getElementById('kbfStage').value = c.stage;
+    document.getElementById('kbfAmount').value = c.amount || '';
+    document.getElementById('kbfDate').value = c.nextActionDate || '';
+    document.getElementById('kbfUrgency').value = c.urgency || 'mid';
+    document.getElementById('kbfMemo').value = c.memo || '';
+    // Close detail first
+    document.getElementById('kbDetailOverlay').classList.remove('open');
+  } else {
+    document.getElementById('kbfName').value = '';
+    document.getElementById('kbfHospital').value = '';
+    document.getElementById('kbfAgency').value = '';
+    document.getElementById('kbfStage').value = '0';
+    document.getElementById('kbfAmount').value = '';
+    document.getElementById('kbfDate').value = '';
+    document.getElementById('kbfUrgency').value = 'mid';
+    document.getElementById('kbfMemo').value = '';
+  }
+  document.getElementById('kbAddOverlay').classList.add('open');
+}
+
+function closeKbAdd(e) {
+  if (e && e.target !== document.getElementById('kbAddOverlay')) return;
+  document.getElementById('kbAddOverlay').classList.remove('open');
+}
+
+function saveKbCustomer() {
+  const name = document.getElementById('kbfName').value.trim();
+  if (!name) { alert('医師名を入力してください'); return; }
+  const now = new Date().toISOString();
+  const data = {
+    name,
+    hospital: document.getElementById('kbfHospital').value.trim(),
+    agency:   document.getElementById('kbfAgency').value.trim(),
+    stage:    parseInt(document.getElementById('kbfStage').value),
+    amount:   parseInt(document.getElementById('kbfAmount').value) || 0,
+    nextActionDate: document.getElementById('kbfDate').value,
+    urgency:  document.getElementById('kbfUrgency').value,
+    memo:     document.getElementById('kbfMemo').value.trim(),
+    updatedAt: now
+  };
+  if (kbEditingId) {
+    const idx = kbCustomers.findIndex(x => x.id === kbEditingId);
+    if (idx >= 0) kbCustomers[idx] = { ...kbCustomers[idx], ...data };
+  } else {
+    kbCustomers.push({ id: Date.now().toString(), ...data, createdAt: now });
+  }
+  saveKbData();
+  renderKbBoard();
+  document.getElementById('kbAddOverlay').classList.remove('open');
+}
+
+function openKbDetail(id) {
+  window._kbDetailId = id;
+  const c = kbCustomers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('kbDetailName').textContent = c.name;
+  const urgMap = { high:'🔴 高', mid:'🟡 中', low:'🟢 低' };
+  document.getElementById('kbDetailStages').innerHTML = KB_STAGES.map((s,i) =>
+    `<button class="kb-stage-btn${c.stage===i?' active':''}" onclick="setKbStage('${id}',${i})">${s}</button>`
+  ).join('');
+  document.getElementById('kbDetailInfo').innerHTML = `
+    <div class="kb-detail-row"><span class="kb-detail-label">病院名</span><span class="kb-detail-val">${kbEsc(c.hospital||'—')}</span></div>
+    <div class="kb-detail-row"><span class="kb-detail-label">代理店</span><span class="kb-detail-val">${kbEsc(c.agency||'—')}</span></div>
+    <div class="kb-detail-row"><span class="kb-detail-label">売上</span><span class="kb-detail-val">${c.amount?c.amount+' 万円':'—'}</span></div>
+    <div class="kb-detail-row"><span class="kb-detail-label">次回アクション</span><span class="kb-detail-val">${c.nextActionDate||'—'}</span></div>
+    <div class="kb-detail-row"><span class="kb-detail-label">優先度</span><span class="kb-detail-val">${urgMap[c.urgency]||'—'}</span></div>
+  `;
+  document.getElementById('kbDetailMemo').value = c.memo || '';
+  document.getElementById('kbDetailOverlay').classList.add('open');
+}
+
+function closeKbDetail(e) {
+  if (e && e.target !== document.getElementById('kbDetailOverlay')) return;
+  document.getElementById('kbDetailOverlay').classList.remove('open');
+}
+
+function setKbStage(id, stage) {
+  const c = kbCustomers.find(x => x.id === id);
+  if (!c) return;
+  c.stage = stage;
+  c.updatedAt = new Date().toISOString();
+  saveKbData();
+  renderKbBoard();
+  document.querySelectorAll('#kbDetailStages .kb-stage-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === stage);
+  });
+}
+
+function saveKbDetail() {
+  const c = kbCustomers.find(x => x.id === window._kbDetailId);
+  if (!c) return;
+  c.memo = document.getElementById('kbDetailMemo').value.trim();
+  c.updatedAt = new Date().toISOString();
+  saveKbData();
+  renderKbBoard();
+  document.getElementById('kbDetailOverlay').classList.remove('open');
+}
+
+function deleteKbCustomer() {
+  if (!confirm('この顧客を削除しますか？')) return;
+  kbCustomers = kbCustomers.filter(x => x.id !== window._kbDetailId);
+  saveKbData();
+  renderKbBoard();
+  document.getElementById('kbDetailOverlay').classList.remove('open');
+}
+
+function kbExport() {
+  const json = JSON.stringify({ customers: kbCustomers }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'neuronav_kanban_' + new Date().toISOString().split('T')[0] + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 </script>
 </body>
