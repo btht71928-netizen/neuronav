@@ -1,13 +1,12 @@
-const CACHE = 'neuronav-v3';
+const CACHE = 'neuronav-v5';
 const ASSETS = ['./index.html', './manifest.json'];
 
-// インストール時：キャッシュを保存するが自動でskipWaitingしない
-// → アプリ側からメッセージを受けた時だけ更新する（ユーザー操作で更新）
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(ASSETS))
   );
-  // self.skipWaiting() は呼ばない → waitingになりアプリ側で検知できるようにする
+  // 即時有効化（古いSWを待たず新しいSWに切り替え）
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
@@ -19,17 +18,16 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// アプリから「今すぐ更新」ボタンを押した時にメッセージを受信してskipWaiting
+// アプリから「今すぐ更新」ボタンを押した時のメッセージも受け付ける
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// ネットワーク優先→キャッシュフォールバック（常に最新を取得しようとする）
+// ナビゲーションはネットワーク優先（常に最新のindex.htmlを取得）
 self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
-    // ページ遷移はネットワーク優先でキャッシュ更新
     e.respondWith(
       fetch(e.request).then(res => {
         const clone = res.clone();

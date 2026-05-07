@@ -311,29 +311,17 @@
 
 <script>
 (function(){
-  const PW = 'Yuki6211';
+  const PW    = 'Yuki6211';
   const RP_ID = 'btht71928-netizen.github.io';
-
-  // ─── 認証済みならロック画面をスキップ ───
-  if (sessionStorage.getItem('nn_auth') === 'ok') {
-    document.getElementById('lockScreen').style.display = 'none';
-  } else {
-    // Face ID が登録済みかつブラウザ対応なら自動起動
-    if (localStorage.getItem('nn_faceid_enabled') === 'true' && window.PublicKeyCredential) {
-      document.getElementById('faceIdSection').style.display = 'flex';
-      setTimeout(loginWithFaceId, 400); // 少し待ってから自動起動
-    }
-  }
 
   // ─── アプリロック解除（共通処理） ───
   function unlockApp() {
     sessionStorage.setItem('nn_auth', 'ok');
     document.getElementById('lockScreen').style.display = 'none';
-    // 初回パスワードログイン時にFace ID登録を提案
     if (localStorage.getItem('nn_faceid_enabled') !== 'true'
-        && localStorage.getItem('nn_faceid_skip') !== 'true'
+        && localStorage.getItem('nn_faceid_skip')  !== 'true'
         && window.PublicKeyCredential) {
-      setTimeout(offerFaceIdSetup, 600);
+      setTimeout(offerFaceIdSetup, 800);
     }
   }
 
@@ -347,7 +335,7 @@
       errEl.style.display = 'block';
       document.getElementById('lockInput').value = '';
       document.getElementById('lockInput').focus();
-      setTimeout(() => { errEl.style.display = 'none'; }, 3000);
+      setTimeout(function(){ errEl.style.display = 'none'; }, 3000);
     }
   };
 
@@ -357,22 +345,21 @@
     if (!credIdBase64 || !window.PublicKeyCredential) return;
     const msgEl = document.getElementById('lockMsg');
     const btn   = document.getElementById('faceIdBtn');
-    if (btn) btn.style.opacity = '0.6';
-    msgEl.textContent = '顔認証中...';
-    msgEl.style.display = 'block';
     try {
-      const credIdBytes = Uint8Array.from(atob(credIdBase64), c => c.charCodeAt(0));
+      if (btn) btn.style.opacity = '0.6';
+      msgEl.textContent = '顔認証中...';
+      msgEl.style.display = 'block';
+      const credIdBytes = Uint8Array.from(atob(credIdBase64), function(c){ return c.charCodeAt(0); });
       const challenge   = crypto.getRandomValues(new Uint8Array(32));
       await navigator.credentials.get({
         publicKey: {
-          challenge,
+          challenge: challenge,
           rpId: RP_ID,
           allowCredentials: [{ type: 'public-key', id: credIdBytes }],
           userVerification: 'required',
           timeout: 60000
         }
       });
-      // ✅ Face ID 成功
       msgEl.style.display = 'none';
       unlockApp();
     } catch(e) {
@@ -383,44 +370,39 @@
 
   // ─── Face ID 初回登録を提案 ───
   async function offerFaceIdSetup() {
-    const ok = confirm('Face IDでのロック解除を有効にしますか？\n\n次回から暗証番号なしで顔認証で素早くアクセスできます。');
-    if (!ok) {
-      localStorage.setItem('nn_faceid_skip', 'true');
-      return;
-    }
+    const ok = confirm('Face IDでのロック解除を有効にしますか？\n\n次回から顔認証で素早くアクセスできます。');
+    if (!ok) { localStorage.setItem('nn_faceid_skip', 'true'); return; }
     try {
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const userId    = crypto.getRandomValues(new Uint8Array(16));
+      const challenge  = crypto.getRandomValues(new Uint8Array(32));
+      const userId     = crypto.getRandomValues(new Uint8Array(16));
       const credential = await navigator.credentials.create({
         publicKey: {
-          challenge,
+          challenge: challenge,
           rp: { id: RP_ID, name: 'NeuroNav' },
           user: { id: userId, name: 'neuronav-user', displayName: 'NeuroNav' },
           pubKeyCredParams: [
-            { type: 'public-key', alg: -7 },   // ES256
-            { type: 'public-key', alg: -257 }  // RS256
+            { type: 'public-key', alg: -7 },
+            { type: 'public-key', alg: -257 }
           ],
           authenticatorSelection: {
-            authenticatorAttachment: 'platform', // デバイス内蔵（Face ID / Touch ID）
+            authenticatorAttachment: 'platform',
             userVerification: 'required',
             residentKey: 'preferred'
           },
           timeout: 60000
         }
       });
-      // 資格情報IDを保存
       const rawId = new Uint8Array(credential.rawId);
-      localStorage.setItem('nn_faceid_credId', btoa(String.fromCharCode(...rawId)));
+      localStorage.setItem('nn_faceid_credId', btoa(String.fromCharCode.apply(null, rawId)));
       localStorage.setItem('nn_faceid_enabled', 'true');
       localStorage.removeItem('nn_faceid_skip');
-      alert('✅ Face IDが有効になりました！\n次回からは顔認証でロック解除できます。\n\n暗証番号はバックアップとして引き続き使えます。');
+      alert('✅ Face IDが有効になりました！\n次回からは顔認証でログインできます。\n（暗証番号もバックアップとして使えます）');
     } catch(e) {
-      // キャンセルまたはエラー
       localStorage.setItem('nn_faceid_skip', 'true');
     }
   }
 
-  // ─── Face ID 設定リセット（アプリ内から呼び出す用） ───
+  // ─── Face ID 設定リセット ───
   window.resetFaceId = function() {
     if (!confirm('Face IDの登録を解除しますか？')) return;
     localStorage.removeItem('nn_faceid_enabled');
@@ -428,6 +410,15 @@
     localStorage.removeItem('nn_faceid_skip');
     alert('Face IDの登録を解除しました。次回ログイン時に再登録を提案します。');
   };
+
+  // ─── 起動時の認証チェック（全関数定義後に実行） ───
+  if (sessionStorage.getItem('nn_auth') === 'ok') {
+    document.getElementById('lockScreen').style.display = 'none';
+  } else if (localStorage.getItem('nn_faceid_enabled') === 'true' && window.PublicKeyCredential) {
+    // Face ID登録済み → ボタン表示＋自動起動（loginWithFaceIdは定義済み）
+    document.getElementById('faceIdSection').style.display = 'flex';
+    setTimeout(window.loginWithFaceId, 400);
+  }
 
 })();
 </script>
@@ -2173,7 +2164,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.07d';
+const APP_VERSION = '2026.05.07e';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
