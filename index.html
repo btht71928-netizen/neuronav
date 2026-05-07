@@ -254,6 +254,43 @@
     .gsync-status { font-size:12px; margin-top:8px; min-height:18px; color:var(--text-sub); }
     .auto-sync-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:12px; color:var(--text-sub); cursor:pointer; }
     .auto-sync-row input { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
+    /* ===== GUIDE PAGE ===== */
+    .guide-wrap { padding:14px 14px 20px; }
+    .guide-hero { background:linear-gradient(135deg,#1565C0,#0D47A1); border-radius:16px; padding:20px 18px 18px; margin-bottom:16px; color:#fff; }
+    .guide-hero-title { font-size:18px; font-weight:800; margin-bottom:4px; line-height:1.3; }
+    .guide-hero-sub { font-size:12px; opacity:0.8; }
+    .guide-section { background:var(--card); border-radius:14px; margin-bottom:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+    .guide-sec-hd { display:flex; align-items:center; gap:10px; padding:14px 16px 12px; cursor:pointer; user-select:none; -webkit-user-select:none; }
+    .guide-sec-icon { font-size:22px; flex-shrink:0; }
+    .guide-sec-title { font-size:14px; font-weight:700; color:var(--text); flex:1; }
+    .guide-sec-arrow { font-size:18px; color:var(--text-sub); transition:transform 0.2s; }
+    .guide-sec-arrow.open { transform:rotate(90deg); }
+    .guide-sec-body { display:none; padding:0 16px 16px; }
+    .guide-sec-body.open { display:block; }
+    .guide-step { display:flex; gap:10px; margin-bottom:14px; align-items:flex-start; }
+    .guide-step:last-child { margin-bottom:0; }
+    .guide-step-num { width:24px; height:24px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; margin-top:1px; }
+    .guide-step-content { flex:1; }
+    .guide-step-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+    .guide-step-desc { font-size:12px; color:var(--text-sub); line-height:1.7; }
+    .guide-code { background:#0D1117; border-radius:10px; padding:12px 14px; margin:8px 0; position:relative; }
+    .guide-code code { font-family:'Menlo','Courier New',monospace; font-size:12px; color:#E6EDF3; display:block; white-space:pre; overflow-x:auto; line-height:1.6; }
+    .guide-copy-btn { position:absolute; top:8px; right:8px; background:rgba(255,255,255,0.12); border:none; color:#aaa; font-size:11px; padding:4px 8px; border-radius:6px; cursor:pointer; }
+    .guide-copy-btn:active { background:rgba(255,255,255,0.25); }
+    .guide-note { font-size:12px; color:var(--text-sub); background:var(--bg); border-radius:8px; padding:10px 12px; margin:6px 0; line-height:1.7; border-left:3px solid var(--primary); }
+    .guide-li { font-size:13px; color:var(--text); line-height:1.8; padding-left:14px; position:relative; }
+    .guide-li::before { content:'•'; position:absolute; left:0; color:var(--primary); }
+    .guide-qa { border-top:1px solid var(--border); padding:12px 0 0; }
+    .guide-qa:first-child { border-top:none; padding-top:0; }
+    .guide-q { font-size:13px; font-weight:700; color:var(--primary); margin-bottom:4px; }
+    .guide-a { font-size:12px; color:var(--text-sub); line-height:1.7; margin-bottom:12px; }
+    .guide-flow { background:#F0F9FF; border-radius:10px; padding:14px 16px; }
+    .guide-flow-item { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .guide-flow-item:last-child { margin-bottom:0; }
+    .guide-flow-num { width:22px; height:22px; background:#1565C0; color:#fff; border-radius:50%; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .guide-flow-text { font-size:12px; color:#1565C0; font-weight:600; flex:1; }
+    .guide-flow-arrow { font-size:14px; color:#93C5FD; }
+    .guide-tag { display:inline-block; background:#DBEAFE; color:#1E40AF; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-right:4px; }
   </style>
 </head>
 <body>
@@ -497,6 +534,212 @@
       <div id="favList"></div>
     </div>
 
+    <!-- ガイド -->
+    <div id="pageGuide" class="page">
+      <div class="guide-wrap">
+
+        <!-- ヒーロー -->
+        <div class="guide-hero">
+          <div style="font-size:11px;opacity:0.7;margin-bottom:6px;font-weight:600;">📘 GUIDE</div>
+          <div class="guide-hero-title">Claude Codeで<br>営業カンバンツールを作る方法</div>
+          <div class="guide-hero-sub" style="margin-top:8px;">〜 初心者向け完全ガイド 〜</div>
+        </div>
+
+        <!-- 1. Claude Codeとは -->
+        <div class="guide-section">
+          <div class="guide-sec-hd" onclick="toggleGuide('g1')">
+            <div class="guide-sec-icon">🤖</div>
+            <div class="guide-sec-title">1. Claude Codeとは？</div>
+            <div class="guide-sec-arrow" id="arr_g1">›</div>
+          </div>
+          <div class="guide-sec-body" id="g1">
+            <div class="guide-note">
+              AIアシスタント「Claude」をターミナル（黒い画面）から使えるツールです。<br><br>
+              「こんなアプリを作って」と<strong>日本語で指示するだけ</strong>で、Claudeが自動でコードを書いて実行してくれます。
+            </div>
+            <div class="guide-li">プログラミングの知識がなくても大丈夫</div>
+            <div class="guide-li" style="margin-top:4px;">やりたいことを言葉で説明するだけでアプリが完成</div>
+          </div>
+        </div>
+
+        <!-- 2. 事前準備 -->
+        <div class="guide-section">
+          <div class="guide-sec-hd" onclick="toggleGuide('g2')">
+            <div class="guide-sec-icon">⚙️</div>
+            <div class="guide-sec-title">2. 事前準備（インストール）</div>
+            <div class="guide-sec-arrow" id="arr_g2">›</div>
+          </div>
+          <div class="guide-sec-body" id="g2">
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">必要なもの</div>
+            <div class="guide-li">パソコン（Windows / Mac / Linux）</div>
+            <div class="guide-li" style="margin-top:4px;">インターネット接続</div>
+            <div class="guide-li" style="margin-top:4px;">Anthropicのアカウント（<span class="guide-tag">claude.ai</span> で無料作成可）</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin:14px 0 10px;">インストール手順</div>
+            <div class="guide-step">
+              <div class="guide-step-num">①</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">Node.js をインストール</div>
+                <div class="guide-step-desc">Claude Codeを動かすために必要な土台ソフトです。<br>公式サイトから「LTS版」をダウンロードしてインストール。</div>
+                <div class="guide-code"><code>https://nodejs.org</code><button class="guide-copy-btn" onclick="copyGuide(this,'https://nodejs.org')">コピー</button></div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-num">②</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">ターミナルを開く</div>
+                <div class="guide-step-desc">
+                  <span class="guide-tag">Windows</span> スタートメニュー → 「PowerShell」を検索<br>
+                  <span class="guide-tag">Mac</span> Launchpad → 「ターミナル」を開く
+                </div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-num">③</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">Claude Code をインストール</div>
+                <div class="guide-step-desc">ターミナルに以下を入力してEnterキーを押します。</div>
+                <div class="guide-code"><code>npm install -g @anthropic-ai/claude-code</code><button class="guide-copy-btn" onclick="copyGuide(this,'npm install -g @anthropic-ai/claude-code')">コピー</button></div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-num">④</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">ログインする</div>
+                <div class="guide-step-desc">以下のコマンドを入力するとブラウザが開き、Anthropicのログイン画面が表示されます。</div>
+                <div class="guide-code"><code>claude</code><button class="guide-copy-btn" onclick="copyGuide(this,'claude')">コピー</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. カンバン作成手順 -->
+        <div class="guide-section">
+          <div class="guide-sec-hd" onclick="toggleGuide('g3')">
+            <div class="guide-sec-icon">🛠️</div>
+            <div class="guide-sec-title">3. 営業カンバンツールを作る手順</div>
+            <div class="guide-sec-arrow" id="arr_g3">›</div>
+          </div>
+          <div class="guide-sec-body" id="g3">
+            <div class="guide-step">
+              <div class="guide-step-num">1</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">作業フォルダを作る</div>
+                <div class="guide-code"><code>mkdir sales-kanban
+cd sales-kanban</code><button class="guide-copy-btn" onclick="copyGuide(this,'mkdir sales-kanban\ncd sales-kanban')">コピー</button></div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-num">2</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">Claude Code を起動する</div>
+                <div class="guide-code"><code>claude</code><button class="guide-copy-btn" onclick="copyGuide(this,'claude')">コピー</button></div>
+                <div class="guide-step-desc"><code style="background:#E8F4FD;color:#1565C0;padding:1px 5px;border-radius:4px;font-size:11px;">&gt;</code> というプロンプトが表示されたら会話できる状態です。</div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-num">3</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">Claudeに指示を出す</div>
+                <div class="guide-step-desc">以下の文章をそのままコピーして貼り付け、Enterを押します。</div>
+                <div class="guide-code" style="margin-top:8px;"><code>以下の仕様でWebブラウザで動く営業管理カンバンツールをHTML/CSS/JavaScriptで1つのファイルとして作成してください。
+
+【機能要件】
+- 商談ステージを「初回接触」「提案中」「交渉中」「成約」の4列で管理するカンバンボード
+- 各顧客カードには「医師名」「病院名」「取引先代理店」「売上金額（万円）」「次回アクション日」「メモ」「優先度（高/中/低）」を表示する
+- 顧客カードをクリックすると詳細が確認でき、ステージを変更できる
+- 画面上部にサマリー統計（顧客数・商談中件数・成約件数・売上合計）を表示する
+- 「顧客を追加」ボタンから新しい顧客を登録できる
+- データはブラウザのlocalStorageに保存し、ページを閉じても消えないようにする
+- デザインはシンプルで使いやすく、スマートフォンでも見やすいレスポンシブデザインにする
+
+ファイル名は kanban.html としてください。</code><button class="guide-copy-btn" onclick="copyGuide(this,`以下の仕様でWebブラウザで動く営業管理カンバンツールをHTML/CSS/JavaScriptで1つのファイルとして作成してください。\n\n【機能要件】\n- 商談ステージを「初回接触」「提案中」「交渉中」「成約」の4列で管理するカンバンボード\n- 各顧客カードには「医師名」「病院名」「取引先代理店」「売上金額（万円）」「次回アクション日」「メモ」「優先度（高/中/低）」を表示する\n- 顧客カードをクリックすると詳細が確認でき、ステージを変更できる\n- 画面上部にサマリー統計（顧客数・商談中件数・成約件数・売上合計）を表示する\n- 「顧客を追加」ボタンから新しい顧客を登録できる\n- データはブラウザのlocalStorageに保存し、ページを閉じても消えないようにする\n- デザインはシンプルで使いやすく、スマートフォンでも見やすいレスポンシブデザインにする\n\nファイル名は kanban.html としてください。`)">コピー</button></div>
+              </div>
+            </div>
+            <div class="guide-step">
+              <div class="guide-step-num">4</div>
+              <div class="guide-step-content">
+                <div class="guide-step-title">完成したファイルを開く</div>
+                <div class="guide-step-desc">同じフォルダに <code style="background:#E8F4FD;color:#1565C0;padding:1px 5px;border-radius:4px;font-size:11px;">kanban.html</code> が生成されます。ダブルクリックするとブラウザで開きます。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. カスタマイズ -->
+        <div class="guide-section">
+          <div class="guide-sec-hd" onclick="toggleGuide('g4')">
+            <div class="guide-sec-icon">✨</div>
+            <div class="guide-sec-title">4. カスタマイズする方法</div>
+            <div class="guide-sec-arrow" id="arr_g4">›</div>
+          </div>
+          <div class="guide-sec-body" id="g4">
+            <div class="guide-note">完成後に機能を追加したい場合も、Claude Codeに日本語で追加指示するだけです。</div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin:10px 0 6px;">🔍 検索機能を追加したい場合</div>
+            <div class="guide-code"><code>kanban.html に顧客名・病院名でリアルタイム検索できる検索バーを追加してください</code><button class="guide-copy-btn" onclick="copyGuide(this,'kanban.html に顧客名・病院名でリアルタイム検索できる検索バーを追加してください')">コピー</button></div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin:10px 0 6px;">📤 CSV書き出し機能を追加したい場合</div>
+            <div class="guide-code"><code>kanban.html に全顧客データをCSVファイルとしてダウンロードできるボタンを追加してください</code><button class="guide-copy-btn" onclick="copyGuide(this,'kanban.html に全顧客データをCSVファイルとしてダウンロードできるボタンを追加してください')">コピー</button></div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin:10px 0 6px;">📊 売上グラフを追加したい場合</div>
+            <div class="guide-code"><code>kanban.html の上部に、ステージ別の売上合計を棒グラフで表示する機能を追加してください</code><button class="guide-copy-btn" onclick="copyGuide(this,'kanban.html の上部に、ステージ別の売上合計を棒グラフで表示する機能を追加してください')">コピー</button></div>
+          </div>
+        </div>
+
+        <!-- 5. よくある質問 -->
+        <div class="guide-section">
+          <div class="guide-sec-hd" onclick="toggleGuide('g5')">
+            <div class="guide-sec-icon">❓</div>
+            <div class="guide-sec-title">5. よくある質問</div>
+            <div class="guide-sec-arrow" id="arr_g5">›</div>
+          </div>
+          <div class="guide-sec-body" id="g5">
+            <div class="guide-qa">
+              <div class="guide-q">Q. コードがよくわからないが大丈夫？</div>
+              <div class="guide-a">大丈夫です。Claude Codeは「やりたいこと」を日本語で伝えるだけでコードを書いてくれます。コードを読む必要はありません。</div>
+            </div>
+            <div class="guide-qa">
+              <div class="guide-q">Q. データはどこに保存される？</div>
+              <div class="guide-a">ブラウザの「localStorage（ローカルストレージ）」を使うため、データは自分のパソコンの中だけに保存されます。インターネットには一切送信されません。</div>
+            </div>
+            <div class="guide-qa">
+              <div class="guide-q">Q. うまく動かないときは？</div>
+              <div class="guide-a">Claude Codeに「〇〇が動かないので直してください」と伝えると、Claudeが原因を調べて自動で修正してくれます。</div>
+            </div>
+            <div class="guide-qa">
+              <div class="guide-q">Q. 複数のパソコンで使いたい場合は？</div>
+              <div class="guide-a">作成された kanban.html ファイルをUSBメモリやクラウドストレージ（Dropboxなど）でコピーすれば、別のパソコンでも同じツールが使えます。ただしデータはパソコンごとに別々に保存されます。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. まとめ -->
+        <div class="guide-section">
+          <div class="guide-sec-hd" onclick="toggleGuide('g6')">
+            <div class="guide-sec-icon">🗺️</div>
+            <div class="guide-sec-title">6. まとめ：作業の全体像</div>
+            <div class="guide-sec-arrow" id="arr_g6">›</div>
+          </div>
+          <div class="guide-sec-body" id="g6">
+            <div class="guide-flow">
+              <div class="guide-flow-item"><div class="guide-flow-num">1</div><div class="guide-flow-text">Node.js をインストール</div></div>
+              <div class="guide-flow-item" style="padding-left:11px;margin-bottom:4px;"><div class="guide-flow-arrow">↓</div></div>
+              <div class="guide-flow-item"><div class="guide-flow-num">2</div><div class="guide-flow-text">ターミナルで claude-code をインストール</div></div>
+              <div class="guide-flow-item" style="padding-left:11px;margin-bottom:4px;"><div class="guide-flow-arrow">↓</div></div>
+              <div class="guide-flow-item"><div class="guide-flow-num">3</div><div class="guide-flow-text">claude コマンドで起動・ログイン</div></div>
+              <div class="guide-flow-item" style="padding-left:11px;margin-bottom:4px;"><div class="guide-flow-arrow">↓</div></div>
+              <div class="guide-flow-item"><div class="guide-flow-num">4</div><div class="guide-flow-text">日本語で「営業カンバンを作って」と指示</div></div>
+              <div class="guide-flow-item" style="padding-left:11px;margin-bottom:4px;"><div class="guide-flow-arrow">↓</div></div>
+              <div class="guide-flow-item"><div class="guide-flow-num">5</div><div class="guide-flow-text">kanban.html が自動生成される</div></div>
+              <div class="guide-flow-item" style="padding-left:11px;margin-bottom:4px;"><div class="guide-flow-arrow">↓</div></div>
+              <div class="guide-flow-item"><div class="guide-flow-num">6</div><div class="guide-flow-text">ダブルクリックしてブラウザで開く</div></div>
+              <div class="guide-flow-item" style="padding-left:11px;margin-bottom:4px;"><div class="guide-flow-arrow">↓</div></div>
+              <div class="guide-flow-item"><div class="guide-flow-num">7</div><div class="guide-flow-text">追加機能もClaude Codeに頼むだけ</div></div>
+            </div>
+            <div class="guide-note" style="margin-top:12px;">プログラミング経験ゼロでも、このガイドの通りに進めれば自分専用の営業ツールが完成します。まずはステップ1から試してみてください！</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- 医師 -->
     <div id="pageDoctor" class="page">
       <div class="dsearch-toggle">
@@ -603,6 +846,14 @@
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
     </svg>
     <span>★</span>
+  </div>
+  <div class="nb" id="nbGuide" onclick="switchTab('guide')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span>ガイド</span>
   </div>
 </div>
 
@@ -1336,7 +1587,7 @@ let aFilter = 'all';
 let favs = JSON.parse(localStorage.getItem('nn_favs') || '[]');
 let sq = '';
 
-const ALL_TABS = ['vessel','competitor','abbr','doctor','favorites'];
+const ALL_TABS = ['vessel','competitor','abbr','doctor','favorites','guide'];
 
 // ============================================================
 // INIT
@@ -1732,6 +1983,37 @@ function renderFavs() {
 // ============================================================
 function toggleHelp() { document.getElementById('helpOverlay').classList.toggle('open'); }
 function closeHelp(e) { if (e.target === document.getElementById('helpOverlay')) toggleHelp(); }
+
+// ============================================================
+// GUIDE - アコーディオン開閉・コードコピー
+// ============================================================
+function toggleGuide(id) {
+  const body = document.getElementById(id);
+  const arr  = document.getElementById('arr_' + id);
+  if (!body) return;
+  const isOpen = body.classList.toggle('open');
+  if (arr) arr.classList.toggle('open', isOpen);
+}
+
+function copyGuide(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ コピー済';
+    btn.style.background = 'rgba(100,255,150,0.25)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 2000);
+  }).catch(() => {
+    // フォールバック
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    btn.textContent = '✓ コピー済';
+    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+  });
+}
 
 // ============================================================
 // VESSEL DIAGRAMS (SVG模式図)
@@ -2164,7 +2446,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.07e';
+const APP_VERSION = '2026.05.07f';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
