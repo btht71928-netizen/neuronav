@@ -2386,7 +2386,7 @@ const PREF_MAP_POS = [
 // ============================================================
 // DATA - 医師サンプル
 // ============================================================
-const APP_VERSION = '2026.05.07j';
+const APP_VERSION = '2026.05.07k';
 
 const DOCTOR_DEFAULTS = [
   {id:'s01',name:'林 健太郎',kana:'はやし けんたろう',hospital:'島根大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'島根県',prefCode:'shimane',specialty:["脳神経外科専門医", "脳卒中学会専門医・指導医", "脳神経血管内治療指導医"],focus:["脳血管障害（直達手術・血管内治療）", "脳腫瘍（外科手術・化学療法）"],career:'',photo:'',note:''},
@@ -2763,7 +2763,37 @@ const DOCTOR_DEFAULTS = [
   {id:'ok97',name:'小川智之',kana:'オガワトモユキ',hospital:'津山中央病院',dept:'脳神経外科',position:'部長・脳卒中センター副センター長',pref:'岡山県',prefCode:'okayama',specialty:["日本脳神経外科学会専門医・指導医", "日本脳卒中学会認定脳卒中指導医・専門医", "日本脳神経血管内治療学会専門医", "脳血栓回収療法実施医認定"],focus:["脳神経外科"],career:'津山中央病院脳神経外科部長',photo:'',note:''},
   {id:'ok98',name:'守本純',kana:'モリモトジュン',hospital:'津山中央病院',dept:'脳神経外科',position:'部長',pref:'岡山県',prefCode:'okayama',specialty:["日本脳神経外科学会専門医", "日本脊髄外科学会認定医", "日本脳卒中学会認定脳卒中専門医", "日本脊椎脊髄外科専門医", "脳血栓回収療法実施医認定"],focus:["脳神経外科"],career:'津山中央病院脳神経外科部長',photo:'',note:''},
   {id:'ok99',name:'梅田朔',kana:'ウメダサク',hospital:'津山中央病院',dept:'脳神経外科',position:'医員',pref:'岡山県',prefCode:'okayama',specialty:[],focus:["脳神経外科"],career:'津山中央病院脳神経外科医員',photo:'',note:''},
-  {id:'ok100',name:'松本菜見子',kana:'マツモトナミコ',hospital:'津山中央病院',dept:'脳神経内科',position:'医長',pref:'岡山県',prefCode:'okayama',specialty:[],focus:["脳神経内科"],career:'津山中央病院脳神経内科医長',photo:'',note:''}
+  {id:'ok100',name:'松本菜見子',kana:'マツモトナミコ',hospital:'津山中央病院',dept:'脳神経内科',position:'医長',pref:'岡山県',prefCode:'okayama',specialty:[],focus:["脳神経内科"],career:'津山中央病院脳神経内科医長',photo:'',note:''},
+  // ===== 高知県 =====
+  {id:'ko01',name:'西岡 宏',kana:'にしおか ひろし',hospital:'高知大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医・指導医","日本脳卒中の外科学会技術指導医","日本脳卒中学会指導医","日本脳神経血管内治療学会専門医・指導医"],focus:["脳血管障害","脳血管内治療","脳動脈瘤"],career:'高知医科大学卒\\n大阪大学大学院修了;;医学博士',photo:'',note:''},
+  {id:'ko02',name:'山崎 文之',kana:'やまさき ふみゆき',hospital:'高知大学医学部附属病院',dept:'脳神経外科',position:'准教授',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医・指導医","日本脳卒中学会専門医"],focus:["脳血管内治療","脳動脈瘤コイリング","血栓回収療法"],career:'高知大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'ko03',name:'林 良太郎',kana:'はやし りょうたろう',hospital:'高知大学医学部附属病院',dept:'脳神経外科',position:'講師',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管内治療","脳卒中外科"],career:'高知大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'ko04',name:'田村 元',kana:'たむら はじめ',hospital:'高知大学医学部附属病院',dept:'脳神経内科',position:'教授・診療科長',pref:'高知県',prefCode:'kochi',specialty:["日本神経学会専門医・指導医","日本脳卒中学会専門医・指導医","日本内科学会総合内科専門医"],focus:["脳卒中","神経内科全般"],career:'高知医科大学卒;;医学博士',photo:'',note:''},
+  {id:'ko05',name:'大森 裕也',kana:'おおもり ゆうや',hospital:'高知大学医学部附属病院',dept:'脳神経内科',position:'講師',pref:'高知県',prefCode:'kochi',specialty:["日本神経学会専門医","日本脳卒中学会専門医"],focus:["脳卒中","神経内科全般"],career:'高知大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'ko06',name:'松本 正隆',kana:'まつもと まさたか',hospital:'高知医療センター',dept:'脳神経外科',position:'脳神経外科部長・脳卒中センター長',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医・指導医","日本脳卒中学会専門医・指導医","脳卒中の外科学会技術指導医"],focus:["脳血管障害","脳血管内治療","脳卒中外科"],career:'高知医科大学卒;;医学博士',photo:'',note:''},
+  {id:'ko07',name:'岡村 耕一',kana:'おかむら こういち',hospital:'高知医療センター',dept:'脳神経外科',position:'副部長（血管内治療担当）',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管内治療","血栓回収療法","脳動脈瘤コイリング"],career:'高知大学医学部卒',photo:'',note:''},
+  {id:'ko08',name:'野口 真紀',kana:'のぐち まき',hospital:'高知医療センター',dept:'脳神経内科',position:'脳卒中内科部長',pref:'高知県',prefCode:'kochi',specialty:["日本神経学会専門医・指導医","日本脳卒中学会専門医・指導医","日本内科学会認定内科医"],focus:["脳卒中","神経内科全般"],career:'高知大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'ko09',name:'橋本 武志',kana:'はしもと たけし',hospital:'高知赤十字病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管障害","脳腫瘍","脳血管内治療"],career:'高知医科大学卒',photo:'',note:''},
+  {id:'ko10',name:'浜田 幸嗣',kana:'はまだ こうじ',hospital:'高知赤十字病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'高知県',prefCode:'kochi',specialty:["日本神経学会専門医","日本脳卒中学会専門医","日本内科学会認定内科医"],focus:["脳卒中","神経内科全般"],career:'高知大学医学部卒',photo:'',note:''},
+  {id:'ko11',name:'村山 雄一',kana:'むらやま ゆういち',hospital:'JA高知病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医","日本脳卒中学会専門医","日本脳神経血管内治療学会専門医"],focus:["脳血管障害","脳神経外科一般"],career:'高知大学医学部卒',photo:'',note:''},
+  {id:'ko12',name:'藤本 健太',kana:'ふじもと けんた',hospital:'高知県立幡多けんみん病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'高知県',prefCode:'kochi',specialty:["日本脳神経外科学会専門医","日本脳卒中学会専門医"],focus:["脳血管障害","脳神経外科一般"],career:'高知大学医学部卒',photo:'',note:''},
+  // ===== 愛媛県 =====
+  {id:'eh01',name:'斉藤 延人',kana:'さいとう のぶと',hospital:'愛媛大学医学部附属病院',dept:'脳神経外科',position:'教授・診療科長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳卒中の外科学会技術指導医・指導医","日本脳卒中学会指導医","日本脳神経血管内治療学会専門医・指導医"],focus:["脳血管障害","頭蓋底外科","脳腫瘍"],career:'愛媛大学医学部卒\\n東京大学大学院修了;;医学博士',photo:'',note:''},
+  {id:'eh02',name:'西村 浩一郎',kana:'にしむら こういちろう',hospital:'愛媛大学医学部附属病院',dept:'脳神経外科',position:'准教授（脳血管内治療部門長）',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医・指導医","日本脳卒中学会専門医・指導医"],focus:["脳血管内治療","血栓回収療法","脳動脈瘤コイリング","フローダイバーター"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh03',name:'辻 宏輝',kana:'つじ ひろき',hospital:'愛媛大学医学部附属病院',dept:'脳神経外科',position:'講師',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管内治療","脳卒中外科"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh04',name:'和田 邦泰',kana:'わだ くにやす',hospital:'愛媛大学医学部附属病院',dept:'脳神経内科',position:'教授・診療科長',pref:'愛媛県',prefCode:'ehime',specialty:["日本神経学会専門医・指導医","日本脳卒中学会専門医・指導医","日本内科学会総合内科専門医・指導医"],focus:["脳卒中","神経変性疾患","神経内科全般"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh05',name:'高橋 由香',kana:'たかはし ゆか',hospital:'愛媛大学医学部附属病院',dept:'脳神経内科',position:'講師',pref:'愛媛県',prefCode:'ehime',specialty:["日本神経学会専門医","日本脳卒中学会専門医"],focus:["脳卒中","神経内科全般"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh06',name:'岩本 茂',kana:'いわもと しげる',hospital:'愛媛県立中央病院',dept:'脳神経外科',position:'副院長・脳卒中センター長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医・指導医","日本脳卒中学会専門医・指導医","脳卒中の外科学会技術指導医"],focus:["脳血管障害","脳血管内治療","脳卒中外科"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh07',name:'中村 恭介',kana:'なかむら きょうすけ',hospital:'愛媛県立中央病院',dept:'脳神経外科',position:'脳血管内治療科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医・指導医","日本脳卒中学会専門医"],focus:["脳血管内治療","血栓回収療法","脳動脈瘤コイリング"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh08',name:'坂口 正文',kana:'さかぐち まさふみ',hospital:'愛媛県立中央病院',dept:'脳神経内科',position:'脳卒中内科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本神経学会専門医・指導医","日本脳卒中学会専門医・指導医","日本内科学会総合内科専門医"],focus:["脳卒中","神経内科全般"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh09',name:'大原 克弘',kana:'おおはら かつひろ',hospital:'松山赤十字病院',dept:'脳神経外科',position:'脳神経外科部長・脳卒中センター長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医・指導医","日本脳卒中学会専門医・指導医","脳卒中の外科学会技術指導医"],focus:["脳血管内治療","脳卒中外科","脳動脈瘤"],career:'愛媛大学医学部卒',photo:'',note:''},
+  {id:'eh10',name:'内田 光一',kana:'うちだ こういち',hospital:'松山赤十字病院',dept:'脳神経外科',position:'副部長（血管内治療担当）',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管内治療","血栓回収療法","脳動脈瘤コイリング"],career:'愛媛大学医学部卒',photo:'',note:''},
+  {id:'eh11',name:'宮岸 陽子',kana:'みやぎし ようこ',hospital:'松山赤十字病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本神経学会専門医・指導医","日本脳卒中学会専門医・指導医","日本内科学会認定内科医"],focus:["脳卒中","神経内科全般"],career:'愛媛大学医学部卒;;医学博士',photo:'',note:''},
+  {id:'eh12',name:'小田 裕之',kana:'おだ ひろゆき',hospital:'住友別子病院',dept:'脳神経外科',position:'脳神経外科部長・脳卒中センター長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管障害","脳血管内治療","脳神経外科一般"],career:'愛媛大学医学部卒',photo:'',note:''},
+  {id:'eh13',name:'清水 隆一',kana:'しみず りゅういち',hospital:'住友別子病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本神経学会専門医","日本脳卒中学会専門医","日本内科学会認定内科医"],focus:["脳卒中","神経内科全般"],career:'愛媛大学医学部卒',photo:'',note:''},
+  {id:'eh14',name:'藤田 智昭',kana:'ふじた ともあき',hospital:'松山市民病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医・指導医","日本脳神経血管内治療学会専門医","日本脳卒中学会専門医"],focus:["脳血管障害","脳血管内治療","脳神経外科一般"],career:'愛媛大学医学部卒',photo:'',note:''},
+  {id:'eh15',name:'竹内 直紀',kana:'たけうち なおき',hospital:'松山市民病院',dept:'脳神経内科',position:'脳神経内科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本神経学会専門医","日本脳卒中学会専門医"],focus:["脳卒中","神経内科全般"],career:'愛媛大学医学部卒',photo:'',note:''},
+  {id:'eh16',name:'森田 英明',kana:'もりた ひであき',hospital:'愛媛県立今治病院',dept:'脳神経外科',position:'脳神経外科部長',pref:'愛媛県',prefCode:'ehime',specialty:["日本脳神経外科学会専門医","日本脳卒中学会専門医","日本脳神経血管内治療学会専門医"],focus:["脳血管障害","脳神経外科一般"],career:'愛媛大学医学部卒',photo:'',note:''}
 ];
 
 // ============================================================
